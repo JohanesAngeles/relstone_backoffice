@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getNumber, verifyPassword } from '../../services/adminAuth';
 import RELSLogo from '../../assets/RELS Logo.png';
+import bgImage from '../../assets/bg.png';
 
 const DIAL_NUMBERS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90];
 
@@ -286,15 +287,15 @@ const styles = {
     backgroundColor: '#091925',
     fontFamily: "'Rajdhani', sans-serif",
   },
-  bgPhoto: {
-    position: 'absolute',
-    inset: 0,
-    backgroundImage: `url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1600&q=80')`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    opacity: 0.2,
-    zIndex: 0,
-  },
+ bgPhoto: {
+  position: 'absolute',
+  inset: 0,
+  backgroundImage: `url(${bgImage})`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  opacity: 0.5,   // ← change from 0.2 to 0.5
+  zIndex: 0,
+},
   bgOverlay: {
     position: 'absolute',
     inset: 0,

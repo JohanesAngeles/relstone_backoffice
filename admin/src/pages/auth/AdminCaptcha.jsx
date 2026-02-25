@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { verifyCaptcha } from '../../services/adminAuth';
 import useAuth from '../../context/useAuth';
 import RELSLogo from '../../assets/RELS Logo.png';
+import bgImage from '../../assets/bg.png';
 
 const AdminCaptcha = () => {
   const navigate  = useNavigate();
@@ -193,10 +194,10 @@ const styles = {
   bgPhoto: {
     position: 'absolute',
     inset: 0,
-    backgroundImage: `url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1600&q=80')`,
+    backgroundImage: `url(${bgImage})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    opacity: 0.2,
+    opacity: 0.5,   // ← change from 0.2 to 0.5
     zIndex: 0,
   },
   bgOverlay: {
