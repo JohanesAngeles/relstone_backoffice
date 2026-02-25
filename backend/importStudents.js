@@ -58,7 +58,7 @@ const Order   = adminDB.model('Order',   orderSchema);
 const Course  = adminDB.model('Course',  courseSchema);
 
 // ── Config ────────────────────────────────────────────────────
-const DATA_ROOT = 'C:\\Users\\User\\Desktop\\Relstone Extracted Data';
+const DATA_ROOT = 'C:\\Users\\Alezzandrei Balbuena\\Downloads\\DATA SETS\\Week 1';
 const BATCH_SIZE = 200; // insert in batches to avoid memory issues
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -175,8 +175,8 @@ const run = async () => {
     if (!fs.statSync(letterPath).isDirectory()) continue;
 
     const files = fs.readdirSync(letterPath)
-      .filter(f => f.endsWith('.xlsx'))
-      .map(f => path.join(letterPath, f));
+  .filter(f => f.endsWith('.xlsx') && !f.includes('_1-4_'))
+  .map(f => path.join(letterPath, f));
 
     allFiles.push(...files);
   }
