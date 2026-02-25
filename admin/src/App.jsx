@@ -5,6 +5,9 @@ import AdminHome       from './pages/AdminHome';
 import AdminLogin      from './pages/auth/AdminLogin';
 import AdminCaptcha    from './pages/auth/AdminCaptcha';
 
+import RealEstate    from './pages/real_estate/RealEstate';
+import StudentDetail from './pages/real_estate/StudentDetail';
+
 function App() {
   return (
     <AuthProvider>
@@ -24,12 +27,19 @@ function App() {
             </ProtectedRoute>
           } />
 
-          {/* Add more protected routes here */}
-          {/* <Route path="/admin/email-lookups" element={
+          <Route path="/admin/real-estate" element={
             <ProtectedRoute>
-              <EmailLookups />
+              <RealEstate />
             </ProtectedRoute>
-          } /> */}
+          } />
+
+          <Route path="/admin/students/:id" element={
+            <ProtectedRoute>
+              <StudentDetail />
+            </ProtectedRoute>
+          } />
+
+          {/* Add more protected routes here */}
 
         </Routes>
       </BrowserRouter>
