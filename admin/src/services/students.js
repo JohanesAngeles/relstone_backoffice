@@ -1,5 +1,5 @@
 // src/services/students.js
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE = 'http://localhost:5000/api';
 
 const authFetch = async (url) => {
   const token = localStorage.getItem('adminToken');
