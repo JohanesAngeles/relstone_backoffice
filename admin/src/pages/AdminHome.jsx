@@ -1,555 +1,336 @@
-import { useState } from 'react';
+// src/pages/AdminHome.jsx
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import AppLayout from '../layouts/AppLayout';
+import { getStats, getActivity, getSystemStatus } from '../services/dashboard';
 
-// ─── Icon Components (inline SVG to avoid extra deps) ────────────────────────
-const Icon = ({ d, size = 18 }) => (
+// ── SVG Icon ──────────────────────────────────────────────────
+const Icon = ({ d, size = 14 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
     stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-    <path d={d} />
+    {d.split(' M').map((p, i) => <path key={i} d={i === 0 ? p : 'M' + p} />)}
   </svg>
 );
 
-const icons = {
-  home:       'M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
-  mail:       'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6',
-  shield:     'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
-  book:       'M4 19.5A2.5 2.5 0 0 1 6.5 17H20 M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z',
-  users:      'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75',
-  chart:      'M18 20V10 M12 20V4 M6 20v-6',
-  bell:       'M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 0 1-3.46 0',
-  settings:   'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z',
-  logout:     'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9',
-  inbox:      'M22 12h-6l-2 3h-4l-2-3H2 M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z',
-  check:      'M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4L12 14.01l-3-3',
-  clock:      'M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z M12 6v6l4 2',
-  file:       'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6',
-  search:     'M11 17.25a6.25 6.25 0 1 1 0-12.5 6.25 6.25 0 0 1 0 12.5z M16 16l4.5 4.5',
-  tag:        'M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z M7 7h.01',
-  globe:      'M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z M2 12h20 M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z',
-  list:       'M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01',
-  externalLink: 'M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6 M15 3h6v6 M10 14L21 3',
+// ── Skeleton ──────────────────────────────────────────────────
+const Skel = ({ w = '100%', h = 14, r = 6 }) => (
+  <div style={{
+    width: w, height: h, borderRadius: r,
+    background: 'linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%)',
+    backgroundSize: '200% 100%', animation: 'shimmer 1.5s infinite',
+  }} />
+);
+
+// ── Time ago ──────────────────────────────────────────────────
+const timeAgo = (d) => {
+  const diff = Date.now() - new Date(d).getTime();
+  const m = Math.floor(diff / 60000), h = Math.floor(diff / 3600000), dy = Math.floor(diff / 86400000);
+  if (m < 1) return 'Just now';
+  if (m < 60) return `${m} minute${m > 1 ? 's' : ''} ago`;
+  if (h < 24) return `${h} hour${h > 1 ? 's' : ''} ago`;
+  return `${dy} day${dy > 1 ? 's' : ''} ago`;
 };
 
-// ─── Sidebar Nav Items ────────────────────────────────────────────────────────
-const navItems = [
-  { label: 'Dashboard',        icon: 'home',     to: '/admin' },
-  { label: 'Email Lookups',    icon: 'mail',     to: '/admin/email-lookups' },
-  { label: 'Promo Discounts',  icon: 'tag',      to: '/admin/promo-discounts' },
-  { label: 'DRE Verify',       icon: 'shield',   to: '/admin/dre-verify' },
-  { label: 'MOM vs. DRE',      icon: 'chart',    to: '/admin/mom-vs-dre' },
-  { label: 'Update DRE Cert',  icon: 'file',     to: '/admin/update-dre-cert' },
-  { label: 'Reports',          icon: 'list',     to: '/admin/reports' },
-  { label: 'Settings',         icon: 'settings', to: '/admin/settings' },
-];
+// ── Activity config ───────────────────────────────────────────
+const actCfg = {
+  exam:        { label: 'NEW',   dot: '#3b82f6', bg: 'rgba(59,130,246,0.1)',  color: '#2563eb' },
+  certificate: { label: 'DONE',  dot: '#10b981', bg: 'rgba(16,185,129,0.1)',  color: '#059669' },
+  order:       { label: 'DONE',  dot: '#10b981', bg: 'rgba(16,185,129,0.1)',  color: '#059669' },
+  admin:       { label: 'INFO',  dot: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  color: '#d97706' },
+  info:        { label: 'INFO',  dot: '#64748b', bg: 'rgba(100,116,139,0.1)', color: '#475569' },
+};
 
-// ─── Stat Card ────────────────────────────────────────────────────────────────
-const StatCard = ({ label, count, color, icon }) => (
-  <div style={{ ...styles.statCard, borderLeft: `4px solid ${color}` }}>
-    <div style={{ ...styles.statIcon, backgroundColor: color + '20', color }}>
-      <Icon d={icons[icon]} size={20} />
-    </div>
-    <div>
-      <p style={styles.statLabel}>{label}</p>
-      <p style={{ ...styles.statCount, color }}>{count}</p>
-    </div>
+// ── System status config ──────────────────────────────────────
+const sysCfg = {
+  online:      { label: 'ONLINE',      bg: 'rgba(16,185,129,0.1)',  color: '#059669', border: 'rgba(16,185,129,0.3)' },
+  offline:     { label: 'OFFLINE',     bg: 'rgba(239,68,68,0.1)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)' },
+  maintenance: { label: 'MAINTENANCE', bg: 'rgba(245,158,11,0.1)',  color: '#d97706', border: 'rgba(245,158,11,0.3)' },
+  unknown:     { label: 'UNKNOWN',     bg: 'rgba(100,116,139,0.1)', color: '#475569', border: 'rgba(100,116,139,0.3)' },
+};
+
+// ── Card wrapper ──────────────────────────────────────────────
+const Card = ({ children, style = {} }) => (
+  <div style={{ background: '#fff', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden', ...style }}>
+    {children}
   </div>
 );
 
-// ─── Section Card ─────────────────────────────────────────────────────────────
-const SectionCard = ({ title, accent, items }) => (
-  <div style={{ ...styles.sectionCard, borderTop: `3px solid ${accent}` }}>
-    <h3 style={{ ...styles.sectionTitle, color: accent }}>{title}</h3>
-    <ul style={styles.sectionList}>
-      {items.map((item, i) => (
-        <li key={i} style={styles.sectionItem}>
-          {item.sub ? (
-            <div>
-              <span style={styles.sectionParent}>{item.label}</span>
-              <ul style={styles.subList}>
-                {item.sub.map((s, j) => (
-                  <li key={j}>
-                    <Link to={s.to} style={styles.subLink}>
-                      <span style={styles.subDot}>›</span> {s.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : (
-            <Link to={item.to} style={styles.sectionLink}>
-              <Icon d={icons.externalLink} size={13} />
-              {item.label}
-            </Link>
-          )}
-        </li>
-      ))}
-    </ul>
+const CardHeader = ({ title, action }) => (
+  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #f1f5f9' }}>
+    <p style={{ fontSize: 12, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: "'Poppins',sans-serif" }}>{title}</p>
+    {action}
   </div>
 );
 
-// ─── Report Row ───────────────────────────────────────────────────────────────
-const ReportRow = ({ label, to }) => (
-  <Link to={to} style={styles.reportRow}>
-    <div style={styles.reportDot} />
-    <span>{label}</span>
-    <Icon d={icons.externalLink} size={13} />
-  </Link>
-);
-
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────
 const AdminHome = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activeNav, setActiveNav] = useState('/admin');
+  const [stats,    setStats]    = useState(null);
+  const [activity, setActivity] = useState([]);
+  const [systems,  setSystems]  = useState([]);
+  const [loading,  setLoading]  = useState({ stats: true, activity: true, systems: true });
 
-  const now = new Date();
-  const serverTime = now.toLocaleString('en-US', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    timeZone: 'America/Los_Angeles', hour12: false,
-  }) + ' P.S.T.';
+  const loadData = useCallback(async () => {
+    setLoading({ stats: true, activity: true, systems: true });
+    const [sR, aR, syR] = await Promise.all([getStats(), getActivity(), getSystemStatus()]);
+    if (sR.ok)   setStats(sR.data);
+    if (aR.ok)   setActivity(aR.data);
+    if (syR.ok)  setSystems(syR.data);
+    setLoading({ stats: false, activity: false, systems: false });
+  }, []);
 
-  const realEstateItems = [
-    {
-      label: 'Online Exam System',
-      sub: [
-        { label: 'BackOffice Portal',   to: '/admin/re/backoffice' },
-        { label: 'Secure Orders',        to: '/admin/re/secure-orders' },
-        { label: 'RELS CMS',             to: '/admin/re/rels-cms' },
-      ],
-    },
-    {
-      label: 'ExamPrepCentral.com',
-      sub: [
-        { label: 'BackOffice Portal',   to: '/admin/epc/backoffice' },
-        { label: 'Secure Orders',        to: '/admin/epc/secure-orders' },
-      ],
-    },
-    {
-      label: 'ST2 (Paradox) Maintenance',
-      sub: [
-        { label: 'ST2 Data Lookup',     to: '/admin/st2/lookup' },
-      ],
-    },
-    { label: 'MLO Status Report',    to: '/admin/mlo-status' },
-    { label: 'MLO Evaluations',      to: '/admin/mlo-evaluations' },
-    { label: 'Affiliate List',        to: '/admin/affiliates' },
-  ];
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { loadData(); }, [loadData]);
 
-  const cecItems = [
-    {
-      label: 'Online Exam System',
-      sub: [
-        { label: 'BackOffice Portal',  to: '/admin/cec/backoffice' },
-      ],
-    },
-    {
-      label: 'TX Ethics',
-      sub: [
-        { label: 'Texas Ethics Exam',             to: '/admin/tx/ethics-exam' },
-        { label: 'TX Sales Analysis Report',      to: '/admin/tx/sales-analysis' },
-      ],
-    },
-    {
-      label: 'OvernightCE.com',
-      sub: [
-        { label: 'State Info Update List',        to: '/admin/oce/state-info' },
-      ],
-    },
-    {
-      label: 'State CMS Maintenance',
-      sub: [
-        { label: 'Individual State Details (RELSTONE Cert #s)', to: '/admin/state-cms' },
-      ],
-    },
-    {
-      label: 'CSE Lookup',
-      sub: [
-        { label: 'CSE 2011 Lookup',               to: '/admin/cse/2011' },
-        { label: 'CSE Org. Shipping / Order $ Lookup', to: '/admin/cse/orders' },
-      ],
-    },
-  ];
+  const badges = {
+    newRequests: stats?.newRequests        || 0,
+    followUps:   stats?.scheduledFollowUps || 0,
+    feedback:    stats?.studentFeedbacks   || 0,
+  };
+
+  const allGood = badges.newRequests === 0 && badges.followUps === 0;
 
   return (
-    <div style={styles.root}>
-      {/* ── Sidebar ── */}
-      <aside style={{ ...styles.sidebar, width: sidebarOpen ? 240 : 64 }}>
-        <div style={styles.sidebarHeader}>
-          {sidebarOpen && <span style={styles.sidebarBrand}>RELSTONE</span>}
-          <button style={styles.toggleBtn} onClick={() => setSidebarOpen(!sidebarOpen)}>
-            <svg width={18} height={18} viewBox="0 0 24 24" fill="none"
-              stroke="currentColor" strokeWidth={2}>
-              <line x1="3" y1="12" x2="21" y2="12"/>
-              <line x1="3" y1="6"  x2="21" y2="6"/>
-              <line x1="3" y1="18" x2="21" y2="18"/>
-            </svg>
-          </button>
+    <AppLayout badges={badges}>
+
+      {/* ── Alert Banner ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 12,
+        padding: '10px 16px', borderRadius: 8, marginBottom: 16,
+        background: allGood ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+        border: `1px solid ${allGood ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
+      }}>
+        <div style={{
+          width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+          background: allGood ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          color: allGood ? '#10b981' : '#ef4444',
+        }}>
+          <Icon d={allGood ? 'M20 6L9 17l-5-5' : 'M12 9v4 M12 17h.01 M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'} size={14} />
         </div>
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', fontFamily: "'Poppins',sans-serif" }}>
+            {allGood ? 'Everything Looks Good' : 'Attention Required'}
+          </p>
+          <p style={{ fontSize: 11, color: '#64748b', marginTop: 1 }}>
+            All systems are online. You have <b>{badges.newRequests}</b> new requests and <b>{badges.followUps}</b> follow-up's waiting.
+          </p>
+        </div>
+      </div>
 
-        <nav style={styles.nav}>
-          {navItems.map(item => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setActiveNav(item.to)}
-              style={{
-                ...styles.navItem,
-                ...(activeNav === item.to ? styles.navItemActive : {}),
-              }}
-            >
-              <span style={styles.navIcon}><Icon d={icons[item.icon]} size={18} /></span>
-              {sidebarOpen && <span style={styles.navLabel}>{item.label}</span>}
-            </Link>
-          ))}
-        </nav>
+      {/* ── At a Glance ── */}
+      <p style={{ fontSize: 14, fontWeight: 700, color: '#0f172a', marginBottom: 4, fontFamily: "'Poppins',sans-serif" }}>At a Glance</p>
+      <p style={{ fontSize: 11, color: '#94a3b8', marginBottom: 12 }}>A quick summary of what needs your attention right now.</p>
 
-        <Link to="/login" style={styles.logoutBtn}>
-          <span style={styles.navIcon}><Icon d={icons.logout} size={18} /></span>
-          {sidebarOpen && <span style={styles.navLabel}>Logout</span>}
-        </Link>
-      </aside>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 16 }}>
 
-      {/* ── Main Content ── */}
-      <div style={styles.main}>
-
-        {/* Top Bar */}
-        <header style={styles.topBar}>
-          <div>
-            <h1 style={styles.pageTitle}>BackOffice Dashboard</h1>
-            <p style={styles.serverTime}>Server Time: {serverTime}</p>
+        {/* New Info Requests */}
+        <Card style={{ borderTop: '3px solid #22c55e' }}>
+          <div style={{ padding: '14px 16px' }}>
+            {loading.stats ? <Skel w={40} h={32} r={4} /> : (
+              <p style={{ fontSize: 30, fontWeight: 800, color: '#22c55e', fontFamily: "'Poppins',sans-serif", lineHeight: 1 }}>
+                {stats?.newRequests !== undefined ? stats.newRequests : '—'}
+              </p>
+            )}
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', marginTop: 6, fontFamily: "'Poppins',sans-serif" }}>New Information Requests</p>
+            <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>+1 since yesterday</p>
+            <Link to="/admin/new-requests" style={{ fontSize: 11, color: '#3b82f6', marginTop: 8, display: 'block' }}>View requests →</Link>
           </div>
-          <div style={styles.topBarRight}>
-            <div style={styles.notifBtn}>
-              <Icon d={icons.bell} size={20} />
-              <span style={styles.notifDot} />
-            </div>
-            <div style={styles.adminAvatar}>A</div>
+        </Card>
+
+        {/* Latest Request */}
+        <Card style={{ borderTop: '3px solid #f59e0b' }}>
+          <div style={{ padding: '14px 16px' }}>
+            <p style={{ fontSize: 9, fontWeight: 700, color: '#94a3b8', letterSpacing: '0.08em', textTransform: 'uppercase' }}>LATEST REQUESTS</p>
+            {loading.stats ? <Skel w="80%" h={18} r={4} style={{ marginTop: 4 }} /> : (
+              <p style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginTop: 4, fontFamily: "'Poppins',sans-serif" }}>
+                {stats?.latestRequestName || '—'}
+              </p>
+            )}
+            <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>RE License Info — Exam Inquiry</p>
+            <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>Today, 10:42 AM</p>
+            <Link to="/admin/new-requests" style={{ fontSize: 11, color: '#3b82f6', marginTop: 8, display: 'block' }}>View latest →</Link>
           </div>
-        </header>
+        </Card>
 
-        {/* ── Stat Cards ── */}
-        <section style={styles.statsRow}>
-          <StatCard label="New Information Requests" count={0}  color="#3b82f6" icon="inbox" />
-          <StatCard label="Scheduled Follow-ups"     count={0}  color="#ef4444" icon="clock" />
-          <StatCard label="Closed Info Requests"     count={0}  color="#10b981" icon="check" />
-          <StatCard label="Student Feedbacks"        count={0}  color="#f59e0b" icon="users" />
-        </section>
-
-        {/* ── Module Sections ── */}
-        <section style={styles.sectionsRow}>
-          <SectionCard title="Real Estate" accent="#3b82f6" items={realEstateItems} />
-          <SectionCard title="C.E.C. (Continuing Education)" accent="#10b981" items={cecItems} />
-        </section>
-
-        {/* ── Reports ── */}
-        <section style={styles.reportsCard}>
-          <h3 style={styles.reportsTitle}>
-            <Icon d={icons.chart} size={18} />
-            Reports & Documents
-          </h3>
-          <div style={styles.reportsGrid}>
-            <ReportRow label="View Completed Exams"          to="/admin/reports/completed-exams" />
-            <ReportRow label="Students Who Obtained Certs"   to="/admin/reports/student-certs" />
-            <ReportRow label="Website Info Requests"         to="/admin/reports/info-requests" />
-            <ReportRow label="R.E. Source PDFs"              to="/admin/reports/re-pdfs" />
-            <ReportRow label="Complete Exam List (w/ Q&As)"  to="/admin/reports/exam-list" />
+        {/* Scheduled Follow-Ups */}
+        <Card style={{ borderTop: '3px solid #ef4444' }}>
+          <div style={{ padding: '14px 16px' }}>
+            {loading.stats ? <Skel w={40} h={32} r={4} /> : (
+              <p style={{ fontSize: 30, fontWeight: 800, color: '#ef4444', fontFamily: "'Poppins',sans-serif", lineHeight: 1 }}>
+                {stats?.scheduledFollowUps !== undefined ? stats.scheduledFollowUps : '—'}
+              </p>
+            )}
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', marginTop: 6, fontFamily: "'Poppins',sans-serif" }}>Scheduled Follow-Up's</p>
+            <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>2 due today · 7 this week</p>
+            <Link to="/admin/follow-ups" style={{ fontSize: 11, color: '#3b82f6', marginTop: 8, display: 'block' }}>View follow-up's →</Link>
           </div>
-        </section>
+        </Card>
+
+        {/* Closed Info Requests */}
+        <Card style={{ borderTop: '3px solid #3b82f6' }}>
+          <div style={{ padding: '14px 16px' }}>
+            {loading.stats ? <Skel w={40} h={32} r={4} /> : (
+              <p style={{ fontSize: 30, fontWeight: 800, color: '#3b82f6', fontFamily: "'Poppins',sans-serif", lineHeight: 1 }}>
+                {stats?.closedRequests !== undefined ? stats.closedRequests : '—'}
+              </p>
+            )}
+            <p style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', marginTop: 6, fontFamily: "'Poppins',sans-serif" }}>Closed Info Requests</p>
+            <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 2 }}>+5 closed this week</p>
+            <Link to="/admin/closed-requests" style={{ fontSize: 11, color: '#3b82f6', marginTop: 8, display: 'block' }}>View closed →</Link>
+          </div>
+        </Card>
 
       </div>
 
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        a { text-decoration: none; }
-        body { font-family: 'DM Sans', sans-serif; }
+      {/* ── Student Feedbacks Bar ── */}
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#0f172a', fontFamily: "'Poppins',sans-serif" }}>Student Feedbacks</p>
+            {badges.feedback > 0 && (
+              <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: '#3b82f6', padding: '2px 7px', borderRadius: 10 }}>
+                {badges.feedback} new
+              </span>
+            )}
+          </div>
+          <Link to="/admin/feedback" style={{ fontSize: 11, color: '#3b82f6' }}>View all 12 feedbacks →</Link>
+        </div>
+      </Card>
 
-        .navItem:hover { background: rgba(59,130,246,0.1) !important; color: #3b82f6 !important; }
-        .sectionLink:hover { color: #3b82f6 !important; }
-        .subLink:hover { color: #3b82f6 !important; }
-        .reportRow:hover { background: #f8fafc !important; }
-      `}</style>
-    </div>
+      {/* ── Two Column: Activity + System Status ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
+
+        {/* Recent Activity */}
+        <Card>
+          <CardHeader
+            title="Recent Activity"
+            action={
+              <Link to="/admin/activity" style={{ fontSize: 11, fontWeight: 600, color: '#fff', background: '#1e293b', padding: '4px 10px', borderRadius: 5 }}>
+                View Full Log
+              </Link>
+            }
+          />
+          <p style={{ fontSize: 11, color: '#94a3b8', padding: '8px 16px 4px' }}>What's happened in the system lately.</p>
+
+          {loading.activity ? (
+            [1,2,3].map(i => (
+              <div key={i} style={{ padding: '10px 16px', borderBottom: '1px solid #f8fafc', display: 'flex', gap: 10 }}>
+                <Skel w={8} h={8} r={4} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <Skel w="60%" h={12} />
+                  <Skel w="90%" h={10} />
+                </div>
+              </div>
+            ))
+          ) : activity.length === 0 ? (
+            <div style={{ padding: '24px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 12 }}>
+              No activity yet. Activity will appear as students complete exams.
+            </div>
+          ) : (
+            activity.map((item) => {
+              const cfg = actCfg[item.type] || actCfg.info;
+              return (
+                <div key={item._id} style={{ display: 'flex', gap: 10, padding: '10px 16px', borderBottom: '1px solid #f8fafc', alignItems: 'flex-start' }}>
+                  <div style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.dot, marginTop: 5, flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <p style={{ fontSize: 12, fontWeight: 600, color: '#0f172a', fontFamily: "'Poppins',sans-serif" }}>{item.title}</p>
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: '2px 6px', borderRadius: 4, background: cfg.bg, color: cfg.color }}>{cfg.label}</span>
+                    </div>
+                    <p style={{ fontSize: 11, color: '#64748b', marginTop: 2, lineHeight: 1.4 }}>{item.description}</p>
+                    <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 3 }}>
+                      {timeAgo(item.createdAt)} · <span style={{ color: '#64748b' }}>{item.actor}</span>
+                    </p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </Card>
+
+        {/* Right column: System Status + How To */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+          {/* System Status */}
+          <Card>
+            <CardHeader
+              title="System Status"
+              action={
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>All services right now.</span>
+              }
+            />
+
+            {loading.systems ? (
+              [1,2,3,4].map(i => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 16px', borderBottom: '1px solid #f8fafc' }}>
+                  <Skel w="50%" h={12} />
+                  <Skel w={60} h={20} r={10} />
+                </div>
+              ))
+            ) : systems.length === 0 ? (
+              <div style={{ padding: '20px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 12 }}>
+                No systems configured yet.
+              </div>
+            ) : (
+              systems.map((sys) => {
+                const cfg = sysCfg[sys.status] || sysCfg.unknown;
+                return (
+                  <div key={sys._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 16px', borderBottom: '1px solid #f8fafc' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.color, flexShrink: 0 }} />
+                      <div>
+                        <p style={{ fontSize: 12, fontWeight: 500, color: '#0f172a', fontFamily: "'Poppins',sans-serif" }}>{sys.name}</p>
+                        <p style={{ fontSize: 10, color: '#94a3b8', marginTop: 1 }}>{sys.sub}</p>
+                      </div>
+                    </div>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700,
+                      padding: '3px 8px', borderRadius: 10,
+                      background: cfg.bg, color: cfg.color,
+                      border: `1px solid ${cfg.border}`,
+                      letterSpacing: '0.04em',
+                    }}>
+                      {cfg.label}
+                    </span>
+                  </div>
+                );
+              })
+            )}
+          </Card>
+
+          {/* How To Use This Page */}
+          <Card style={{ border: '1px solid #dbeafe', background: '#f8faff' }}>
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #dbeafe', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ color: '#3b82f6', display: 'flex' }}>
+                <Icon d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10z M12 8v4 M12 16h.01" size={15} />
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: '#1e40af', fontFamily: "'Poppins',sans-serif" }}>How To Use This Page</p>
+                <p style={{ fontSize: 10, color: '#3b82f6' }}>Tips for getting around</p>
+              </div>
+            </div>
+            <div style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {[
+                { icon: 'M8 6h13 M8 12h13 M8 18h13 M3 6h.01 M3 12h.01 M3 18h.01', text: 'Use the left sidebar to jump to any section directly.' },
+                { icon: 'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4 M10 17l5-5-5-5 M15 12H3', text: 'Blue buttons take you directly to a page. White buttons are secondary actions.' },
+                { icon: 'M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01', text: 'A yellow "Maintenance" status means that system is temporarily unavailable.' },
+                { icon: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9', text: "Always click Sign Out in the top right when you're done." },
+              ].map((tip, i) => (
+                <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                  <div style={{ color: '#3b82f6', display: 'flex', marginTop: 1, flexShrink: 0 }}>
+                    <Icon d={tip.icon} size={12} />
+                  </div>
+                  <p style={{ fontSize: 11, color: '#374151', lineHeight: 1.5 }}>{tip.text}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+        </div>
+      </div>
+
+    </AppLayout>
   );
-};
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
-const styles = {
-  root: {
-  display: 'flex',
-  width: '100vw',
-  minHeight: '100vh',
-  backgroundColor: '#f1f5f9',
-  fontFamily: "'DM Sans', sans-serif",
-  fontSize:"18px",
-},
-
-  // Sidebar
-  sidebar: {
-    backgroundColor: '#0f172a',
-    display: 'flex',
-    flexDirection: 'column',
-    transition: 'width 0.25s ease',
-    overflow: 'hidden',
-    flexShrink: 0,
-    position: 'sticky',
-    top: 0,
-    height: '100vh',
-  },
-  sidebarHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '20px 16px',
-    borderBottom: '1px solid #1e293b',
-    minHeight: 64,
-  },
-  sidebarBrand: {
-    fontFamily: "'JetBrains Mono', monospace",
-    fontWeight: 700,
-    fontSize: 15,
-    color: '#3b82f6',
-    letterSpacing: '0.1em',
-    whiteSpace: 'nowrap',
-  },
-  toggleBtn: {
-    background: 'none',
-    border: 'none',
-    color: '#64748b',
-    cursor: 'pointer',
-    padding: 4,
-    borderRadius: 6,
-    display: 'flex',
-  },
-  nav: {
-    flex: 1,
-    padding: '12px 8px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-    overflowY: 'auto',
-  },
-  navItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: '10px 12px',
-    borderRadius: 8,
-    color: '#94a3b8',
-    transition: 'all 0.15s ease',
-    whiteSpace: 'nowrap',
-    fontSize: 14,
-    fontWeight: 500,
-  },
-  navItemActive: {
-    backgroundColor: '#1e3a5f',
-    color: '#3b82f6',
-  },
-  navIcon: { flexShrink: 0, display: 'flex' },
-  navLabel: { overflow: 'hidden' },
-  logoutBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    padding: '12px 20px',
-    color: '#ef4444',
-    borderTop: '1px solid #1e293b',
-    fontSize: 14,
-    fontWeight: 500,
-    whiteSpace: 'nowrap',
-  },
-
-  // Main
-  main: {
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 24,
-    padding: 28,
-    overflow: 'auto',
-  },
-
-  // Top Bar
-  topBar: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: '18px 24px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-  },
-  pageTitle: {
-    fontSize: 22,
-    fontWeight: 700,
-    color: '#0f172a',
-    letterSpacing: '-0.02em',
-  },
-  serverTime: {
-    fontSize: 12,
-    color: '#94a3b8',
-    marginTop: 4,
-    fontFamily: "'JetBrains Mono', monospace",
-  },
-  topBarRight: { display: 'flex', alignItems: 'center', gap: 16 },
-  notifBtn: {
-    position: 'relative',
-    color: '#64748b',
-    cursor: 'pointer',
-    display: 'flex',
-  },
-  notifDot: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 8,
-    height: 8,
-    borderRadius: '50%',
-    backgroundColor: '#ef4444',
-    border: '2px solid white',
-  },
-  adminAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: '50%',
-    backgroundColor: '#3b82f6',
-    color: '#fff',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontWeight: 700,
-    fontSize: 14,
-  },
-
-  // Stats
-  statsRow: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: 16,
-  },
-  statCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: '18px 20px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 16,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-  },
-  statIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  statLabel: { fontSize: 12, color: '#64748b', fontWeight: 500, marginBottom: 4 },
-  statCount: { fontSize: 26, fontWeight: 700, lineHeight: 1 },
-
-  // Section Cards
-  sectionsRow: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: 20,
-  },
-  sectionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: '22px 24px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: 700,
-    marginBottom: 18,
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-  },
-  sectionList: {
-    listStyle: 'none',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 10,
-  },
-  sectionItem: { fontSize: 14 },
-  sectionParent: {
-    display: 'block',
-    fontWeight: 600,
-    color: '#374151',
-    marginBottom: 6,
-    fontSize: 13,
-  },
-  sectionLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    color: '#374151',
-    fontWeight: 600,
-    fontSize: 13,
-    transition: 'color 0.15s',
-  },
-  subList: {
-    listStyle: 'none',
-    paddingLeft: 12,
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4,
-  },
-  subLink: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    color: '#64748b',
-    fontSize: 13,
-    transition: 'color 0.15s',
-  },
-  subDot: { color: '#94a3b8', fontWeight: 700 },
-
-  // Reports
-  reportsCard: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: '22px 24px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-  },
-  reportsTitle: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    fontSize: 15,
-    fontWeight: 700,
-    color: '#0f172a',
-    marginBottom: 16,
-    textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-  },
-  reportsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: 8,
-  },
-  reportRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    padding: '12px 14px',
-    borderRadius: 8,
-    color: '#374151',
-    fontSize: 13,
-    fontWeight: 500,
-    border: '1px solid #e2e8f0',
-    transition: 'background 0.15s',
-    justifyContent: 'space-between',
-  },
-  reportDot: {
-    width: 8,
-    height: 8,
-    borderRadius: '50%',
-    backgroundColor: '#3b82f6',
-    flexShrink: 0,
-  },
 };
 
 export default AdminHome;
