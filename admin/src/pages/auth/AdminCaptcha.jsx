@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { verifyCaptcha } from '../../services/adminAuth';
 import useAuth from '../../context/useAuth';
 import RELSLogo from '../../assets/RELS Logo.png';
+import bgImage from '../../assets/bg.png';
 
 const AdminCaptcha = () => {
   const navigate  = useNavigate();
@@ -90,11 +91,12 @@ const AdminCaptcha = () => {
         {/* CAPTCHA label */}
         <p style={styles.captchaLabel}>TYPE THE CHARACTERS THAT APPEAR IN THE BOX</p>
 
-        {/* CAPTCHA Image box */}
+        {/* CAPTCHA Image box — dark-themed to match Figma */}
         <div style={styles.captchaBox}>
           {captchaSvg ? (
             <div
               style={styles.captchaImage}
+              className="captcha-svg-wrap"
               dangerouslySetInnerHTML={{ __html: captchaSvg }}
             />
           ) : (
@@ -172,6 +174,19 @@ const AdminCaptcha = () => {
         input::placeholder { color: #7FA8C4; letter-spacing: 0.1em; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 500; }
         input:focus { outline: none; border-color: #60C3FF !important; }
         button:hover:not(:disabled) { filter: brightness(1.1); }
+
+        /* Strip white background from the injected SVG captcha */
+        .captcha-svg-wrap svg {
+          background: transparent !important;
+          border-radius: 6px;
+        }
+        .captcha-svg-wrap svg rect:first-child,
+        .captcha-svg-wrap svg rect[fill="#ffffff"],
+        .captcha-svg-wrap svg rect[fill="white"],
+        .captcha-svg-wrap svg rect[fill="#fff"],
+        .captcha-svg-wrap svg rect[fill="rgb(255,255,255)"] {
+          fill: transparent !important;
+        }
       `}</style>
     </div>
   );
@@ -193,10 +208,10 @@ const styles = {
   bgPhoto: {
     position: 'absolute',
     inset: 0,
-    backgroundImage: `url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1600&q=80')`,
+    backgroundImage: `url(${bgImage})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
-    opacity: 0.2,
+    opacity: 0.5,   // ← change from 0.2 to 0.5
     zIndex: 0,
   },
   bgOverlay: {
@@ -283,14 +298,20 @@ const styles = {
   },
   captchaBox: {
     position: 'relative',
+    // ── KEY CHANGE: dark background matching the Figma design ──────
     backgroundColor: '#163347',
+    backgroundImage: `
+      radial-gradient(ellipse at 20% 50%, rgba(46,171,254,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 50%, rgba(96,195,255,0.03) 0%, transparent 60%)
+    `,
     borderRadius: 10,
-    padding: '14px 16px',
+    padding: '14px 40px 14px 16px',
     border: '0.5px solid #60C3FF',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 90,
+    overflow: 'hidden',
   },
   captchaImage: {
     display: 'flex',
