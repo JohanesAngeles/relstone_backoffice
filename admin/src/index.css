@@ -16,3 +16,5 @@ html, body {
   min-height: 100vh;
   display: flex;
 }
+
+@keyframes spin { to { transform: rotate(360deg); } }

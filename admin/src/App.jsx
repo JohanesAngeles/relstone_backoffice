@@ -8,6 +8,9 @@ import AdminCaptcha    from './pages/auth/AdminCaptcha';
 import RealEstate    from './pages/real_estate/RealEstate';
 import StudentDetail from './pages/real_estate/StudentDetail';
 
+import BackOffice from './pages/real_estate/BackOffice';
+import TranscriptPage from './pages/real_estate/Transcriptpage';
+
 function App() {
   return (
     <AuthProvider>
@@ -39,7 +42,12 @@ function App() {
             </ProtectedRoute>
           } />
 
+          <Route path="/admin/real-estate/online-exam/backoffice" element={
+            <ProtectedRoute><BackOffice /></ProtectedRoute>
+          } />
+
           {/* Add more protected routes here */}
+          <Route path="/admin/transcript/:studentId/:courseIndex" element={<TranscriptPage />} />
 
         </Routes>
       </BrowserRouter>
