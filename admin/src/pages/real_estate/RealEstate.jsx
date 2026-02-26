@@ -19,7 +19,7 @@ const SYSTEMS = [
     title: 'Online Exam System',
     subtitle: 'Manage and monitor student exams',
     actions: [
-      { label: 'BackOffice', to: '/real-estate/online-exam/backoffice', primary: true },
+      { label: 'BackOffice', to: '/admin/real-estate/online-exam/backoffice', primary: true },
       { label: 'Secure Orders', to: '/real-estate/online-exam/secure-orders', primary: true },
       { label: 'RELS CMS', to: '/real-estate/online-exam/rels-cms', primary: true },
     ],
