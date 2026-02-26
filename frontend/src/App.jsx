@@ -10,7 +10,8 @@ import CFPRenewPage from './pages/CFPRenewPage';
 import AboutPage from './pages/Aboutpage';
 import CartProvider from './context/Cartprovider';
 import CartPage from './pages/CartPage';
-
+import ProceedToCheckoutPage from './pages/ProceedToCheckoutPage';
+import AllRelstoneProductsPage from './pages/AllRelstoneProductsPage';
 
 function App() {
   return (
@@ -28,6 +29,8 @@ function App() {
               <Route path="/cfp-renewal" element={<CFPRenewPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<ProceedToCheckoutPage />} />
+              <Route path="/products" element={<AllRelstoneProductsPage />} /> 
             </Routes>
           </main>
           <Footer />
