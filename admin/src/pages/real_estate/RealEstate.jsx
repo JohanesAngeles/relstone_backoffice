@@ -61,6 +61,8 @@ const SYSTEMS = [
 const S = {
   page: {
     padding: '2rem 2.5rem',
+    fontFamily: "'Poppins', sans-serif",
+    minHeight: '100vh',
   },
   header: {
     display: 'flex',
@@ -69,36 +71,42 @@ const S = {
     marginBottom: '0.75rem',
   },
   title: {
-    fontSize: '2rem',
+    fontSize: '2.625rem',      // ~42px per Figma
     fontWeight: 700,
-    color: '#111827',
-    margin: '0 0 0.3rem 0',
+    fontFamily: "'HomepageBaukasten', 'Poppins', sans-serif",
+    color: '#000000',
+    margin: '0 0 0.4rem 0',
     lineHeight: 1.1,
+    textTransform: 'capitalize',
   },
   subtitle: {
-    fontSize: '0.875rem',
-    color: '#6b7280',
+    fontSize: '1rem',          // ~18px per Figma, scaled for readability
+    fontWeight: 500,
+    color: '#5B7384',
     margin: 0,
+    fontFamily: "'Poppins', sans-serif",
   },
   backBtn: {
     display: 'flex',
     alignItems: 'center',
     gap: '0.4rem',
-    background: '#fff',
-    border: '1px solid #d1d5db',
-    borderRadius: '6px',
-    padding: '0.45rem 1rem',
-    fontSize: '0.82rem',
-    fontWeight: 500,
-    color: '#374151',
+    background: '#FFFFFF',
+    border: '0.5px solid #5B7384',
+    borderRadius: '10px',
+    padding: '0.6rem 1.25rem',
+    fontSize: '0.875rem',
+    fontWeight: 700,
+    fontFamily: "'Poppins', sans-serif",
+    color: '#5B7384',
     cursor: 'pointer',
     whiteSpace: 'nowrap',
     flexShrink: 0,
-    marginTop: '0.25rem',
+    marginTop: '0.5rem',
+    textTransform: 'capitalize',
   },
   divider: {
     border: 'none',
-    borderTop: '1px solid #e5e7eb',
+    borderTop: '0.5px solid #2EABFE',   // Blue divider per Figma
     margin: '0 0 1.75rem 0',
   },
   grid: {
@@ -107,40 +115,52 @@ const S = {
     gap: '1.5rem',
   },
   card: {
-    border: '1px solid #e5e7eb',
+    border: 'none',
     borderRadius: '10px',
-    padding: '1.5rem',
-    background: '#fff',
+    padding: '1.25rem 1.25rem 1.25rem 1.25rem',
+    background: '#FFFFFF',
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
+    gap: '0',
+    boxShadow: 'none',
   },
   cardHeader: {
     display: 'flex',
     alignItems: 'flex-start',
     gap: '0.75rem',
+    paddingBottom: '0.75rem',
+  },
+  cardHeaderDivider: {
+    border: 'none',
+    borderTop: '0.5px solid #5B7384',
+    margin: '0 0 0.875rem 0',
   },
   cardIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: '8px',
-    background: '#eff6ff',
+    width: 40,
+    height: 40,
+    borderRadius: '6.67px',
+    background: 'rgba(208, 235, 255, 0.25)',
+    border: '0.5px solid #2EABFE',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    color: '#2563eb',
-    fontSize: '1rem',
+    color: '#2EABFE',
+    fontSize: '1.1rem',
   },
   cardTitle: {
-    fontSize: '1rem',
-    fontWeight: 700,
-    color: '#111827',
-    margin: '0 0 0.2rem 0',
+    fontSize: '1.125rem',      // 18px per Figma
+    fontWeight: 500,
+    fontFamily: "'Poppins', sans-serif",
+    color: '#091925',
+    margin: '0 0 0.15rem 0',
+    textTransform: 'capitalize',
   },
   cardSubtitle: {
-    fontSize: '0.78rem',
-    color: '#6b7280',
+    fontSize: '0.75rem',       // 12px per Figma
+    fontWeight: 400,
+    fontFamily: "'Poppins', sans-serif",
+    color: '#7FA8C4',
     margin: 0,
   },
   actions: {
@@ -153,38 +173,45 @@ const S = {
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    padding: '0.65rem 1rem',
-    borderRadius: '6px',
-    fontSize: '0.875rem',
-    fontWeight: 600,
+    padding: '0.8rem 1.25rem',
+    borderRadius: '6.67px',
+    fontSize: '1rem',          // 16px per Figma
+    fontWeight: 700,
+    fontFamily: "'Poppins', sans-serif",
     cursor: 'pointer',
     border: 'none',
-    background: '#2563eb',
-    color: '#fff',
+    background: '#2EABFE',
+    color: '#091925',
     textAlign: 'left',
+    textTransform: 'capitalize',
+    boxSizing: 'border-box',
   },
   btnSecondary: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    padding: '0.65rem 1rem',
-    borderRadius: '6px',
-    fontSize: '0.875rem',
-    fontWeight: 600,
+    padding: '0.8rem 1.25rem',
+    borderRadius: '6.67px',
+    fontSize: '1rem',          // 16px per Figma
+    fontWeight: 700,
+    fontFamily: "'Poppins', sans-serif",
     cursor: 'pointer',
-    border: '1px solid #d1d5db',
-    background: '#fff',
-    color: '#111827',
+    border: '0.5px solid #5B7384',
+    background: '#FFFFFF',
+    color: '#091925',
     textAlign: 'left',
+    textTransform: 'capitalize',
+    boxSizing: 'border-box',
   },
   note: {
-    fontSize: '0.78rem',
-    color: '#6b7280',
-    margin: 0,
+    fontSize: '1rem',          // 16px per Figma
+    fontWeight: 400,
+    fontFamily: "'Poppins', sans-serif",
+    color: '#7FA8C4',
+    margin: '0.75rem 0 0 0',
     lineHeight: 1.5,
-    borderTop: '1px solid #f3f4f6',
-    paddingTop: '0.75rem',
+    textAlign: 'justify',
   },
 };
 
@@ -196,83 +223,93 @@ const RealEstatePage = () => {
 
   return (
     <AppLayout>
-    <div style={S.page}>
-      {/* Breadcrumb */}
-      <Breadcrumb crumbs={[
-        { label: 'Dashboard', to: '/admin' },
-        { label: 'Real Estate' },
-      ]} />
+      {/* Poppins font import */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+      `}</style>
+      <div style={S.page}>
+        {/* Breadcrumb */}
+        <Breadcrumb crumbs={[
+          { label: 'Dashboard', to: '/admin' },
+          { label: 'Real Estate' },
+        ]} />
 
-      {/* Page Header */}
-      <div style={S.header}>
-        <div>
-          <h1 style={S.title}>Real Estate</h1>
-          <p style={S.subtitle}>
-            Select a system or tool below to get started. Click any blue button to open that page.
-          </p>
+        {/* Page Header */}
+        <div style={S.header}>
+          <div>
+            <h1 style={S.title}>Real Estate</h1>
+            <p style={S.subtitle}>
+              Select a system or tool below to get started. Click any blue button to open that page.
+            </p>
+          </div>
+          <button
+            style={{
+              ...S.backBtn,
+              ...(backHovered ? { background: '#f3f4f6' } : {}),
+            }}
+            onClick={() => navigate('/dashboard')}
+            onMouseEnter={() => setBackHovered(true)}
+            onMouseLeave={() => setBackHovered(false)}
+          >
+            <FaChevronLeft style={{ fontSize: '0.7rem' }} />
+            Back To Main Menu
+          </button>
         </div>
-        <button
-          style={{ ...S.backBtn, ...(backHovered ? { background: '#f3f4f6' } : {}) }}
-          onClick={() => navigate('/dashboard')}
-          onMouseEnter={() => setBackHovered(true)}
-          onMouseLeave={() => setBackHovered(false)}
-        >
-          <FaChevronLeft style={{ fontSize: '0.7rem' }} />
-          Back To Main Menu
-        </button>
-      </div>
 
-      <hr style={S.divider} />
+        <hr style={S.divider} />
 
-      {/* Grid */}
-      <div style={S.grid}>
-        {SYSTEMS.map((system) => {
-          const { Icon } = system;
-          return (
-            <div style={S.card} key={system.id}>
-              {/* Card Header */}
-              <div style={S.cardHeader}>
-                <div style={S.cardIconWrap}>
-                  <Icon />
+        {/* Grid */}
+        <div style={S.grid}>
+          {SYSTEMS.map((system) => {
+            const { Icon } = system;
+            return (
+              <div style={S.card} key={system.id}>
+                {/* Card Header */}
+                <div style={S.cardHeader}>
+                  <div style={S.cardIconWrap}>
+                    <Icon />
+                  </div>
+                  <div>
+                    <h2 style={S.cardTitle}>{system.title}</h2>
+                    <p style={S.cardSubtitle}>{system.subtitle}</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 style={S.cardTitle}>{system.title}</h2>
-                  <p style={S.cardSubtitle}>{system.subtitle}</p>
+
+                {/* Divider under header */}
+                <hr style={S.cardHeaderDivider} />
+
+                {/* Buttons */}
+                <div style={S.actions}>
+                  {system.actions.map((action) => {
+                    const btnKey = `${system.id}-${action.label}`;
+                    const isHovered = hoveredBtn === btnKey;
+                    const baseStyle = action.primary ? S.btnPrimary : S.btnSecondary;
+                    const hoverStyle = action.primary
+                      ? { background: '#1a9ee8' }
+                      : { background: '#f3f4f6' };
+
+                    return (
+                      <button
+                        key={action.label}
+                        style={{ ...baseStyle, ...(isHovered ? hoverStyle : {}) }}
+                        onClick={() => navigate(action.to)}
+                        onMouseEnter={() => setHoveredBtn(btnKey)}
+                        onMouseLeave={() => setHoveredBtn(null)}
+                      >
+                        <span>{action.label}</span>
+                        <FaArrowRight style={{ fontSize: '0.75rem', opacity: 0.7 }} />
+                      </button>
+                    );
+                  })}
                 </div>
+
+                {/* Optional note */}
+                {system.note && <p style={S.note}>{system.note}</p>}
               </div>
-
-              {/* Buttons */}
-              <div style={S.actions}>
-                {system.actions.map((action) => {
-                  const btnKey = `${system.id}-${action.label}`;
-                  const isHovered = hoveredBtn === btnKey;
-                  const baseStyle = action.primary ? S.btnPrimary : S.btnSecondary;
-                  const hoverStyle = action.primary
-                    ? { background: '#1d4ed8' }
-                    : { background: '#f3f4f6' };
-
-                  return (
-                    <button
-                      key={action.label}
-                      style={{ ...baseStyle, ...(isHovered ? hoverStyle : {}) }}
-                      onClick={() => navigate(action.to)}
-                      onMouseEnter={() => setHoveredBtn(btnKey)}
-                      onMouseLeave={() => setHoveredBtn(null)}
-                    >
-                      <span>{action.label}</span>
-                      <FaArrowRight style={{ fontSize: '0.75rem', opacity: 0.7 }} />
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Optional note */}
-              {system.note && <p style={S.note}>{system.note}</p>}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
     </AppLayout>
   );
 };
