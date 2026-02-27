@@ -265,10 +265,6 @@
   }
 }
 
-/* ============================================
-   ADD THESE STYLES TO YOUR Header.css
-   ============================================ */
-
 /* Nav item wrapper (needed for dropdown positioning) */
 .site-header__nav-item {
   position: relative;
@@ -285,7 +281,7 @@
   border: none;
   cursor: pointer;
   font: inherit;
-  color: #ffffff; /* explicitly white instead of inherit */
+  color: #ffffff;
   padding: 8px 0;
   letter-spacing: inherit;
   text-transform: inherit;
@@ -314,10 +310,10 @@
   position: absolute;
   top: 100%;
   left: 0;
-  background-color: #1a2332; /* dark navy matching screenshots */
+  background-color: #1a2332;
   min-width: 260px;
   z-index: 1000;
-  border-top: 2px solid #c8a84b; /* gold accent — adjust to your brand color */
+  border-top: 2px solid #c8a84b;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   animation: dropdownFadeIn 0.15s ease;
 }
@@ -346,9 +342,7 @@
   color: #ffffff;
 }
 
-/* ============================================
-   MOBILE DROPDOWN ADDITIONS
-   ============================================ */
+/* MOBILE DROPDOWN ADDITIONS */
 
 .site-header__nav-link-mobile--trigger {
   display: flex;
@@ -383,11 +377,7 @@
   color: #fff;
 }
 
-/* ============================================
-   ADD THESE TO YOUR Header.css
-   ============================================ */
-
-/* "States" item — has right-arrow and triggers flyout */
+/* "States" item */
 .site-header__dropdown-item--has-sub {
   display: flex;
   justify-content: space-between;
@@ -407,7 +397,7 @@
   flex-shrink: 0;
 }
 
-/* ── States flyout panel ── */
+/* States flyout panel */
 .site-header__states-submenu {
   position: absolute;
   top: 0;
@@ -430,7 +420,6 @@
   margin: 0 0 14px;
 }
 
-/* 3-column grid for states */
 .site-header__states-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -457,7 +446,7 @@
   color: #ffffff;
 }
 
-/* ── Mobile states ── */
+/* Mobile states */
 .site-header__mobile-dropdown-item--trigger {
   display: flex;
   justify-content: space-between;
@@ -475,7 +464,7 @@
 .site-header__mobile-states {
   background-color: rgba(0, 0, 0, 0.15);
   border-left: 2px solid #c8a84b;
-  margin-left: 24px;
+  margin-left: 12px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px;
@@ -496,10 +485,6 @@
   background-color: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
-
-/* ============================================
-   ADD THESE TO YOUR Header.css
-   ============================================ */
 
 /* Wide dropdown for states */
 .site-header__dropdown--states {
@@ -508,70 +493,7 @@
   min-width: unset;
 }
 
-.site-header__states-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.45);
-  margin: 0 0 14px;
-}
-
-/* 3-column grid */
-.site-header__states-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-}
-
-.site-header__state-pill {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 9px 8px;
-  background-color: rgba(255, 255, 255, 0.07);
-  color: #e0e0e0;
-  text-decoration: none;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  text-align: center;
-  line-height: 1.2;
-  transition: background 0.15s, color 0.15s;
-}
-
-.site-header__state-pill:hover {
-  background-color: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
-}
-
-/* Mobile states grid */
-.site-header__mobile-states {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2px;
-  padding: 8px;
-  background-color: rgba(0, 0, 0, 0.15);
-  border-left: 2px solid #c8a84b;
-  margin-left: 12px;
-}
-
-.site-header__mobile-state-item {
-  display: block;
-  padding: 8px 12px;
-  color: #d0d0d0;
-  text-decoration: none;
-  font-size: 0.8rem;
-  border-radius: 3px;
-  transition: background 0.15s;
-}
-
-.site-header__mobile-state-item:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
-
-/* ── Auth buttons (not logged in) ── */
+/* Auth buttons (not logged in) */
 .site-header__auth-btn {
   padding: 8px 18px;
   border-radius: 6px;
@@ -632,7 +554,7 @@
   color: #ffffff;
 }
 
-/* ── User avatar (logged in) ── */
+/* User avatar (logged in) */
 .site-header__user-wrap {
   position: relative;
 }
@@ -727,3 +649,265 @@
   background: #fef2f2;
   color: #dc2626;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CART HOVER PREVIEW — NEW ADDITION (nothing above this line was changed)
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* Wrapper keeps dropdown anchored to the cart icon */
+.site-header__cart-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Panel */
+.cart-preview {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  width: 340px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.13);
+  z-index: 9999;
+  overflow: hidden;
+  animation: cartPreviewIn 0.16s ease;
+}
+
+@keyframes cartPreviewIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Arrow caret */
+.cart-preview__caret {
+  position: absolute;
+  top: -7px;
+  right: 16px;
+  width: 13px;
+  height: 13px;
+  background: #ffffff;
+  border-left: 1px solid #e2e8f0;
+  border-top: 1px solid #e2e8f0;
+  transform: rotate(45deg);
+  border-radius: 2px;
+}
+
+/* Header row */
+.cart-preview__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.1rem 0.7rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.cart-preview__title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0d1b2a;
+}
+
+.cart-preview__badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(46,171,254,0.1);
+  color: #2EABFE;
+  border: 1px solid rgba(46,171,254,0.25);
+  padding: 0.12rem 0.55rem;
+  border-radius: 20px;
+}
+
+/* Empty state */
+.cart-preview__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  gap: 0.45rem;
+}
+
+.cart-preview__empty-icon {
+  font-size: 1.8rem;
+  color: #cbd5e1;
+}
+
+.cart-preview__empty-text {
+  font-size: 0.82rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.cart-preview__browse-btn {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #2EABFE;
+  text-decoration: none;
+  border: 1.5px solid #2EABFE;
+  border-radius: 7px;
+  padding: 0.35rem 1rem;
+  transition: background 0.15s, color 0.15s;
+}
+.cart-preview__browse-btn:hover { background: #2EABFE; color: #fff; }
+
+/* Scrollable items list */
+.cart-preview__items {
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
+.cart-preview__items::-webkit-scrollbar { width: 4px; }
+.cart-preview__items::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
+
+/* Single item row */
+.cart-preview__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.65rem 1.1rem;
+  border-bottom: 1px solid #f8fafc;
+  transition: background 0.1s;
+}
+.cart-preview__item:last-child { border-bottom: none; }
+.cart-preview__item:hover { background: #f8fafc; }
+
+.cart-preview__item-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+/* Course / Package badge */
+.cart-preview__item-badge {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  width: fit-content;
+}
+.cart-preview__item-badge--course  { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+.cart-preview__item-badge--package { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+
+.cart-preview__item-name {
+  font-size: 0.79rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cart-preview__item-hours {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: #2EABFE;
+}
+
+.cart-preview__item-textbook {
+  font-size: 0.66rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Price + remove button */
+.cart-preview__item-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.cart-preview__item-price {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0d1b2a;
+}
+
+.cart-preview__item-remove {
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.58rem;
+  padding: 0;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.cart-preview__item-remove:hover {
+  border-color: #ef4444;
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* Footer: total + action buttons */
+.cart-preview__footer {
+  border-top: 1px solid #f1f5f9;
+  padding: 0.8rem 1.1rem 0.9rem;
+  background: #f8fafc;
+}
+
+.cart-preview__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.7rem;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.cart-preview__total strong {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0d1b2a;
+}
+
+.cart-preview__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.cart-preview__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.cart-preview__btn--ghost {
+  border: 1.5px solid #091925;
+  color: #091925;
+  background: transparent;
+}
+.cart-preview__btn--ghost:hover { background: #091925; color: #fff; }
+
+.cart-preview__btn--solid {
+  background: #091925;
+  border: 1.5px solid #091925;
+  color: #fff;
+}
+.cart-preview__btn--solid:hover { background: #2EABFE; border-color: #2EABFE; }

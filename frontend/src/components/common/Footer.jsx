@@ -69,7 +69,8 @@ const Footer = () => {
         <div style={styles.bottom}>
           <p style={styles.copyright}>© 2026 Relstone. All rights reserved.</p>
           <div style={styles.bottomLinks}>
-            <Link to="/privacy" style={styles.smallLink}>Privacy Policy</Link>
+            <Link to="/privacy-policy" style={styles.smallLink}>Privacy Policy</Link>
+            <Link to="/refund-policy" style={styles.smallLink}>Refund Policy</Link>
             <Link to="/terms" style={styles.smallLink}>Terms of Use</Link>
           </div>
         </div>

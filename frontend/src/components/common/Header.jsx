@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { FaSearch, FaShoppingCart, FaChevronDown, FaSignOutAlt } from 'react-icons/fa';
+import { FaSearch, FaShoppingCart, FaChevronDown, FaSignOutAlt, FaTag, FaTimes } from 'react-icons/fa';
 import logo from '../../assets/images/Left Side Logo.png';
 import AuthModal from './AuthModal';
 import useCart from '../../context/useCart';
@@ -188,16 +188,131 @@ const UserAvatar = ({ user, onLogout }) => {
   );
 };
 
-/* ── Cart Icon (always visible) ── */
+/* ── Cart Icon with hover preview dropdown ── */
 const CartIcon = () => {
-  const { cartCount } = useCart();
+  const { cartItems, cartTotal, cartCount, removeFromCart } = useCart();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const leaveTimer = useRef(null);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleMouseEnter = () => {
+    clearTimeout(leaveTimer.current);
+    setOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Small delay so user can move cursor into the dropdown
+    leaveTimer.current = setTimeout(() => setOpen(false), 150);
+  };
+
   return (
-    <Link to="/cart" className="site-header__action-btn site-header__cart">
-      <FaShoppingCart />
-      {cartCount > 0 && (
-        <span className="site-header__cart-badge">{cartCount}</span>
+    <div
+      ref={ref}
+      className="site-header__cart-wrap"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* The cart icon button */}
+      <Link to="/cart" className="site-header__action-btn site-header__cart">
+        <FaShoppingCart />
+        {cartCount > 0 && (
+          <span className="site-header__cart-badge">{cartCount}</span>
+        )}
+      </Link>
+
+      {/* Hover dropdown */}
+      {open && (
+        <div className="cart-preview">
+          {/* Caret pointer */}
+          <div className="cart-preview__caret" />
+
+          {/* Header */}
+          <div className="cart-preview__head">
+            <span className="cart-preview__title">Your Cart</span>
+            {cartCount > 0 && (
+              <span className="cart-preview__badge">
+                {cartCount} item{cartCount !== 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
+
+          {cartItems.length === 0 ? (
+            /* Empty state */
+            <div className="cart-preview__empty">
+              <FaShoppingCart className="cart-preview__empty-icon" />
+              <p className="cart-preview__empty-text">Your cart is empty</p>
+              <Link to="/insurance/renew" className="cart-preview__browse-btn">
+                Browse Courses
+              </Link>
+            </div>
+          ) : (
+            <>
+              {/* Items list */}
+              <div className="cart-preview__items">
+                {cartItems.map((item) => {
+                  const lineTotal = item.price + (item.withTextbook ? (item.textbookPrice || 0) : 0);
+                  return (
+                    <div key={item.id} className="cart-preview__item">
+                      <div className="cart-preview__item-info">
+                        <span className={`cart-preview__item-badge cart-preview__item-badge--${item.type}`}>
+                          {item.type === 'package' ? 'Package' : 'Course'}
+                        </span>
+                        <span className="cart-preview__item-name" title={item.name}>
+                          {item.name}
+                        </span>
+                        {item.creditHours > 0 && (
+                          <span className="cart-preview__item-hours">
+                            <FaTag /> {item.creditHours} hrs
+                          </span>
+                        )}
+                        {item.withTextbook && (
+                          <span className="cart-preview__item-textbook">+ Printed Textbook</span>
+                        )}
+                      </div>
+                      <div className="cart-preview__item-right">
+                        <span className="cart-preview__item-price">${lineTotal.toFixed(2)}</span>
+                        <button
+                          className="cart-preview__item-remove"
+                          onClick={(e) => { e.preventDefault(); removeFromCart(item.id); }}
+                          aria-label={`Remove ${item.name}`}
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div className="cart-preview__footer">
+                <div className="cart-preview__total">
+                  <span>Total</span>
+                  <strong>${cartTotal.toFixed(2)}</strong>
+                </div>
+                <div className="cart-preview__actions">
+                  <Link to="/cart" className="cart-preview__btn cart-preview__btn--ghost">
+                    View Cart
+                  </Link>
+                  <Link to="/checkout" className="cart-preview__btn cart-preview__btn--solid">
+                    Checkout
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       )}
-    </Link>
+    </div>
   );
 };
 
@@ -235,11 +350,10 @@ const Header = () => {
                 />
               </div>
 
-              {/* ── Actions ── */}
               <div className="site-header__actions">
                 <span className="site-header__language">🇺🇸 USD</span>
 
-                {/* Cart is always visible */}
+                {/* Cart with hover preview */}
                 <CartIcon />
 
                 {user ? (
@@ -355,7 +469,6 @@ const Header = () => {
                   </div>
                 ))}
 
-                {/* Mobile auth */}
                 {!user ? (
                   <div className="site-header__mobile-auth">
                     <button
@@ -386,7 +499,6 @@ const Header = () => {
         )}
       </header>
 
-      {/* Auth Modal */}
       {showAuthModal && (
         <AuthModal
           onClose={() => setShowAuthModal(false)}
