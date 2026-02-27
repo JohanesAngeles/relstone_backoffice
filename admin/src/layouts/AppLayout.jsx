@@ -31,6 +31,12 @@ const NAV = [
       { label: 'Student Feedback', sub: 'Reviews & Comments',      to: '/admin/feedback',        icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2 M23 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75', badge: 'feedback' },
     ],
   },
+  {
+    section: 'EXAM DATA',
+    items: [
+      { label: 'Exam Browser', sub: 'Courses, Q&A & Certs', to: '/admin/exam-data', icon: 'M12 2L2 7l10 5 10-5-10-5z M2 17l10 5 10-5 M2 12l10 5 10-5' },
+    ],
+  },
 ];
 
 const SvgIcon = ({ d, size = 15 }) => (
@@ -155,7 +161,7 @@ const AppLayout = ({ children, badges = {} }) => {
               <div key={group.section} style={s.navGroup}>
                 {sidebarOpen && <p style={s.navSection}>{group.section}</p>}
                 {group.items.map((item) => {
-                  const isActive = location.pathname === item.to;
+                  const isActive   = location.pathname === item.to;
                   const badgeCount = item.badge ? (badges[item.badge] || 0) : 0;
                   return (
                     <Link
