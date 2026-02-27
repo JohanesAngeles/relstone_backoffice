@@ -12,6 +12,9 @@ import CartProvider from './context/Cartprovider';
 import CartPage from './pages/CartPage';
 import ProceedToCheckoutPage from './pages/ProceedToCheckoutPage';
 import AllRelstoneProductsPage from './pages/AllRelstoneProductsPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import ContactUsPage from './pages/ContactUsPage';
+import RefundPolicyPage from './pages/RefundPolicyPage';
 
 function App() {
   return (
@@ -31,6 +34,9 @@ function App() {
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<ProceedToCheckoutPage />} />
               <Route path="/products" element={<AllRelstoneProductsPage />} /> 
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/contact" element={<ContactUsPage />} />
+              <Route path="/refund-policy" element={<RefundPolicyPage />} />
             </Routes>
           </main>
           <Footer />
