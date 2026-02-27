@@ -4,8 +4,8 @@ import AppLayout from '../../layouts/AppLayout';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import {
   FaUser, FaPlus, FaClipboard, FaPrint,
-  FaSearch, FaTimes, FaArrowRight, FaFileExport,
-  FaChevronLeft, FaChevronRight,
+  FaSearch, FaTimes, FaFileExport,
+  FaChevronLeft, FaChevronRight, FaEye, FaPhone, FaEnvelope,
 } from 'react-icons/fa';
 
 const API = '/api/students';
@@ -33,6 +33,8 @@ const BackOffice = () => {
   const [emailInput,  setEmailInput]  = useState('');
   const [idInput,     setIdInput]     = useState('');
   const [phoneInput,  setPhoneInput]  = useState('');
+  const [ssInput,     setSsInput]     = useState('');
+  const [selectStudent, setSelectStudent] = useState('');
 
   const LIMIT = 25;
 
@@ -88,6 +90,8 @@ const BackOffice = () => {
     setEmailInput('');
     setIdInput('');
     setPhoneInput('');
+    setSsInput('');
+    setSelectStudent('');
     setSearch('');
     setStateFilter('');
     fetchStudents(1, '', '');
@@ -101,10 +105,6 @@ const BackOffice = () => {
     if (search)      params.set('search', search);
     if (stateFilter) params.set('state', stateFilter);
     const url = `${API}/export?${params}`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'students_export.csv';
-    // need auth header — open in new tab as fallback
     window.open(url, '_blank');
   };
 
@@ -125,7 +125,223 @@ const BackOffice = () => {
   // ── render ─────────────────────────────────────────────────
   return (
     <AppLayout>
-      <div style={S.page}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+        .bo-page * { font-family: 'Poppins', sans-serif; box-sizing: border-box; }
+
+        .bo-big-num {
+          font-family: 'Poppins', sans-serif;
+          font-weight: 700;
+          font-size: 2.6rem;
+          color: #2EABFE;
+          line-height: 1;
+        }
+
+        .bo-spinner {
+          width: 32px; height: 32px;
+          border: 3px solid rgba(46,171,254,0.2);
+          border-top: 3px solid #2EABFE;
+          border-radius: 50%;
+          animation: bo-spin 0.8s linear infinite;
+        }
+        @keyframes bo-spin { to { transform: rotate(360deg); } }
+
+        .bo-search-input {
+          width: 100%;
+          padding: 0.6rem 0.85rem;
+          background: rgba(127, 168, 196, 0.1);
+          border: 0.5px solid #7FA8C4;
+          border-radius: 6.67px;
+          font-size: 0.875rem;
+          font-family: 'Poppins', sans-serif;
+          color: #091925;
+          outline: none;
+          transition: border-color 0.15s;
+        }
+        .bo-search-input::placeholder { color: #7FA8C4; opacity: 0.7; }
+        .bo-search-input:focus { border-color: #2EABFE; }
+
+        .bo-search-btn {
+          display: flex; align-items: center; gap: 6px;
+          padding: 0.6rem 1.1rem;
+          background: #2EABFE;
+          color: #091925;
+          border: 0.5px solid #2EABFE;
+          border-radius: 6.67px;
+          font-size: 0.8rem;
+          font-weight: 700;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: opacity 0.15s;
+        }
+        .bo-search-btn:hover { opacity: 0.88; }
+
+        .bo-cap-btn {
+          display: flex; align-items: center; gap: 7px;
+          padding: 0.5rem 1rem;
+          background: rgba(208, 235, 255, 0.25);
+          border: 0.5px solid #2EABFE;
+          border-radius: 6.67px;
+          font-size: 0.82rem;
+          font-weight: 500;
+          font-family: 'Poppins', sans-serif;
+          color: #091925;
+          cursor: pointer;
+          transition: background 0.15s;
+        }
+        .bo-cap-btn:hover { background: rgba(46,171,254,0.15); }
+        .bo-cap-icon { color: #2EABFE; font-size: 0.85rem; }
+
+        .bo-export-btn {
+          display: flex; align-items: center; gap: 5px;
+          padding: 0.4rem 1rem;
+          background: transparent;
+          border: 0.5px solid #5B7384;
+          border-radius: 10px;
+          color: #fff;
+          font-size: 0.78rem;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          transition: border-color 0.15s;
+        }
+        .bo-export-btn:hover { border-color: #2EABFE; }
+
+        .bo-back-btn {
+          display: flex; align-items: center; gap: 6px;
+          background: #fff;
+          border: 0.5px solid #5B7384;
+          border-radius: 10px;
+          padding: 0.6rem 1.1rem;
+          font-size: 0.82rem;
+          font-weight: 700;
+          font-family: 'Poppins', sans-serif;
+          color: #5B7384;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: background 0.15s;
+        }
+        .bo-back-btn:hover { background: #f3f4f6; }
+
+        .bo-add-btn {
+          display: flex; align-items: center; gap: 7px;
+          padding: 0.65rem 1.4rem;
+          background: #008000;
+          color: #fff;
+          border: 0.5px solid #008000;
+          border-radius: 6.67px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: opacity 0.15s;
+        }
+        .bo-add-btn:hover { opacity: 0.88; }
+
+        .bo-page-btn {
+          width: 50px; height: 50px;
+          border: 0.5px solid #5B7384;
+          border-radius: 10px;
+          background: #fff;
+          color: #5B7384;
+          font-size: 0.875rem;
+          font-weight: 700;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          display: flex; align-items: center; justify-content: center;
+          transition: opacity 0.15s;
+        }
+        .bo-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .bo-page-btn-active {
+          background: #2EABFE !important;
+          color: #091925 !important;
+          border-color: #2EABFE !important;
+        }
+
+        .bo-th {
+          padding: 0.75rem 1rem;
+          background: rgba(127, 168, 196, 0.1);
+          border-top: 0.5px solid #5B7384;
+          border-bottom: 0.5px solid #5B7384;
+          font-size: 0.78rem;
+          font-weight: 500;
+          color: #5B7384;
+          text-align: left;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          white-space: nowrap;
+          font-family: 'Poppins', sans-serif;
+        }
+
+        .bo-td {
+          padding: 0.9rem 1rem;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #091925;
+          border-bottom: 0.5px solid #5B7384;
+          font-family: 'Poppins', sans-serif;
+        }
+
+        .bo-view-link {
+          background: none;
+          border: none;
+          color: #2EABFE;
+          font-size: 0.875rem;
+          font-weight: 500;
+          font-family: 'Poppins', sans-serif;
+          cursor: pointer;
+          padding: 0;
+          white-space: nowrap;
+        }
+        .bo-view-link:hover { text-decoration: underline; }
+
+        .bo-records-badge {
+          background: #E7F8F2;
+          color: #10B981;
+          font-size: 0.72rem;
+          font-weight: 700;
+          font-family: 'Poppins', sans-serif;
+          border-radius: 100px;
+          padding: 4px 12px;
+          white-space: nowrap;
+        }
+
+        .bo-filter-tag {
+          background: #E0F2FF;
+          color: #1A7AB8;
+          font-size: 0.72rem;
+          font-weight: 700;
+          font-family: 'Poppins', sans-serif;
+          border-radius: 100px;
+          padding: 4px 12px;
+          white-space: nowrap;
+        }
+
+        .bo-search-row {
+          display: grid;
+          grid-template-columns: 175px 1fr auto;
+          align-items: center;
+          gap: 14px;
+          padding: 8px 0;
+        }
+        .bo-search-divider {
+          border: none;
+          border-top: 0.5px solid #5B7384;
+          margin: 2px 0;
+        }
+        .bo-search-label {
+          font-size: 0.78rem;
+          font-weight: 500;
+          color: #091925;
+          letter-spacing: 0.05em;
+          text-transform: uppercase;
+          font-family: 'Poppins', sans-serif;
+        }
+      `}</style>
+
+      <div className="bo-page" style={{ padding: '1.5rem 2rem', fontFamily: "'Poppins', sans-serif" }}>
 
         {/* Breadcrumb */}
         <Breadcrumb crumbs={[
@@ -136,24 +352,28 @@ const BackOffice = () => {
         ]} />
 
         {/* Page Header */}
-        <div style={S.header}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.5rem', marginTop: '0.75rem' }}>
           <div>
-            <h1 style={S.title}>Student BackOffice</h1>
-            <p style={S.subtitle}>Search, manage and update student records in the exam system.</p>
+            <h1 style={{ fontSize: '2.4rem', fontWeight: 700, color: '#000', margin: '0 0 0.2rem 0', fontFamily: "'Poppins', sans-serif", lineHeight: 1.1 }}>
+              Student BackOffice
+            </h1>
+            <p style={{ fontSize: '1rem', fontWeight: 500, color: '#5B7384', margin: 0, fontFamily: "'Poppins', sans-serif" }}>
+              Search, manage and update student records in the exam system.
+            </p>
           </div>
-          <button style={S.backBtn} onClick={() => navigate('/admin/real-estate')}
-            onMouseEnter={e => e.currentTarget.style.background = '#f3f4f6'}
-            onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+          <button className="bo-back-btn" onClick={() => navigate('/admin/real-estate')} style={{ marginTop: 8 }}>
             <FaChevronLeft style={{ fontSize: '0.7rem' }} /> Back To Real Estate
           </button>
         </div>
 
-        <hr style={S.divider} />
+        <hr style={{ border: 'none', borderTop: '0.5px solid #2EABFE', margin: '0.75rem 0 1rem 0' }} />
 
         {/* What you can do */}
-        <div style={S.capabilityBox}>
-          <p style={S.capabilityLabel}>WHAT YOU CAN DO ON THIS PAGE</p>
-          <div style={S.capabilityBtns}>
+        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 10, padding: '1rem 1.25rem', marginBottom: '1rem' }}>
+          <p style={{ fontSize: '0.75rem', fontWeight: 500, color: '#5B7384', letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 0.65rem 0', fontFamily: "'Poppins', sans-serif" }}>
+            What You Can Do On This Page
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             {[
               { icon: FaUser,      label: 'List / Edit Existing Student Contact Info' },
               { icon: FaPlus,      label: 'Add New Student Records' },
@@ -162,116 +382,151 @@ const BackOffice = () => {
             ].map((item) => {
               const ItemIcon = item.icon;
               return (
-              <button key={item.label} style={S.capBtn}
-                onMouseEnter={e => { e.currentTarget.style.background = '#eff6ff'; e.currentTarget.style.borderColor = '#93c5fd'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.borderColor = '#d1d5db'; }}>
-                <ItemIcon style={{ color: '#2563eb', fontSize: '0.8rem' }} />
-                {item.label}
-              </button>
+                <button key={item.label} className="bo-cap-btn">
+                  <ItemIcon className="bo-cap-icon" />
+                  {item.label}
+                </button>
               );
             })}
           </div>
         </div>
 
         {/* Stats bar */}
-        <div style={S.statsBar}>
-          <div style={S.statsLeft}>
-            <span style={S.statsCount}>{total.toLocaleString()}</span>
-            <span style={S.statsLabel}>Total Student Records</span>
+        <div style={{
+          background: '#091925',
+          borderRadius: 10,
+          padding: '1rem 1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '1rem',
+          position: 'relative',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(180deg, rgba(9,25,37,0.05) 0%, rgba(46,171,254,0.3) 100%)',
+            borderRadius: 10,
+            pointerEvents: 'none',
+          }} />
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, position: 'relative' }}>
+            <span className="bo-big-num">{total.toLocaleString()}</span>
+            <div style={{ width: 0, height: 40, borderLeft: '0.5px solid #2EABFE' }} />
+            <span style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 400, fontFamily: "'Poppins', sans-serif" }}>Total Student Records</span>
           </div>
-          <div style={S.statsRight}>
-            <p style={S.statsShowing}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
+            <p style={{ fontSize: '0.85rem', color: '#fff', textAlign: 'right', margin: 0, lineHeight: 1.5, fontFamily: "'Poppins', sans-serif" }}>
               Showing <strong>all {total.toLocaleString()} records.</strong><br />
               Use a search below to filter.
             </p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {(search || stateFilter) && (
-                <button style={S.clearBtn} onClick={handleClear}>
-                  <FaTimes style={{ fontSize: '0.7rem' }} /> Clear Filters
-                </button>
-              )}
-              <button style={S.exportBtn} onClick={handleExport}>
-                <FaFileExport style={{ fontSize: '0.75rem' }} /> Export CSV
+            {(search || stateFilter) && (
+              <button onClick={handleClear}
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0.4rem 1rem', background: 'transparent', border: '0.5px solid #5B7384', borderRadius: 10, color: '#fff', fontSize: '0.78rem', fontFamily: "'Poppins', sans-serif", cursor: 'pointer' }}>
+                <FaTimes style={{ fontSize: '0.7rem' }} /> Clear Filters
               </button>
-            </div>
+            )}
+            <button className="bo-export-btn" onClick={handleExport}>
+              <FaFileExport style={{ fontSize: '0.75rem' }} /> Export CSV
+            </button>
           </div>
         </div>
 
         {/* Search section */}
-        <div style={S.searchBox}>
-          <div style={S.searchHeader}>
-            <h3 style={S.searchTitle}>Search Student Records</h3>
-            <p style={S.searchSub}>Use any of the methods below to find a student</p>
+        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 10, padding: '1.25rem 1.5rem', marginBottom: '1.25rem' }}>
+          <div style={{ marginBottom: '0.75rem' }}>
+            <hr style={{ border: 'none', borderTop: '0.5px solid #5B7384', margin: '0 0 0.75rem 0' }} />
+            <h3 style={{ fontSize: '1rem', fontWeight: 500, color: '#091925', margin: '0 0 0.2rem 0', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>Search Student Records</h3>
+            <p style={{ fontSize: '0.75rem', color: '#7FA8C4', margin: 0, fontFamily: "'Poppins', sans-serif" }}>Use any of the methods below to find a student</p>
           </div>
 
-          <div style={S.searchGrid}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
 
             {/* BY LAST NAME */}
-            <div style={S.searchRow}>
-              <span style={S.searchLabel}>BY LAST NAME</span>
-              <input style={S.searchInput} placeholder="" value={inputVal}
+            <div className="bo-search-row">
+              <span className="bo-search-label">By Last Name</span>
+              <input className="bo-search-input" placeholder="e.g. Smith" value={inputVal}
                 onChange={e => setInputVal(e.target.value)} onKeyDown={handleKeyDown} />
-              <button style={S.searchBtn} onClick={handleSearch}
-                onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-                onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}>
-                Filter Student Name List
+              <button className="bo-search-btn" onClick={handleSearch}>
+                <FaSearch style={{ fontSize: '0.7rem' }} /> Filter Student Name List
               </button>
             </div>
 
             {/* BY EMAIL */}
-            <div style={S.searchRow}>
-              <span style={S.searchLabel}>BY EMAIL</span>
-              <input style={S.searchInput} placeholder="" value={emailInput}
+            <div className="bo-search-row">
+              <span className="bo-search-label">By Email</span>
+              <input className="bo-search-input" placeholder="e.g. student@gmail.com" value={emailInput}
                 onChange={e => setEmailInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { setSearch(emailInput); fetchStudents(1, emailInput, stateFilter); }}} />
-              <button style={S.searchBtn}
-                onClick={() => { setSearch(emailInput); fetchStudents(1, emailInput, stateFilter); }}
-                onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-                onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}>
-                Filter by Email Address
+              <button className="bo-search-btn"
+                onClick={() => { setSearch(emailInput); fetchStudents(1, emailInput, stateFilter); }}>
+                <FaEnvelope style={{ fontSize: '0.7rem' }} /> Filter by Email Address
+              </button>
+            </div>
+
+            <hr className="bo-search-divider" />
+
+            {/* SELECT STUDENT */}
+            <div className="bo-search-row">
+              <span className="bo-search-label">Select Student</span>
+              <select className="bo-search-input" style={{ cursor: 'pointer' }}
+                value={selectStudent} onChange={e => setSelectStudent(e.target.value)}>
+                <option value="">— Select from list below —</option>
+                {students.map(s => <option key={s._id} value={s.studentId}>{s.name}</option>)}
+              </select>
+              <button className="bo-search-btn"
+                onClick={() => { if (selectStudent) { setSearch(selectStudent); fetchStudents(1, selectStudent, stateFilter); } }}>
+                <FaEye style={{ fontSize: '0.7rem' }} /> View Student Info
+              </button>
+            </div>
+
+            <hr className="bo-search-divider" />
+
+            {/* SOCIAL SECURITY # */}
+            <div className="bo-search-row">
+              <span className="bo-search-label">Social Security #</span>
+              <input className="bo-search-input" placeholder="XXX-XX-XXXX" value={ssInput}
+                onChange={e => setSsInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { setSearch(ssInput); fetchStudents(1, ssInput, stateFilter); }}} />
+              <button className="bo-search-btn"
+                onClick={() => { setSearch(ssInput); fetchStudents(1, ssInput, stateFilter); }}>
+                <FaSearch style={{ fontSize: '0.7rem' }} /> Lookup Student SS
               </button>
             </div>
 
             {/* STUDENT ID / DRE # */}
-            <div style={S.searchRow}>
-              <span style={S.searchLabel}>STUDENT ID / DRE #</span>
-              <input style={S.searchInput} placeholder="" value={idInput}
+            <div className="bo-search-row">
+              <span className="bo-search-label">Student ID / DRE #</span>
+              <input className="bo-search-input" placeholder="e.g. 00123456 or DRE-789" value={idInput}
                 onChange={e => setIdInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { setSearch(idInput); fetchStudents(1, idInput, stateFilter); }}} />
-              <button style={S.searchBtn}
-                onClick={() => { setSearch(idInput); fetchStudents(1, idInput, stateFilter); }}
-                onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-                onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}>
-                Lookup Student ID / DRE #
+              <button className="bo-search-btn"
+                onClick={() => { setSearch(idInput); fetchStudents(1, idInput, stateFilter); }}>
+                <FaSearch style={{ fontSize: '0.7rem' }} /> Lookup Student ID / DRE #
               </button>
             </div>
 
             {/* TELEPHONE */}
-            <div style={S.searchRow}>
-              <span style={S.searchLabel}>TELEPHONE</span>
-              <input style={S.searchInput} placeholder="" value={phoneInput}
+            <div className="bo-search-row">
+              <span className="bo-search-label">Telephone</span>
+              <input className="bo-search-input" placeholder="e.g. (555) 123-4567" value={phoneInput}
                 onChange={e => setPhoneInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { setSearch(phoneInput); fetchStudents(1, phoneInput, stateFilter); }}} />
-              <button style={S.searchBtn}
-                onClick={() => { setSearch(phoneInput); fetchStudents(1, phoneInput, stateFilter); }}
-                onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-                onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}>
-                Lookup Telephone
+              <button className="bo-search-btn"
+                onClick={() => { setSearch(phoneInput); fetchStudents(1, phoneInput, stateFilter); }}>
+                <FaPhone style={{ fontSize: '0.7rem' }} /> Lookup Telephone
               </button>
             </div>
 
             {/* BY STATE */}
-            <div style={S.searchRow}>
-              <span style={S.searchLabel}>BY STATE</span>
-              <select style={{ ...S.searchInput, cursor: 'pointer' }}
+            <div className="bo-search-row">
+              <span className="bo-search-label">By State</span>
+              <select className="bo-search-input" style={{ cursor: 'pointer' }}
                 value={stateFilter} onChange={e => handleStateChange(e.target.value)}>
                 <option value="">All States</option>
                 {statesList.map(st => <option key={st} value={st}>{st}</option>)}
               </select>
-              <button style={S.searchBtn} onClick={() => fetchStudents(1, search, stateFilter)}
-                onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-                onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}>
-                Filter by State
+              <button className="bo-search-btn" onClick={() => fetchStudents(1, search, stateFilter)}>
+                <FaSearch style={{ fontSize: '0.7rem' }} /> Filter by State
               </button>
             </div>
 
@@ -280,53 +535,75 @@ const BackOffice = () => {
 
         {/* Error */}
         {error && (
-          <div style={S.errorBox}>⚠ {error}</div>
+          <div style={{ background: '#fef2f2', border: '0.5px solid #fca5a5', borderRadius: 6, padding: '0.75rem 1rem', color: '#dc2626', fontSize: '0.875rem', marginBottom: '1rem', fontFamily: "'Poppins', sans-serif" }}>
+            ⚠ {error}
+          </div>
         )}
 
-        {/* Table */}
-        <div style={S.tableWrap}>
+        {/* Search Results Table */}
+        <div style={{ background: '#fff', borderRadius: 10, marginBottom: '1.25rem', overflow: 'hidden' }}>
+
+          {/* Table Header Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.85rem 1rem', flexWrap: 'wrap', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '1rem', fontWeight: 500, color: '#091925', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>
+                Search Results
+              </span>
+              {total > 0 && (
+                <span className="bo-records-badge">{total.toLocaleString()} Records</span>
+              )}
+              {(search || stateFilter) && (
+                <span style={{ fontSize: '0.78rem', color: 'rgba(91,115,132,0.5)', fontFamily: "'Poppins', sans-serif" }}>
+                  Filtered by:
+                </span>
+              )}
+              {search && <span className="bo-filter-tag">Last Name: {search}</span>}
+              {stateFilter && <span className="bo-filter-tag">State: {stateFilter}</span>}
+            </div>
+            {(search || stateFilter) && (
+              <button onClick={handleClear}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '0.5px solid #5B7384', borderRadius: 10, padding: '0.45rem 1rem', fontSize: '0.8rem', fontWeight: 700, color: '#5B7384', fontFamily: "'Poppins', sans-serif", cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                <FaTimes style={{ fontSize: '0.7rem' }} /> Clear Filters
+              </button>
+            )}
+          </div>
+
           {loading ? (
-            <div style={S.loadingWrap}>
-              <div style={S.spinner} />
-              <p style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: 12 }}>Loading students...</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem' }}>
+              <div className="bo-spinner" />
+              <p style={{ color: '#5B7384', fontSize: '0.875rem', marginTop: 12, fontFamily: "'Poppins', sans-serif" }}>Loading students...</p>
             </div>
           ) : students.length === 0 ? (
-            <div style={S.emptyWrap}>
-              <FaSearch style={{ fontSize: '2rem', color: '#d1d5db' }} />
-              <p style={{ color: '#6b7280', marginTop: 8 }}>No students found matching your search.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem', color: '#5B7384', fontFamily: "'Poppins', sans-serif" }}>
+              <FaSearch style={{ fontSize: '2rem', color: '#7FA8C4' }} />
+              <p style={{ marginTop: 8 }}>No students found matching your search.</p>
             </div>
           ) : (
-            <table style={S.table}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr>
-                  {['Student ID', 'Name', 'Email', 'Phone', 'DRE #', 'State', 'Courses', ''].map(h => (
-                    <th key={h} style={S.th}>{h}</th>
+                  {['Student Name', 'Student ID', 'DRE #', 'State', 'Phone', 'Email', 'Courses', ''].map(h => (
+                    <th key={h} className="bo-th">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {students.map((s, i) => (
+                {students.map((s) => (
                   <tr key={s._id}
-                    style={{ background: i % 2 === 0 ? '#fff' : '#f9fafb' }}
-                    onMouseEnter={e => e.currentTarget.style.background = '#eff6ff'}
-                    onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? '#fff' : '#f9fafb'}>
-                    <td style={S.td}><span style={S.idBadge}>{s.studentId}</span></td>
-                    <td style={{ ...S.td, fontWeight: 600, color: '#111827' }}>{s.name || '—'}</td>
-                    <td style={{ ...S.td, color: '#2563eb', fontSize: '0.8rem' }}>{s.email || '—'}</td>
-                    <td style={{ ...S.td, fontSize: '0.8rem', color: '#4b5563' }}>{s.workPhone || s.mobilePhone || '—'}</td>
-                    <td style={{ ...S.td, fontSize: '0.8rem', color: '#4b5563' }}>{s.dreNumber || '—'}</td>
-                    <td style={S.td}>
-                      {s.state ? <span style={S.stateBadge}>{s.state}</span> : '—'}
-                    </td>
-                    <td style={{ ...S.td, textAlign: 'center' }}>
-                      <span style={S.coursePill}>{s.courseCount}</span>
-                    </td>
-                    <td style={S.td}>
-                      <button style={S.viewBtn}
-                        onClick={() => navigate(`/admin/students/${s.studentId}`)}
-                        onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-                        onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}>
-                        View <FaArrowRight style={{ fontSize: '0.65rem' }} />
+                    style={{ background: '#fff', transition: 'background 0.1s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(46,171,254,0.04)'}
+                    onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
+                    <td className="bo-td">{s.name || '—'}</td>
+                    <td className="bo-td">{s.studentId || '—'}</td>
+                    <td className="bo-td">{s.dreNumber || '—'}</td>
+                    <td className="bo-td">{s.state || '—'}</td>
+                    <td className="bo-td">{s.workPhone || s.mobilePhone || '—'}</td>
+                    <td className="bo-td">{s.email || '—'}</td>
+                    <td className="bo-td" style={{ textAlign: 'center' }}>{s.courseCount ?? '—'}</td>
+                    <td className="bo-td" style={{ textAlign: 'right' }}>
+                      <button className="bo-view-link"
+                        onClick={() => navigate(`/admin/students/${s.studentId}`)}>
+                        View Student Info →
                       </button>
                     </td>
                   </tr>
@@ -338,21 +615,21 @@ const BackOffice = () => {
 
         {/* Pagination */}
         {!loading && pages > 1 && (
-          <div style={S.pagination}>
-            <span style={S.pageInfo}>
-              Page {page} of {pages} &nbsp;·&nbsp; {total.toLocaleString()} total records
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
+            <span style={{ fontSize: '1rem', fontWeight: 500, color: '#5B7384', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>
+              Showing {((page - 1) * LIMIT) + 1}–{Math.min(page * LIMIT, total)} Of {total.toLocaleString()} Records
             </span>
-            <div style={S.pageBtns}>
-              <button style={S.pageBtn} onClick={() => goToPage(page - 1)} disabled={page === 1}>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button className="bo-page-btn" onClick={() => goToPage(page - 1)} disabled={page === 1}>
                 <FaChevronLeft style={{ fontSize: '0.7rem' }} />
               </button>
               {pageNumbers().map(n => (
-                <button key={n} style={{ ...S.pageBtn, ...(n === page ? S.pageBtnActive : {}) }}
+                <button key={n} className={`bo-page-btn${n === page ? ' bo-page-btn-active' : ''}`}
                   onClick={() => goToPage(n)}>
                   {n}
                 </button>
               ))}
-              <button style={S.pageBtn} onClick={() => goToPage(page + 1)} disabled={page === pages}>
+              <button className="bo-page-btn" onClick={() => goToPage(page + 1)} disabled={page === pages}>
                 <FaChevronRight style={{ fontSize: '0.7rem' }} />
               </button>
             </div>
@@ -360,14 +637,12 @@ const BackOffice = () => {
         )}
 
         {/* Add New Student CTA */}
-        <div style={S.addStudentBar}>
+        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 10, padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h3 style={S.addStudentTitle}>Need To Add A New Student?</h3>
-            <p style={S.addStudentSub}>Create a new student record in the system. You can add exam data after the record is created.</p>
+            <h3 style={{ fontSize: '1rem', fontWeight: 500, color: '#091925', margin: '0 0 0.2rem 0', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>Need To Add A New Student?</h3>
+            <p style={{ fontSize: '0.75rem', color: '#7FA8C4', margin: 0, fontFamily: "'Poppins', sans-serif" }}>Create a new student record in the system. You can add exam data after the record is created.</p>
           </div>
-          <button style={S.addStudentBtn}
-            onMouseEnter={e => e.currentTarget.style.background = '#15803d'}
-            onMouseLeave={e => e.currentTarget.style.background = '#16a34a'}>
+          <button className="bo-add-btn">
             <FaPlus /> Add New Student Records
           </button>
         </div>
@@ -375,66 +650,6 @@ const BackOffice = () => {
       </div>
     </AppLayout>
   );
-};
-
-// ── Styles ────────────────────────────────────────────────────
-const S = {
-  page:       { padding: '1.5rem 2rem' },
-  header:     { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.75rem' },
-  title:      { fontSize: '1.75rem', fontWeight: 700, color: '#111827', margin: '0 0 0.25rem 0' },
-  subtitle:   { fontSize: '0.875rem', color: '#6b7280', margin: 0 },
-  backBtn:    { display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, padding: '0.45rem 1rem', fontSize: '0.82rem', fontWeight: 500, color: '#374151', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, marginTop: 4 },
-  divider:    { border: 'none', borderTop: '1px solid #e5e7eb', margin: '0 0 1.25rem 0' },
-
-  capabilityBox:  { background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8, padding: '1rem 1.25rem', marginBottom: '1.25rem' },
-  capabilityLabel:{ fontSize: '0.7rem', fontWeight: 700, color: '#9ca3af', letterSpacing: '0.1em', marginBottom: '0.6rem', margin: '0 0 0.6rem 0' },
-  capabilityBtns: { display: 'flex', flexWrap: 'wrap', gap: 8 },
-  capBtn:         { display: 'flex', alignItems: 'center', gap: 6, padding: '0.45rem 0.9rem', background: '#fff', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.8rem', fontWeight: 500, color: '#374151', cursor: 'pointer', transition: 'all 0.15s' },
-
-  statsBar:    { background: '#0f172a', borderRadius: 8, padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' },
-  statsLeft:   { display: 'flex', alignItems: 'baseline', gap: 10 },
-  statsCount:  { fontSize: '2rem', fontWeight: 800, color: '#38bdf8', fontFamily: "'DM Mono', monospace" },
-  statsLabel:  { fontSize: '0.8rem', color: '#94a3b8' },
-  statsRight:  { display: 'flex', alignItems: 'center', gap: 12 },
-  statsShowing:{ fontSize: '0.8rem', color: '#94a3b8', textAlign: 'right', margin: 0, lineHeight: 1.5 },
-  clearBtn:    { display: 'flex', alignItems: 'center', gap: 5, padding: '0.4rem 0.9rem', background: 'transparent', border: '1px solid #334155', borderRadius: 6, color: '#94a3b8', fontSize: '0.78rem', cursor: 'pointer' },
-  exportBtn:   { display: 'flex', alignItems: 'center', gap: 5, padding: '0.4rem 0.9rem', background: 'transparent', border: '1px solid #334155', borderRadius: 6, color: '#94a3b8', fontSize: '0.78rem', cursor: 'pointer' },
-
-  searchBox:    { border: '1px solid #e5e7eb', borderRadius: 8, padding: '1.25rem', marginBottom: '1.25rem', background: '#fff' },
-  searchHeader: { marginBottom: '1rem' },
-  searchTitle:  { fontSize: '1rem', fontWeight: 700, color: '#111827', margin: '0 0 0.2rem 0' },
-  searchSub:    { fontSize: '0.78rem', color: '#6b7280', margin: 0 },
-  searchGrid:   { display: 'flex', flexDirection: 'column', gap: 10 },
-  searchRow:    { display: 'grid', gridTemplateColumns: '160px 1fr auto', alignItems: 'center', gap: 12, paddingBottom: 10, borderBottom: '1px solid #f3f4f6' },
-  searchLabel:  { fontSize: '0.75rem', fontWeight: 700, color: '#374151', letterSpacing: '0.05em' },
-  searchInput:  { width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #d1d5db', borderRadius: 6, fontSize: '0.875rem', color: '#111827', outline: 'none', background: '#fff' },
-  searchBtn:    { padding: '0.5rem 1rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 6, fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.15s' },
-
-  errorBox:   { background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 6, padding: '0.75rem 1rem', color: '#dc2626', fontSize: '0.875rem', marginBottom: '1rem' },
-
-  tableWrap:  { border: '1px solid #e5e7eb', borderRadius: 8, overflow: 'hidden', marginBottom: '1.25rem', background: '#fff' },
-  table:      { width: '100%', borderCollapse: 'collapse' },
-  th:         { padding: '0.65rem 1rem', background: '#f8fafc', borderBottom: '1px solid #e5e7eb', fontSize: '0.72rem', fontWeight: 700, color: '#6b7280', textAlign: 'left', letterSpacing: '0.05em', textTransform: 'uppercase', whiteSpace: 'nowrap' },
-  td:         { padding: '0.65rem 1rem', fontSize: '0.85rem', color: '#374151', borderBottom: '1px solid #f1f5f9' },
-  idBadge:    { background: '#f1f5f9', border: '1px solid #e2e8f0', borderRadius: 4, padding: '2px 7px', fontSize: '0.75rem', fontFamily: "'DM Mono', monospace", color: '#475569' },
-  stateBadge: { background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: 4, padding: '2px 7px', fontSize: '0.72rem', fontWeight: 700 },
-  coursePill: { background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', borderRadius: 10, padding: '2px 8px', fontSize: '0.75rem', fontWeight: 700 },
-  viewBtn:    { display: 'flex', alignItems: 'center', gap: 5, padding: '0.35rem 0.8rem', background: '#2563eb', color: '#fff', border: 'none', borderRadius: 5, fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s' },
-
-  loadingWrap:{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem' },
-  spinner:    { width: 32, height: 32, border: '3px solid #e5e7eb', borderTop: '3px solid #2563eb', borderRadius: '50%', animation: 'spin 0.8s linear infinite' },
-  emptyWrap:  { display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem', color: '#6b7280' },
-
-  pagination: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' },
-  pageInfo:   { fontSize: '0.8rem', color: '#6b7280' },
-  pageBtns:   { display: 'flex', gap: 4 },
-  pageBtn:    { padding: '0.35rem 0.65rem', border: '1px solid #d1d5db', borderRadius: 5, background: '#fff', color: '#374151', fontSize: '0.8rem', cursor: 'pointer' },
-  pageBtnActive: { background: '#2563eb', color: '#fff', borderColor: '#2563eb' },
-
-  addStudentBar:  { background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8, padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  addStudentTitle:{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: '0 0 0.2rem 0' },
-  addStudentSub:  { fontSize: '0.78rem', color: '#6b7280', margin: 0 },
-  addStudentBtn:  { display: 'flex', alignItems: 'center', gap: 7, padding: '0.65rem 1.25rem', background: '#16a34a', color: '#fff', border: 'none', borderRadius: 7, fontSize: '0.875rem', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.15s' },
 };
 
 export default BackOffice;
