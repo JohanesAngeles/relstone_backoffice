@@ -11,6 +11,9 @@ import StudentDetail from './pages/real_estate/StudentDetail';
 import BackOffice from './pages/real_estate/BackOffice';
 import TranscriptPage from './pages/real_estate/Transcriptpage';
 
+import ExamData from './pages/exam_data/ExamData';
+
+
 function App() {
   return (
     <AuthProvider>
@@ -48,6 +51,10 @@ function App() {
 
           {/* Add more protected routes here */}
           <Route path="/admin/transcript/:studentId/:courseIndex" element={<TranscriptPage />} />
+          
+          <Route path="/admin/exam-data" element={
+            <ProtectedRoute><ExamData /></ProtectedRoute>
+          } />
 
         </Routes>
       </BrowserRouter>

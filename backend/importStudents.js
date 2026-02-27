@@ -58,22 +58,20 @@ const Order   = adminDB.model('Order',   orderSchema);
 const Course  = adminDB.model('Course',  courseSchema);
 
 // ── Config ────────────────────────────────────────────────────
-const DATA_ROOT = 'C:\\Users\\Alezzandrei Balbuena\\Downloads\\DATA SETS\\Week 1';
-const BATCH_SIZE = 200; // insert in batches to avoid memory issues
+const DATA_ROOT = 'C:\\Users\\User\\Desktop\\Relstone Extracted Data';
+const BATCH_SIZE = 200;
 
 // ── Helpers ───────────────────────────────────────────────────
 const clean = (val) => {
   if (val === null || val === undefined) return '';
   const str = String(val).trim();
-  // Skip cells that contain raw HTML/table headers (messy Courses sheet)
   if (str.length > 300) return '';
   return str;
 };
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// Insert in batches, skip duplicates silently
-const batchInsert = async (Model, records, uniqueField) => {
+const batchInsert = async (Model, records) => {
   let inserted = 0;
   let skipped = 0;
 
@@ -83,7 +81,6 @@ const batchInsert = async (Model, records, uniqueField) => {
       const result = await Model.insertMany(batch, { ordered: false });
       inserted += result.length;
     } catch (err) {
-      // ordered: false means it continues on duplicate key errors
       if (err.writeErrors) {
         skipped += err.writeErrors.length;
         inserted += (batch.length - err.writeErrors.length);
@@ -140,7 +137,6 @@ const parseCourses = (ws) => {
     .filter(r => {
       const id = clean(r['Student ID']);
       const title = clean(r['Course Title']);
-      // Filter out rows that are clearly messy HTML scrape artifacts
       return id && title && title.length < 200 && !title.includes('\n');
     })
     .map(r => ({
@@ -159,36 +155,29 @@ const parseCourses = (ws) => {
 
 // ── Main ──────────────────────────────────────────────────────
 const run = async () => {
-  // Wait for DB connection
   await new Promise((resolve) => {
     if (adminDB.readyState === 1) return resolve();
     adminDB.once('connected', resolve);
   });
   console.log('✅ Admin DB connected\n');
 
-  // Get all xlsx files recursively
-  const allFiles = [];
-  const letters = fs.readdirSync(DATA_ROOT);
+  // ── Get all .xlsx files directly from DATA_ROOT (flat structure) ──
+  const allFiles = fs.readdirSync(DATA_ROOT)
+    .filter(f => f.endsWith('.xlsx'))
+    .map(f => path.join(DATA_ROOT, f));
 
-  for (const letter of letters) {
-    const letterPath = path.join(DATA_ROOT, letter);
-    if (!fs.statSync(letterPath).isDirectory()) continue;
+  console.log(`📂 Found ${allFiles.length} Excel files in: ${DATA_ROOT}\n`);
 
-    const files = fs.readdirSync(letterPath)
-  .filter(f => f.endsWith('.xlsx') && !f.includes('_1-4_'))
-  .map(f => path.join(letterPath, f));
-
-    allFiles.push(...files);
+  if (allFiles.length === 0) {
+    console.log('❌ No Excel files found. Check your DATA_ROOT path.');
+    process.exit(1);
   }
-
-  console.log(`📂 Found ${allFiles.length} Excel files across ${letters.length} letters\n`);
 
   // Totals
   let totalStudents = { inserted: 0, skipped: 0 };
   let totalOrders   = { inserted: 0, skipped: 0 };
   let totalCourses  = { inserted: 0, skipped: 0 };
 
-  // Process each file
   for (let i = 0; i < allFiles.length; i++) {
     const filePath = allFiles[i];
     const fileName = path.basename(filePath);
@@ -200,28 +189,34 @@ const run = async () => {
       // ── Students ──
       if (wb.SheetNames.includes('Students')) {
         const students = parseStudents(wb.Sheets['Students']);
-        const result = await batchInsert(Student, students, 'studentId');
+        const result = await batchInsert(Student, students);
         totalStudents.inserted += result.inserted;
         totalStudents.skipped  += result.skipped;
         console.log(`   Students: +${result.inserted} inserted, ${result.skipped} skipped (duplicates)`);
+      } else {
+        console.log(`   Students: sheet not found`);
       }
 
       // ── Orders ──
       if (wb.SheetNames.includes('Orders')) {
         const orders = parseOrders(wb.Sheets['Orders']);
-        const result = await batchInsert(Order, orders, 'orderNumber');
+        const result = await batchInsert(Order, orders);
         totalOrders.inserted += result.inserted;
         totalOrders.skipped  += result.skipped;
         console.log(`   Orders:   +${result.inserted} inserted, ${result.skipped} skipped (duplicates)`);
+      } else {
+        console.log(`   Orders:   sheet not found`);
       }
 
       // ── Courses ──
       if (wb.SheetNames.includes('Courses')) {
         const courses = parseCourses(wb.Sheets['Courses']);
-        const result = await batchInsert(Course, courses, null);
+        const result = await batchInsert(Course, courses);
         totalCourses.inserted += result.inserted;
         totalCourses.skipped  += result.skipped;
         console.log(`   Courses:  +${result.inserted} inserted, ${result.skipped} skipped`);
+      } else {
+        console.log(`   Courses:  sheet not found`);
       }
 
     } catch (err) {
@@ -229,7 +224,7 @@ const run = async () => {
     }
 
     console.log('');
-    await sleep(100); // small pause between files
+    await sleep(100);
   }
 
   // ── Summary ──────────────────────────────────────────────────
