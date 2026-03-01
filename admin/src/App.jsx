@@ -12,6 +12,7 @@ import BackOffice from './pages/real_estate/BackOffice';
 import TranscriptPage from './pages/real_estate/Transcriptpage';
 
 import ExamData from './pages/exam_data/ExamData';
+import CertificatePage from './pages/real_estate/CertificatePage';
 
 
 function App() {
@@ -55,6 +56,8 @@ function App() {
           <Route path="/admin/exam-data" element={
             <ProtectedRoute><ExamData /></ProtectedRoute>
           } />
+
+          <Route path="/admin/certificate/:studentId/:courseIndex" element={<CertificatePage />} />
 
         </Routes>
       </BrowserRouter>
