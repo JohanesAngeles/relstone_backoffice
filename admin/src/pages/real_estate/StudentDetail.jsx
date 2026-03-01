@@ -52,6 +52,14 @@ const StudentDetail = () => {
     })();
   }, [id]);
 
+  // ── ADD THIS RIGHT HERE ──────────────────────────────────────
+useEffect(() => {
+  if (student) {
+    console.log('STUDENT OBJECT:', JSON.stringify(student, null, 2));
+  }
+}, [student]);
+// ────────────────────────────────────────────────────────────
+
   // ── Open transcript in new tab ─────────────────────────────
   const openTranscript = (courseIndex) => {
     // Store data in localStorage so the new tab can read it
@@ -87,6 +95,24 @@ const StudentDetail = () => {
       </div>
     </AppLayout>
   );
+
+  // ── Open certificate in new tab ────────────────────────────
+const openCertificate = (courseIndex) => {
+  const payload = {
+    student: {
+      studentId:      student.studentId,
+      name:           student.name,
+      mailingAddress: student.mailingAddress,
+      workPhone:      student.workPhone,
+      mobilePhone:    student.mobilePhone,
+      dreNumber:      student.dreNumber,
+      licenseNumber:  student.licenseNumber,
+    },
+    courses: student.courses,
+  };
+  localStorage.setItem(`transcript_${student.studentId}`, JSON.stringify(payload));
+  window.open(`/admin/certificate/${student.studentId}/${courseIndex}`, '_blank');
+};
 
   return (
     <AppLayout>
@@ -206,14 +232,25 @@ const StudentDetail = () => {
                       <td style={sr.td}><StatusBadge status={c.status} /></td>
                       <td style={sr.td}>
                         {(c.status === 'Completed' || c.status === 'Passed') ? (
-                          <button
-                            style={sr.transcriptBtn}
-                            onClick={() => openTranscript(i)}
-                            onMouseEnter={e => e.currentTarget.style.background = '#1d4ed8'}
-                            onMouseLeave={e => e.currentTarget.style.background = '#2563eb'}
+                          <select
+                            defaultValue=""
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === 'transcript')  openTranscript(i);
+                              if (val === 'certificate') openCertificate(i);
+                              e.target.value = '';
+                            }}
+                            style={{
+                              padding: '4px 8px', fontSize: 11, fontWeight: 600,
+                              background: '#2563eb', color: '#fff',
+                              border: 'none', borderRadius: 5, cursor: 'pointer',
+                              fontFamily: "'Poppins', sans-serif",
+                            }}
                           >
-                            View Transcript
-                          </button>
+                            <option value="" disabled>📄 View Docs ▾</option>
+                            <option value="transcript">📋 Transcript</option>
+                            <option value="certificate">🏆 Certificate</option>
+                          </select>
                         ) : (
                           <span style={{ fontSize: 11, color: '#cbd5e1' }}>—</span>
                         )}
