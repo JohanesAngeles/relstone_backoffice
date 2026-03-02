@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace('/api/admin', '');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -122,7 +122,7 @@ const CertificatePage = () => {
 
         const token  = localStorage.getItem('adminToken');
         const params = new URLSearchParams({
-          courseTitle: data.course.courseTitle || '',
+          courseTitle: data.course.examTitle || data.course.courseTitle || '',
           date:        isoDate,
         });
 
@@ -168,8 +168,8 @@ const CertificatePage = () => {
   const completionDate    = formatDate(completionDateRaw);
   const score             = [course.quizStatus, course.completionDate]
                               .find(v => typeof v === 'string' && v.includes('%')) || '';
-  const hours      = getCourseHours(course.courseTitle);
-  const designation= getDesignation(course.courseTitle);
+  const hours      = getCourseHours(course.examTitle || course.courseTitle);
+  const designation= getDesignation(course.examTitle || course.courseTitle);
   const licenseNum = student.licenseNumber || student.dreNumber || '—';
   const displayDRE = dreLoading ? 'Loading...' : (dreNumber || '—');
 
@@ -247,7 +247,7 @@ const CertificatePage = () => {
         <div style={C.courseBlock}>
           <div style={C.courseRow}>
             <span style={C.courseLabel}>
-              Title: <strong>{course.courseTitle || '—'}</strong>
+              Title: <strong>{course.examTitle || course.courseTitle || '—'}</strong>
             </span>
             <span style={C.courseRight}>
               Registration Date: <strong>{course.registrationDate || '—'}</strong>

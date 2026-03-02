@@ -4,9 +4,10 @@ import AppLayout from '../../layouts/AppLayout';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import {
   FaClipboardList,
-  FaBookOpen,
+  FaLeaf,
+  FaGlobe,
   FaDatabase,
-  FaChartBar,
+  FaSearch,
   FaArrowRight,
   FaChevronLeft,
 } from 'react-icons/fa';
@@ -17,42 +18,48 @@ const SYSTEMS = [
     id: 'online-exam',
     Icon: FaClipboardList,
     title: 'Online Exam System',
-    subtitle: 'Manage and monitor student exams',
+    subtitle: 'Manage and monitor CEC student exams',
     actions: [
-      { label: 'BackOffice', to: '/admin/real-estate/online-exam/backoffice', primary: true },
-      { label: 'Secure Orders', to: '/admin/real-estate/secure-orders', primary: true },
-      { label: 'RELS CMS', to: '/real-estate/online-exam/rels-cms', primary: true },
+      { label: 'BackOffice', to: '/admin/cec-courses/online-exam/backoffice', primary: true },
     ],
   },
   {
-    id: 'examprep',
-    Icon: FaBookOpen,
-    title: 'ExamPrepCentral.Com',
-    subtitle: 'Exam preparation & secure order management',
+    id: 'tx-ethics',
+    Icon: FaLeaf,
+    title: 'TX Ethics',
+    subtitle: 'Texas ethics exam & sales analysis reporting',
     actions: [
-      { label: 'BackOffice', to: '/real-estate/examprep/backoffice', primary: true },
-      { label: 'Secure Orders', to: '/real-estate/examprep/secure-orders', primary: true },
+      { label: 'Texas Ethics Exam',       to: '/admin/cec-courses/tx-ethics/exam',            primary: true },
+      { label: 'TX Sales Analysis Report', to: '/admin/cec-courses/tx-ethics/sales-analysis', primary: true },
     ],
   },
   {
-    id: 'st2',
+    id: 'overnightce',
+    Icon: FaGlobe,
+    title: 'OvernightCE.com',
+    subtitle: 'State information & update list management',
+    actions: [
+      { label: 'OvernightCE.com: State Info Update List', to: '/admin/cec-courses/overnightce/state-info', primary: true },
+    ],
+  },
+  {
+    id: 'state-cms',
     Icon: FaDatabase,
-    title: 'ST2 (Paradox) Maintenance',
-    subtitle: 'Database records & data lookup',
+    title: 'State CMS Maintenance',
+    subtitle: 'Individual state details & RELSTONE cert numbers',
     actions: [
-      { label: 'ST2 Data Lookup', to: '/real-estate/st2/lookup', primary: true },
+      { label: 'Individual State Details / RELSTONE Cert #\'s', to: '/admin/cec-courses/state-cms/details', primary: true },
     ],
-    note: 'Use this to search, view, and maintain ST2 Paradox database records. Contact your system administrator if you need write access.',
+    note: 'Use this to view and maintain individual state CMS records and RELSTONE certification numbers. Contact your system administrator for write access.',
   },
   {
-    id: 'mlo',
-    Icon: FaChartBar,
-    title: 'MLO & Affiliates',
-    subtitle: 'Status reports, evaluations and affiliate list',
+    id: 'cse-lookup',
+    Icon: FaSearch,
+    title: 'CSE Lookup',
+    subtitle: 'CSE 2011 and shipping/order dollar lookup',
     actions: [
-      { label: 'MLO Status Report', to: '/real-estate/mlo/status-report', primary: false },
-      { label: 'MLO Evaluations', to: '/real-estate/mlo/evaluations', primary: false },
-      { label: 'Affiliate List', to: '/real-estate/mlo/affiliates', primary: false },
+      { label: 'CSE 2011 Lookup',                   to: '/admin/cec-courses/cse-lookup/2011',     primary: false },
+      { label: 'CSE org. Shipping / Order $ Lookup', to: '/admin/cec-courses/cse-lookup/shipping', primary: false },
     ],
   },
 ];
@@ -216,14 +223,13 @@ const S = {
 };
 
 // ── Component ────────────────────────────────────────────────────────────────
-const RealEstatePage = () => {
+const CECCoursesPage = () => {
   const navigate = useNavigate();
   const [hoveredBtn, setHoveredBtn] = useState(null);
   const [backHovered, setBackHovered] = useState(false);
 
   return (
     <AppLayout>
-      {/* Poppins font import */}
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
       `}</style>
@@ -231,13 +237,13 @@ const RealEstatePage = () => {
         {/* Breadcrumb */}
         <Breadcrumb crumbs={[
           { label: 'Dashboard', to: '/admin' },
-          { label: 'Real Estate' },
+          { label: 'C.E.C. Courses' },
         ]} />
 
         {/* Page Header */}
         <div style={S.header}>
           <div>
-            <h1 style={S.title}>Real Estate</h1>
+            <h1 style={S.title}>C.E.C. Courses</h1>
             <p style={S.subtitle}>
               Select a system or tool below to get started. Click any blue button to open that page.
             </p>
@@ -247,7 +253,7 @@ const RealEstatePage = () => {
               ...S.backBtn,
               ...(backHovered ? { background: '#f3f4f6' } : {}),
             }}
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/admin')}
             onMouseEnter={() => setBackHovered(true)}
             onMouseLeave={() => setBackHovered(false)}
           >
@@ -314,4 +320,4 @@ const RealEstatePage = () => {
   );
 };
 
-export default RealEstatePage;
+export default CECCoursesPage;
