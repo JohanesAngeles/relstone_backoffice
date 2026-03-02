@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
 import logo from '../../assets/images/relstone_ICON.png';
 import '../../styles/components/AuthModal.css';
@@ -82,14 +82,23 @@ const LoginForm = ({ onLogin, onSwitchToRegister, onForgotPassword }) => {
         <button className="auth-modal__switch" onClick={onSwitchToRegister}>Sign up for free</button>
       </p>
       <form className="auth-modal__form" onSubmit={handleSubmit}>
-        <input type="email" placeholder="Your email" className="auth-modal__input"
-          value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-          autoComplete="email" />
+        <input
+          type="email"
+          placeholder="Your email"
+          className="auth-modal__input"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          autoComplete="email"
+        />
         <div className="auth-modal__password-wrap">
-          <input type={showPassword ? 'text' : 'password'} placeholder="Password"
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password"
             className="auth-modal__input auth-modal__input--password"
-            value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
-            autoComplete="current-password" />
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            autoComplete="current-password"
+          />
           <button type="button" className="auth-modal__eye" onClick={() => setShowPassword(v => !v)}>
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
@@ -98,8 +107,11 @@ const LoginForm = ({ onLogin, onSwitchToRegister, onForgotPassword }) => {
         <button type="submit" className="auth-modal__submit" disabled={loading}>
           {loading ? 'Signing in...' : 'Sign In'}
         </button>
-        <button type="button" className="auth-modal__forgot"
-          onClick={() => onForgotPassword(null, form.email, false)}>
+        <button
+          type="button"
+          className="auth-modal__forgot"
+          onClick={() => onForgotPassword(null, form.email, false)}
+        >
           Forgot your password?
         </button>
       </form>
@@ -117,18 +129,19 @@ const RegisterForm = ({ onSwitchToLogin, onNeedsVerification }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!form.firstName || !form.lastName || !form.email || !form.password){ setError('All fields are required.'); return; }
+    if (!form.firstName || !form.lastName || !form.email || !form.password) { setError('All fields are required.'); return; }
     if (form.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
+
     setLoading(true);
     try {
       const res = await fetch(`${API}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          firstName: form.firstName, 
+        body: JSON.stringify({
+          firstName: form.firstName,
           lastName: form.lastName,
-          email: form.email, 
-          password: form.password 
+          email: form.email,
+          password: form.password
         }),
       });
       const data = await res.json();
@@ -150,21 +163,40 @@ const RegisterForm = ({ onSwitchToLogin, onNeedsVerification }) => {
       </p>
       <form className="auth-modal__form" onSubmit={handleSubmit}>
         <div className="auth-modal__name-row">
-        <input type="text" placeholder="First name" className="auth-modal__input"
-            value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-            autoComplete="given-name" />
-        <input type="text" placeholder="Last name" className="auth-modal__input"
-            value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-            autoComplete="family-name" />
+          <input
+            type="text"
+            placeholder="First name"
+            className="auth-modal__input"
+            value={form.firstName}
+            onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+            autoComplete="given-name"
+          />
+          <input
+            type="text"
+            placeholder="Last name"
+            className="auth-modal__input"
+            value={form.lastName}
+            onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+            autoComplete="family-name"
+          />
         </div>
-        <input type="email" placeholder="Your email" className="auth-modal__input"
-          value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })}
-          autoComplete="email" />
+        <input
+          type="email"
+          placeholder="Your email"
+          className="auth-modal__input"
+          value={form.email}
+          onChange={(e) => setForm({ ...form, email: e.target.value })}
+          autoComplete="email"
+        />
         <div className="auth-modal__password-wrap">
-          <input type={showPassword ? 'text' : 'password'} placeholder="Password (min 6 characters)"
+          <input
+            type={showPassword ? 'text' : 'password'}
+            placeholder="Password (min 6 characters)"
             className="auth-modal__input auth-modal__input--password"
-            value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
-            autoComplete="new-password" />
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            autoComplete="new-password"
+          />
           <button type="button" className="auth-modal__eye" onClick={() => setShowPassword(v => !v)}>
             {showPassword ? <FaEyeSlash /> : <FaEye />}
           </button>
@@ -308,8 +340,13 @@ const ForgotPasswordForm = ({ userId: initUserId, email: initEmail, onBack }) =>
         <>
           <p className="auth-modal__subtitle">Enter your email and we'll send a reset code.</p>
           <form className="auth-modal__form" onSubmit={handleRequestCode}>
-            <input type="email" placeholder="Your email" className="auth-modal__input"
-              value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input
+              type="email"
+              placeholder="Your email"
+              className="auth-modal__input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
             {error && <p className="auth-modal__error">{error}</p>}
             <button type="submit" className="auth-modal__submit" disabled={loading}>
               {loading ? 'Sending...' : 'Send Reset Code'}
@@ -324,9 +361,13 @@ const ForgotPasswordForm = ({ userId: initUserId, email: initEmail, onBack }) =>
           <form className="auth-modal__form" onSubmit={handleReset}>
             <CodeInputs code={code} setCode={setCode} prefix="rcode" />
             <div className="auth-modal__password-wrap">
-              <input type={showPassword ? 'text' : 'password'} placeholder="New password"
+              <input
+                type={showPassword ? 'text' : 'password'}
+                placeholder="New password"
                 className="auth-modal__input auth-modal__input--password"
-                value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
               <button type="button" className="auth-modal__eye" onClick={() => setShowPassword(v => !v)}>
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -345,10 +386,16 @@ const ForgotPasswordForm = ({ userId: initUserId, email: initEmail, onBack }) =>
 };
 
 // ── Main Modal ────────────────────────────────────────────────
-const AuthModal = ({ onClose, onLogin }) => {
-  const [screen, setScreen] = useState('login');
+// ✅ mode: 'login' | 'register' | 'forgot' | 'verify'
+const AuthModal = ({ onClose, onLogin, mode = 'login' }) => {
+  const [screen, setScreen] = useState(mode);
   const [pendingUserId, setPendingUserId] = useState(null);
   const [pendingEmail, setPendingEmail] = useState('');
+
+  // ✅ KEY FIX: when Header opens modal with a different mode, update screen
+  useEffect(() => {
+    setScreen(mode);
+  }, [mode]);
 
   const handleNeedsVerification = (userId, email) => {
     setPendingUserId(userId);
@@ -370,7 +417,6 @@ const AuthModal = ({ onClose, onLogin }) => {
   return (
     <div className="auth-modal__backdrop" onClick={onClose}>
       <div className="auth-modal__card" onClick={(e) => e.stopPropagation()}>
-
         {/* Close */}
         <button className="auth-modal__close" onClick={onClose} aria-label="Close">
           <FaTimes />
@@ -389,12 +435,14 @@ const AuthModal = ({ onClose, onLogin }) => {
             onForgotPassword={handleForgotPassword}
           />
         )}
+
         {screen === 'register' && (
           <RegisterForm
             onSwitchToLogin={() => setScreen('login')}
             onNeedsVerification={handleNeedsVerification}
           />
         )}
+
         {screen === 'verify' && (
           <VerifyForm
             userId={pendingUserId}
@@ -403,6 +451,7 @@ const AuthModal = ({ onClose, onLogin }) => {
             onBack={() => setScreen('login')}
           />
         )}
+
         {screen === 'forgot' && (
           <ForgotPasswordForm
             userId={pendingUserId}

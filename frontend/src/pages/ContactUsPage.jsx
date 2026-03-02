@@ -65,14 +65,33 @@ const ContactUsPage = () => {
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    // Replace with real API call
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+
+  try {
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+    // If baseUrl ends with /api, remove it so we don't get /api/api/contact
+    const cleanedBase = baseUrl.replace(/\/api\/?$/, '');
+
+    const res = await fetch(`${cleanedBase}/api/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify(form),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed to submit message');
+
     setSubmitted(true);
-  };
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="contact-page">

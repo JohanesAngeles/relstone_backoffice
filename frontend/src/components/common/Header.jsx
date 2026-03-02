@@ -1,7 +1,14 @@
 // Header.jsx
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { FaSearch, FaShoppingCart, FaChevronDown, FaSignOutAlt, FaTag, FaTimes } from 'react-icons/fa';
+import {
+  FaSearch,
+  FaShoppingCart,
+  FaChevronDown,
+  FaSignOutAlt,
+  FaTag,
+  FaTimes,
+} from 'react-icons/fa';
 import logo from '../../assets/images/Left Side Logo.png';
 import AuthModal from './AuthModal';
 import useCart from '../../context/useCart';
@@ -16,7 +23,7 @@ const INSURANCE_STATES = [
   'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon',
   'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
   'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
-  'West Virginia', 'Wisconsin', 'Wyoming'
+  'West Virginia', 'Wisconsin', 'Wyoming',
 ];
 
 const NAV_ITEMS = [
@@ -61,26 +68,31 @@ const highlightText = (text, q) => {
   const c = text.slice(idx + q.length);
   return (
     <>
-      {a}<mark className="site-header__search-mark">{b}</mark>{c}
+      {a}
+      <mark className="site-header__search-mark">{b}</mark>
+      {c}
     </>
   );
 };
 
-/* Build a simple “courses” list from nav dropdown items (you can replace with real API data later) */
+/* Build a simple “courses” list from nav dropdown items (replace with real API later) */
 const COURSE_INDEX = (() => {
   const items = [];
   const push = (label, to) => items.push({ id: `${to}-${label}`, name: label, to });
+
   NAV_ITEMS.forEach((item) => {
     if (item.dropdown?.length) {
       item.dropdown.forEach((sub) => push(sub.label, sub.to));
     } else if (!item.isStatesNav) {
-      // You can include top-level pages too; comment out if you only want dropdown items
       push(item.label, item.to);
     }
   });
+
   // Remove duplicates by `to`
   const uniq = new Map();
-  items.forEach((x) => { if (!uniq.has(x.to)) uniq.set(x.to, x); });
+  items.forEach((x) => {
+    if (!uniq.has(x.to)) uniq.set(x.to, x);
+  });
   return Array.from(uniq.values());
 })();
 
@@ -90,11 +102,7 @@ const StatesDropdown = () => (
     <p className="site-header__states-label">Select a State</p>
     <div className="site-header__states-grid">
       {INSURANCE_STATES.map((state) => (
-        <Link
-          key={state}
-          to={`/insurance/${slugify(state)}`}
-          className="site-header__state-pill"
-        >
+        <Link key={state} to={`/insurance/${slugify(state)}`} className="site-header__state-pill">
           {state}
         </Link>
       ))}
@@ -130,16 +138,21 @@ const NavItem = ({ item }) => {
     return (
       <div
         ref={ref}
-        className={`site-header__nav-item site-header__nav-item--has-dropdown${open ? ' site-header__nav-item--open' : ''}`}
+        className={`site-header__nav-item site-header__nav-item--has-dropdown${
+          open ? ' site-header__nav-item--open' : ''
+        }`}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
       >
         <button
+          type="button"
           className="site-header__nav-link site-header__nav-link--dropdown-trigger"
           onClick={() => setOpen((v) => !v)}
         >
           States
-          <FaChevronDown className={`site-header__chevron${open ? ' site-header__chevron--open' : ''}`} />
+          <FaChevronDown
+            className={`site-header__chevron${open ? ' site-header__chevron--open' : ''}`}
+          />
         </button>
         {open && <StatesDropdown />}
       </div>
@@ -147,24 +160,33 @@ const NavItem = ({ item }) => {
   }
 
   if (!item.dropdown) {
-    return <Link to={item.to} className="site-header__nav-link">{item.label}</Link>;
+    return (
+      <Link to={item.to} className="site-header__nav-link">
+        {item.label}
+      </Link>
+    );
   }
 
   return (
     <div
       ref={ref}
-      className={`site-header__nav-item site-header__nav-item--has-dropdown${open ? ' site-header__nav-item--open' : ''}`}
+      className={`site-header__nav-item site-header__nav-item--has-dropdown${
+        open ? ' site-header__nav-item--open' : ''
+      }`}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
     >
       <button
+        type="button"
         className="site-header__nav-link site-header__nav-link--dropdown-trigger"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="true"
         aria-expanded={open}
       >
         {item.label}
-        <FaChevronDown className={`site-header__chevron${open ? ' site-header__chevron--open' : ''}`} />
+        <FaChevronDown
+          className={`site-header__chevron${open ? ' site-header__chevron--open' : ''}`}
+        />
       </button>
       {open && <DropdownMenu items={item.dropdown} />}
     </div>
@@ -175,7 +197,8 @@ const NavItem = ({ item }) => {
 const UserAvatar = ({ user, onLogout }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const initials = user.name
+
+  const initials = (user?.name || 'U')
     .split(' ')
     .map((n) => n[0])
     .join('')
@@ -193,12 +216,14 @@ const UserAvatar = ({ user, onLogout }) => {
   return (
     <div ref={ref} className="site-header__user-wrap">
       <button
+        type="button"
         className="site-header__avatar"
         onClick={() => setOpen((v) => !v)}
         aria-label="User menu"
       >
         {initials}
       </button>
+
       {open && (
         <div className="site-header__user-dropdown">
           <div className="site-header__user-info">
@@ -213,7 +238,11 @@ const UserAvatar = ({ user, onLogout }) => {
             My Courses
           </Link>
           <div className="site-header__user-divider" />
-          <button className="site-header__user-item site-header__user-logout" onClick={onLogout}>
+          <button
+            type="button"
+            className="site-header__user-item site-header__user-logout"
+            onClick={onLogout}
+          >
             <FaSignOutAlt /> Sign Out
           </button>
         </div>
@@ -255,9 +284,7 @@ const CartIcon = () => {
     >
       <Link to="/cart" className="site-header__action-btn site-header__cart">
         <FaShoppingCart />
-        {cartCount > 0 && (
-          <span className="site-header__cart-badge">{cartCount}</span>
-        )}
+        {cartCount > 0 && <span className="site-header__cart-badge">{cartCount}</span>}
       </Link>
 
       {open && (
@@ -285,11 +312,14 @@ const CartIcon = () => {
             <>
               <div className="cart-preview__items">
                 {cartItems.map((item) => {
-                  const lineTotal = item.price + (item.withTextbook ? (item.textbookPrice || 0) : 0);
+                  const lineTotal =
+                    item.price + (item.withTextbook ? item.textbookPrice || 0 : 0);
                   return (
                     <div key={item.id} className="cart-preview__item">
                       <div className="cart-preview__item-info">
-                        <span className={`cart-preview__item-badge cart-preview__item-badge--${item.type}`}>
+                        <span
+                          className={`cart-preview__item-badge cart-preview__item-badge--${item.type}`}
+                        >
                           {item.type === 'package' ? 'Package' : 'Course'}
                         </span>
                         <span className="cart-preview__item-name" title={item.name}>
@@ -307,8 +337,12 @@ const CartIcon = () => {
                       <div className="cart-preview__item-right">
                         <span className="cart-preview__item-price">${lineTotal.toFixed(2)}</span>
                         <button
+                          type="button"
                           className="cart-preview__item-remove"
-                          onClick={(e) => { e.preventDefault(); removeFromCart(item.id); }}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            removeFromCart(item.id);
+                          }}
                           aria-label={`Remove ${item.name}`}
                         >
                           <FaTimes />
@@ -351,7 +385,12 @@ const Header = () => {
 
   const [mobileOpenItem, setMobileOpenItem] = useState(null);
   const [mobileStatesOpen, setMobileStatesOpen] = useState(false);
+
   const [showAuthModal, setShowAuthModal] = useState(false);
+
+  // IMPORTANT: AuthModal screens are "login" and "register" (NOT "signup")
+  const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
+
   const [user, setUser] = useState(null);
 
   const searchRef = useRef(null);
@@ -375,13 +414,8 @@ const Header = () => {
     if (!q) return { matchedStates: [], matchedCourses: [] };
     const qq = q.toLowerCase();
 
-    const ms = INSURANCE_STATES
-      .filter((s) => s.toLowerCase().includes(qq))
-      .slice(0, 10);
-
-    const mc = COURSE_INDEX
-      .filter((c) => c.name.toLowerCase().includes(qq))
-      .slice(0, 10);
+    const ms = INSURANCE_STATES.filter((s) => s.toLowerCase().includes(qq)).slice(0, 10);
+    const mc = COURSE_INDEX.filter((c) => c.name.toLowerCase().includes(qq)).slice(0, 10);
 
     return { matchedStates: ms, matchedCourses: mc };
   }, [q]);
@@ -428,9 +462,7 @@ const Header = () => {
                 {showSearchDropdown && q && (
                   <div className="site-header__search-dropdown" role="listbox">
                     {!hasResults && (
-                      <div className="site-header__search-empty">
-                        No results for “{q}”
-                      </div>
+                      <div className="site-header__search-empty">No results for “{q}”</div>
                     )}
 
                     {matchedStates.length > 0 && (
@@ -479,13 +511,19 @@ const Header = () => {
                   <>
                     <button
                       className="site-header__auth-btn site-header__auth-btn--ghost"
-                      onClick={() => setShowAuthModal(true)}
+                      onClick={() => {
+                        setAuthMode('login');
+                        setShowAuthModal(true);
+                      }}
                     >
                       Log In
                     </button>
                     <button
                       className="site-header__auth-btn site-header__auth-btn--solid"
-                      onClick={() => setShowAuthModal(true)}
+                      onClick={() => {
+                        setAuthMode('register');
+                        setShowAuthModal(true);
+                      }}
                     >
                       Sign Up
                     </button>
@@ -523,11 +561,16 @@ const Header = () => {
                     {item.isStatesNav ? (
                       <>
                         <button
+                          type="button"
                           className="site-header__nav-link-mobile site-header__nav-link-mobile--trigger"
                           onClick={() => setMobileStatesOpen((v) => !v)}
                         >
                           States
-                          <FaChevronDown className={`site-header__chevron${mobileStatesOpen ? ' site-header__chevron--open' : ''}`} />
+                          <FaChevronDown
+                            className={`site-header__chevron${
+                              mobileStatesOpen ? ' site-header__chevron--open' : ''
+                            }`}
+                          />
                         </button>
                         {mobileStatesOpen && (
                           <div className="site-header__mobile-states">
@@ -547,12 +590,17 @@ const Header = () => {
                     ) : item.dropdown ? (
                       <>
                         <button
+                          type="button"
                           className="site-header__nav-link-mobile site-header__nav-link-mobile--trigger"
-                          onClick={() => setMobileOpenItem(mobileOpenItem === item.to ? null : item.to)}
+                          onClick={() =>
+                            setMobileOpenItem(mobileOpenItem === item.to ? null : item.to)
+                          }
                         >
                           {item.label}
                           <FaChevronDown
-                            className={`site-header__chevron${mobileOpenItem === item.to ? ' site-header__chevron--open' : ''}`}
+                            className={`site-header__chevron${
+                              mobileOpenItem === item.to ? ' site-header__chevron--open' : ''
+                            }`}
                           />
                         </button>
                         {mobileOpenItem === item.to && (
@@ -585,22 +633,42 @@ const Header = () => {
                 {!user ? (
                   <div className="site-header__mobile-auth">
                     <button
+                      type="button"
                       className="site-header__auth-btn site-header__auth-btn--ghost site-header__auth-btn--full"
-                      onClick={() => { setShowAuthModal(true); setIsMenuOpen(false); }}
+                      onClick={() => {
+                        setAuthMode('login');
+                        setShowAuthModal(true);
+                        setIsMenuOpen(false);
+                      }}
                     >
                       Log In
                     </button>
                     <button
+                      type="button"
                       className="site-header__auth-btn site-header__auth-btn--solid site-header__auth-btn--full"
-                      onClick={() => { setShowAuthModal(true); setIsMenuOpen(false); }}
+                      onClick={() => {
+                        setAuthMode('register');
+                        setShowAuthModal(true);
+                        setIsMenuOpen(false);
+                      }}
                     >
                       Sign Up
                     </button>
                   </div>
                 ) : (
                   <button
+                    type="button"
                     className="site-header__nav-link-mobile"
-                    style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', padding: '0.75rem 0', fontWeight: 500 }}
+                    style={{
+                      color: '#ef4444',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      width: '100%',
+                      padding: '0.75rem 0',
+                      fontWeight: 500,
+                    }}
                     onClick={handleLogout}
                   >
                     Sign Out
@@ -614,6 +682,7 @@ const Header = () => {
 
       {showAuthModal && (
         <AuthModal
+          mode={authMode} // expects "login" | "register"
           onClose={() => setShowAuthModal(false)}
           onLogin={handleLogin}
         />
