@@ -55,11 +55,12 @@ const dreApprovals = [
   { courseKey: 'RISK_MGMT', courseTitle: 'Risk Management for Real Estate Professionals', dreNumber: '1035-1088', begDate: '2014-12-19', endDate: '2016-12-18' },
   { courseKey: 'RISK_MGMT', courseTitle: 'Risk Management for Real Estate Professionals', dreNumber: '1035-1098', begDate: '2016-12-19', endDate: '2018-12-18' },
   { courseKey: 'RISK_MGMT', courseTitle: 'Risk Management for Real Estate Professionals', dreNumber: '1035-1108', begDate: '2018-12-19', endDate: '2020-12-18' },
-  { courseKey: 'RISK_MGMT', courseTitle: 'Risk Management for Real Estate Professionals', dreNumber: '1035-1118', begDate: '2021-02-22', endDate: '2023-02-21' },
+  { courseKey: 'RISK_MGMT', courseTitle: 'Risk Management for Real Estate Professionals', dreNumber: '1035-1118', begDate: '2021-02-22', endDate: '2023-02-23' }, // ✅ FIXED: was 2023-02-21
   { courseKey: 'RISK_MGMT', courseTitle: 'Risk Management for Real Estate Professionals', dreNumber: '1035-1131', begDate: '2023-02-22', endDate: '2025-02-21' },
   { courseKey: 'RISK_MGMT', courseTitle: 'Risk Management for Real Estate Professionals', dreNumber: '1035-1142', begDate: '2025-02-22', endDate: '2027-02-21' },
 
   // ── ETHICS / LEGAL ASPECTS ────────────────────────────────────────────────
+  { courseKey: 'ETHICS', courseTitle: 'Ethics, Professional Conduct and Legal Aspects of Real Estate', dreNumber: '1035-1050', begDate: '2006-05-04', endDate: '2008-05-03' }, // ✅ ADDED: was missing
   { courseKey: 'ETHICS', courseTitle: 'Ethics, Professional Conduct and Legal Aspects of Real Estate', dreNumber: '1035-1059', begDate: '2008-05-04', endDate: '2010-05-03' },
   { courseKey: 'ETHICS', courseTitle: 'Ethics, Professional Conduct and Legal Aspects of Real Estate', dreNumber: '1035-1068', begDate: '2010-05-04', endDate: '2012-05-03' },
   { courseKey: 'ETHICS', courseTitle: 'Ethics, Professional Conduct and Legal Aspects of Real Estate', dreNumber: '1035-1077', begDate: '2012-05-04', endDate: '2014-05-03' },

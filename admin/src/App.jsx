@@ -13,6 +13,14 @@ import TranscriptPage from './pages/real_estate/Transcriptpage';
 
 import ExamData from './pages/exam_data/ExamData';
 import CertificatePage from './pages/real_estate/CertificatePage';
+import CECCoursesPage from './pages/cec_courses/CECCoursesPage';
+import CECBackOffice from './pages/cec_courses/CECBackOffice';
+
+import CECStudentDetail from './pages/cec_courses/CECStudentDetail';
+import CECCertificatePage from './pages/cec_courses/CECCertificatePage';
+
+import SecureOrders from './pages/real_estate/SecureOrders';
+
 
 
 function App() {
@@ -58,6 +66,18 @@ function App() {
           } />
 
           <Route path="/admin/certificate/:studentId/:courseIndex" element={<CertificatePage />} />
+
+          <Route path="/admin/cec-courses" element={<CECCoursesPage />} />
+
+          <Route path="/admin/cec-courses/online-exam/backoffice" element={<CECBackOffice />} />
+
+          <Route path="/admin/cec-students/:id" element={<CECStudentDetail />} />
+
+          <Route path="/admin/cec-certificate/:studentId/:courseIndex" element={<CECCertificatePage />} />
+
+          <Route path="/admin/real-estate/secure-orders" element={<SecureOrders />} />
+
+
 
         </Routes>
       </BrowserRouter>
