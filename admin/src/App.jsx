@@ -20,6 +20,8 @@ import CECStudentDetail from './pages/cec_courses/CECStudentDetail';
 import CECCertificatePage from './pages/cec_courses/CECCertificatePage';
 
 import SecureOrders from './pages/real_estate/SecureOrders';
+import AddStudent from './pages/real_estate/AddStudent';
+import AddExamPage from './pages/real_estate/AddExamPage';
 
 
 
@@ -77,7 +79,9 @@ function App() {
 
           <Route path="/admin/real-estate/secure-orders" element={<SecureOrders />} />
 
+          <Route path="/admin/real-estate/online-exam/backoffice/add-student" element={<AddStudent />} />
 
+          <Route path="/admin/real-estate/online-exam/backoffice/student/:id/add-exam" element={<AddExamPage />} />
 
         </Routes>
       </BrowserRouter>
