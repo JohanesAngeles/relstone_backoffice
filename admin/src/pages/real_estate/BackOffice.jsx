@@ -130,16 +130,18 @@ const BackOffice = () => {
 
         .bo-page * { font-family: 'Poppins', sans-serif; box-sizing: border-box; }
 
+        /* — big number in stats bar — */
         .bo-big-num {
           font-family: 'Poppins', sans-serif;
           font-weight: 700;
-          font-size: 2.6rem;
+          font-size: 2rem;          /* was 2.6rem */
           color: #2EABFE;
           line-height: 1;
         }
 
+        /* — spinner — */
         .bo-spinner {
-          width: 32px; height: 32px;
+          width: 28px; height: 28px;   /* was 32px */
           border: 3px solid rgba(46,171,254,0.2);
           border-top: 3px solid #2EABFE;
           border-radius: 50%;
@@ -147,13 +149,14 @@ const BackOffice = () => {
         }
         @keyframes bo-spin { to { transform: rotate(360deg); } }
 
+        /* — search inputs — */
         .bo-search-input {
           width: 100%;
-          padding: 0.6rem 0.85rem;
+          padding: 6px 10px;          /* was 0.6rem 0.85rem */
           background: rgba(127, 168, 196, 0.1);
           border: 0.5px solid #7FA8C4;
           border-radius: 6.67px;
-          font-size: 0.875rem;
+          font-size: 0.75rem;         /* was 0.875rem → match SD td 12px */
           font-family: 'Poppins', sans-serif;
           color: #091925;
           outline: none;
@@ -162,14 +165,15 @@ const BackOffice = () => {
         .bo-search-input::placeholder { color: #7FA8C4; opacity: 0.7; }
         .bo-search-input:focus { border-color: #2EABFE; }
 
+        /* — search buttons — */
         .bo-search-btn {
-          display: flex; align-items: center; gap: 6px;
-          padding: 0.6rem 1.1rem;
+          display: flex; align-items: center; gap: 5px;
+          padding: 6px 12px;          /* was 0.6rem 1.1rem */
           background: #2EABFE;
           color: #091925;
           border: 0.5px solid #2EABFE;
           border-radius: 6.67px;
-          font-size: 0.8rem;
+          font-size: 0.72rem;         /* was 0.8rem */
           font-weight: 700;
           font-family: 'Poppins', sans-serif;
           cursor: pointer;
@@ -178,13 +182,14 @@ const BackOffice = () => {
         }
         .bo-search-btn:hover { opacity: 0.88; }
 
+        /* — capability buttons — */
         .bo-cap-btn {
-          display: flex; align-items: center; gap: 7px;
-          padding: 0.5rem 1rem;
+          display: flex; align-items: center; gap: 6px;
+          padding: 5px 10px;          /* was 0.5rem 1rem */
           background: rgba(208, 235, 255, 0.25);
           border: 0.5px solid #2EABFE;
           border-radius: 6.67px;
-          font-size: 0.82rem;
+          font-size: 0.72rem;         /* was 0.82rem */
           font-weight: 500;
           font-family: 'Poppins', sans-serif;
           color: #091925;
@@ -192,29 +197,31 @@ const BackOffice = () => {
           transition: background 0.15s;
         }
         .bo-cap-btn:hover { background: rgba(46,171,254,0.15); }
-        .bo-cap-icon { color: #2EABFE; font-size: 0.85rem; }
+        .bo-cap-icon { color: #2EABFE; font-size: 0.75rem; } /* was 0.85rem */
 
+        /* — export button — */
         .bo-export-btn {
           display: flex; align-items: center; gap: 5px;
-          padding: 0.4rem 1rem;
+          padding: 3px 10px;          /* was 0.4rem 1rem */
           background: transparent;
           border: 0.5px solid #5B7384;
           border-radius: 10px;
           color: #fff;
-          font-size: 0.78rem;
+          font-size: 0.72rem;         /* was 0.78rem */
           font-family: 'Poppins', sans-serif;
           cursor: pointer;
           transition: border-color 0.15s;
         }
         .bo-export-btn:hover { border-color: #2EABFE; }
 
+        /* — back button — */
         .bo-back-btn {
           display: flex; align-items: center; gap: 6px;
           background: #fff;
           border: 0.5px solid #5B7384;
           border-radius: 10px;
-          padding: 0.6rem 1.1rem;
-          font-size: 0.82rem;
+          padding: 6px 12px;          /* was 0.6rem 1.1rem */
+          font-size: 0.72rem;         /* was 0.82rem */
           font-weight: 700;
           font-family: 'Poppins', sans-serif;
           color: #5B7384;
@@ -224,14 +231,15 @@ const BackOffice = () => {
         }
         .bo-back-btn:hover { background: #f3f4f6; }
 
+        /* — add student button — */
         .bo-add-btn {
-          display: flex; align-items: center; gap: 7px;
-          padding: 0.65rem 1.4rem;
+          display: flex; align-items: center; gap: 6px;
+          padding: 6px 14px;          /* was 0.65rem 1.4rem */
           background: #008000;
           color: #fff;
           border: 0.5px solid #008000;
           border-radius: 6.67px;
-          font-size: 0.875rem;
+          font-size: 0.75rem;         /* was 0.875rem */
           font-weight: 500;
           font-family: 'Poppins', sans-serif;
           cursor: pointer;
@@ -240,13 +248,14 @@ const BackOffice = () => {
         }
         .bo-add-btn:hover { opacity: 0.88; }
 
+        /* — pagination buttons — match SD tab count pill sizing — */
         .bo-page-btn {
-          width: 50px; height: 50px;
+          width: 32px; height: 32px;  /* was 50×50 */
           border: 0.5px solid #5B7384;
           border-radius: 10px;
           background: #fff;
           color: #5B7384;
-          font-size: 0.875rem;
+          font-size: 0.72rem;         /* was 0.875rem */
           font-weight: 700;
           font-family: 'Poppins', sans-serif;
           cursor: pointer;
@@ -260,35 +269,38 @@ const BackOffice = () => {
           border-color: #2EABFE !important;
         }
 
+        /* — table header — match SD th: 10px, 9px 16px padding — */
         .bo-th {
-          padding: 0.75rem 1rem;
+          padding: 9px 16px;
           background: rgba(127, 168, 196, 0.1);
           border-top: 0.5px solid #5B7384;
           border-bottom: 0.5px solid #5B7384;
-          font-size: 0.78rem;
+          font-size: 0.625rem;        /* 10px — matches SD th */
           font-weight: 500;
           color: #5B7384;
           text-align: left;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.04em;    /* was 0.05em */
           text-transform: uppercase;
           white-space: nowrap;
           font-family: 'Poppins', sans-serif;
         }
 
+        /* — table cells — match SD td: 12px, 9px 16px padding — */
         .bo-td {
-          padding: 0.9rem 1rem;
-          font-size: 0.875rem;
+          padding: 9px 16px;
+          font-size: 0.75rem;         /* 12px — was 0.875rem */
           font-weight: 500;
           color: #091925;
           border-bottom: 0.5px solid #5B7384;
           font-family: 'Poppins', sans-serif;
         }
 
+        /* — view link — match SD dateCell/courseTitle 12px — */
         .bo-view-link {
           background: none;
           border: none;
           color: #2EABFE;
-          font-size: 0.875rem;
+          font-size: 0.75rem;         /* was 0.875rem */
           font-weight: 500;
           font-family: 'Poppins', sans-serif;
           cursor: pointer;
@@ -297,34 +309,37 @@ const BackOffice = () => {
         }
         .bo-view-link:hover { text-decoration: underline; }
 
+        /* — records badge — match SD statsPillBlue: 10px, 3px 10px — */
         .bo-records-badge {
           background: #E7F8F2;
           color: #10B981;
-          font-size: 0.72rem;
+          font-size: 0.625rem;        /* 10px — was 0.72rem */
           font-weight: 700;
           font-family: 'Poppins', sans-serif;
           border-radius: 100px;
-          padding: 4px 12px;
+          padding: 3px 10px;          /* was 4px 12px */
           white-space: nowrap;
         }
 
+        /* — filter tag — same scale as records badge — */
         .bo-filter-tag {
           background: #E0F2FF;
           color: #1A7AB8;
-          font-size: 0.72rem;
+          font-size: 0.625rem;        /* 10px */
           font-weight: 700;
           font-family: 'Poppins', sans-serif;
           border-radius: 100px;
-          padding: 4px 12px;
+          padding: 3px 10px;
           white-space: nowrap;
         }
 
+        /* — search rows — */
         .bo-search-row {
           display: grid;
-          grid-template-columns: 175px 1fr auto;
+          grid-template-columns: 160px 1fr auto; /* was 175px */
           align-items: center;
-          gap: 14px;
-          padding: 8px 0;
+          gap: 12px;                  /* was 14px */
+          padding: 6px 0;            /* was 8px 0 */
         }
         .bo-search-divider {
           border: none;
@@ -332,10 +347,10 @@ const BackOffice = () => {
           margin: 2px 0;
         }
         .bo-search-label {
-          font-size: 0.78rem;
+          font-size: 0.625rem;        /* 10px — was 0.78rem */
           font-weight: 500;
           color: #091925;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.04em;    /* was 0.05em */
           text-transform: uppercase;
           font-family: 'Poppins', sans-serif;
         }
@@ -351,29 +366,29 @@ const BackOffice = () => {
           { label: 'BackOffice' },
         ]} />
 
-        {/* Page Header */}
+        {/* Page Header — keep title large, it's a page heading not a card element */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.5rem', marginTop: '0.75rem' }}>
           <div>
-            <h1 style={{ fontSize: '2.4rem', fontWeight: 700, color: '#000', margin: '0 0 0.2rem 0', fontFamily: "'Poppins', sans-serif", lineHeight: 1.1 }}>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 700, color: '#000', margin: '0 0 0.15rem 0', fontFamily: "'Poppins', sans-serif", lineHeight: 1.1 }}>
               Student BackOffice
             </h1>
-            <p style={{ fontSize: '1rem', fontWeight: 500, color: '#5B7384', margin: 0, fontFamily: "'Poppins', sans-serif" }}>
+            <p style={{ fontSize: '0.75rem', fontWeight: 500, color: '#5B7384', margin: 0, fontFamily: "'Poppins', sans-serif" }}>
               Search, manage and update student records in the exam system.
             </p>
           </div>
-          <button className="bo-back-btn" onClick={() => navigate('/admin/real-estate')} style={{ marginTop: 8 }}>
-            <FaChevronLeft style={{ fontSize: '0.7rem' }} /> Back To Real Estate
+          <button className="bo-back-btn" onClick={() => navigate('/admin/real-estate')} style={{ marginTop: 6 }}>
+            <FaChevronLeft style={{ fontSize: '0.6rem' }} /> Back To Real Estate
           </button>
         </div>
 
-        <hr style={{ border: 'none', borderTop: '0.5px solid #2EABFE', margin: '0.75rem 0 1rem 0' }} />
+        <hr style={{ border: 'none', borderTop: '0.5px solid #2EABFE', margin: '0.6rem 0 0.85rem 0' }} />
 
         {/* What you can do */}
-        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 10, padding: '1rem 1.25rem', marginBottom: '1rem' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 500, color: '#5B7384', letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 0.65rem 0', fontFamily: "'Poppins', sans-serif" }}>
+        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 10, padding: '10px 16px', marginBottom: '12px' }}>
+          <p style={{ fontSize: '0.625rem', fontWeight: 500, color: '#5B7384', letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 8px 0', fontFamily: "'Poppins', sans-serif" }}>
             What You Can Do On This Page
           </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {[
               { icon: FaUser,      label: 'List / Edit Existing Student Contact Info' },
               { icon: FaPlus,      label: 'Add New Student Records' },
@@ -395,11 +410,11 @@ const BackOffice = () => {
         <div style={{
           background: '#091925',
           borderRadius: 10,
-          padding: '1rem 1.5rem',
+          padding: '14px 20px',        /* was 1rem 1.5rem — matches SD headerCard */
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: '1rem',
+          marginBottom: '12px',        /* was 1rem */
           position: 'relative',
           overflow: 'hidden',
         }}>
@@ -409,34 +424,34 @@ const BackOffice = () => {
             borderRadius: 10,
             pointerEvents: 'none',
           }} />
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, position: 'relative' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, position: 'relative' }}>
             <span className="bo-big-num">{total.toLocaleString()}</span>
-            <div style={{ width: 0, height: 40, borderLeft: '0.5px solid #2EABFE' }} />
-            <span style={{ fontSize: '0.9rem', color: '#fff', fontWeight: 400, fontFamily: "'Poppins', sans-serif" }}>Total Student Records</span>
+            <div style={{ width: 0, height: 32, borderLeft: '0.5px solid #2EABFE' }} />
+            <span style={{ fontSize: '0.75rem', color: '#fff', fontWeight: 400, fontFamily: "'Poppins', sans-serif" }}>Total Student Records</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, position: 'relative' }}>
-            <p style={{ fontSize: '0.85rem', color: '#fff', textAlign: 'right', margin: 0, lineHeight: 1.5, fontFamily: "'Poppins', sans-serif" }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, position: 'relative' }}>
+            <p style={{ fontSize: '0.72rem', color: '#fff', textAlign: 'right', margin: 0, lineHeight: 1.5, fontFamily: "'Poppins', sans-serif" }}>
               Showing <strong>all {total.toLocaleString()} records.</strong><br />
               Use a search below to filter.
             </p>
             {(search || stateFilter) && (
               <button onClick={handleClear}
-                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0.4rem 1rem', background: 'transparent', border: '0.5px solid #5B7384', borderRadius: 10, color: '#fff', fontSize: '0.78rem', fontFamily: "'Poppins', sans-serif", cursor: 'pointer' }}>
-                <FaTimes style={{ fontSize: '0.7rem' }} /> Clear Filters
+                style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '3px 10px', background: 'transparent', border: '0.5px solid #5B7384', borderRadius: 10, color: '#fff', fontSize: '0.625rem', fontFamily: "'Poppins', sans-serif", cursor: 'pointer' }}>
+                <FaTimes style={{ fontSize: '0.6rem' }} /> Clear Filters
               </button>
             )}
             <button className="bo-export-btn" onClick={handleExport}>
-              <FaFileExport style={{ fontSize: '0.75rem' }} /> Export CSV
+              <FaFileExport style={{ fontSize: '0.65rem' }} /> Export CSV
             </button>
           </div>
         </div>
 
         {/* Search section */}
-        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 10, padding: '1.25rem 1.5rem', marginBottom: '1.25rem' }}>
-          <div style={{ marginBottom: '0.75rem' }}>
-            <hr style={{ border: 'none', borderTop: '0.5px solid #5B7384', margin: '0 0 0.75rem 0' }} />
-            <h3 style={{ fontSize: '1rem', fontWeight: 500, color: '#091925', margin: '0 0 0.2rem 0', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>Search Student Records</h3>
-            <p style={{ fontSize: '0.75rem', color: '#7FA8C4', margin: 0, fontFamily: "'Poppins', sans-serif" }}>Use any of the methods below to find a student</p>
+        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 10, padding: '12px 16px', marginBottom: '12px' }}>
+          <div style={{ marginBottom: '8px' }}>
+            <hr style={{ border: 'none', borderTop: '0.5px solid #5B7384', margin: '0 0 8px 0' }} />
+            <h3 style={{ fontSize: '0.75rem', fontWeight: 500, color: '#091925', margin: '0 0 2px 0', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>Search Student Records</h3>
+            <p style={{ fontSize: '0.625rem', color: '#7FA8C4', margin: 0, fontFamily: "'Poppins', sans-serif" }}>Use any of the methods below to find a student</p>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -447,7 +462,7 @@ const BackOffice = () => {
               <input className="bo-search-input" placeholder="e.g. Smith" value={inputVal}
                 onChange={e => setInputVal(e.target.value)} onKeyDown={handleKeyDown} />
               <button className="bo-search-btn" onClick={handleSearch}>
-                <FaSearch style={{ fontSize: '0.7rem' }} /> Filter Student Name List
+                <FaSearch style={{ fontSize: '0.6rem' }} /> Filter Student Name List
               </button>
             </div>
 
@@ -459,7 +474,7 @@ const BackOffice = () => {
                 onKeyDown={e => { if (e.key === 'Enter') { setSearch(emailInput); fetchStudents(1, emailInput, stateFilter); }}} />
               <button className="bo-search-btn"
                 onClick={() => { setSearch(emailInput); fetchStudents(1, emailInput, stateFilter); }}>
-                <FaEnvelope style={{ fontSize: '0.7rem' }} /> Filter by Email Address
+                <FaEnvelope style={{ fontSize: '0.6rem' }} /> Filter by Email Address
               </button>
             </div>
 
@@ -475,7 +490,7 @@ const BackOffice = () => {
               </select>
               <button className="bo-search-btn"
                 onClick={() => { if (selectStudent) { setSearch(selectStudent); fetchStudents(1, selectStudent, stateFilter); } }}>
-                <FaEye style={{ fontSize: '0.7rem' }} /> View Student Info
+                <FaEye style={{ fontSize: '0.6rem' }} /> View Student Info
               </button>
             </div>
 
@@ -489,7 +504,7 @@ const BackOffice = () => {
                 onKeyDown={e => { if (e.key === 'Enter') { setSearch(ssInput); fetchStudents(1, ssInput, stateFilter); }}} />
               <button className="bo-search-btn"
                 onClick={() => { setSearch(ssInput); fetchStudents(1, ssInput, stateFilter); }}>
-                <FaSearch style={{ fontSize: '0.7rem' }} /> Lookup Student SS
+                <FaSearch style={{ fontSize: '0.6rem' }} /> Lookup Student SS
               </button>
             </div>
 
@@ -501,7 +516,7 @@ const BackOffice = () => {
                 onKeyDown={e => { if (e.key === 'Enter') { setSearch(idInput); fetchStudents(1, idInput, stateFilter); }}} />
               <button className="bo-search-btn"
                 onClick={() => { setSearch(idInput); fetchStudents(1, idInput, stateFilter); }}>
-                <FaSearch style={{ fontSize: '0.7rem' }} /> Lookup Student ID / DRE #
+                <FaSearch style={{ fontSize: '0.6rem' }} /> Lookup Student ID / DRE #
               </button>
             </div>
 
@@ -513,7 +528,7 @@ const BackOffice = () => {
                 onKeyDown={e => { if (e.key === 'Enter') { setSearch(phoneInput); fetchStudents(1, phoneInput, stateFilter); }}} />
               <button className="bo-search-btn"
                 onClick={() => { setSearch(phoneInput); fetchStudents(1, phoneInput, stateFilter); }}>
-                <FaPhone style={{ fontSize: '0.7rem' }} /> Lookup Telephone
+                <FaPhone style={{ fontSize: '0.6rem' }} /> Lookup Telephone
               </button>
             </div>
 
@@ -526,7 +541,7 @@ const BackOffice = () => {
                 {statesList.map(st => <option key={st} value={st}>{st}</option>)}
               </select>
               <button className="bo-search-btn" onClick={() => fetchStudents(1, search, stateFilter)}>
-                <FaSearch style={{ fontSize: '0.7rem' }} /> Filter by State
+                <FaSearch style={{ fontSize: '0.6rem' }} /> Filter by State
               </button>
             </div>
 
@@ -535,25 +550,25 @@ const BackOffice = () => {
 
         {/* Error */}
         {error && (
-          <div style={{ background: '#fef2f2', border: '0.5px solid #fca5a5', borderRadius: 6, padding: '0.75rem 1rem', color: '#dc2626', fontSize: '0.875rem', marginBottom: '1rem', fontFamily: "'Poppins', sans-serif" }}>
+          <div style={{ background: '#fef2f2', border: '0.5px solid #fca5a5', borderRadius: 6, padding: '8px 12px', color: '#dc2626', fontSize: '0.75rem', marginBottom: '12px', fontFamily: "'Poppins', sans-serif" }}>
             ⚠ {error}
           </div>
         )}
 
         {/* Search Results Table */}
-        <div style={{ background: '#fff', borderRadius: 10, marginBottom: '1.25rem', overflow: 'hidden' }}>
+        <div style={{ background: '#fff', borderRadius: 10, marginBottom: '12px', overflow: 'hidden' }}>
 
           {/* Table Header Bar */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.85rem 1rem', flexWrap: 'wrap', gap: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '1rem', fontWeight: 500, color: '#091925', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 16px', flexWrap: 'wrap', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#091925', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>
                 Search Results
               </span>
               {total > 0 && (
                 <span className="bo-records-badge">{total.toLocaleString()} Records</span>
               )}
               {(search || stateFilter) && (
-                <span style={{ fontSize: '0.78rem', color: 'rgba(91,115,132,0.5)', fontFamily: "'Poppins', sans-serif" }}>
+                <span style={{ fontSize: '0.625rem', color: 'rgba(91,115,132,0.5)', fontFamily: "'Poppins', sans-serif" }}>
                   Filtered by:
                 </span>
               )}
@@ -562,21 +577,21 @@ const BackOffice = () => {
             </div>
             {(search || stateFilter) && (
               <button onClick={handleClear}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, background: '#fff', border: '0.5px solid #5B7384', borderRadius: 10, padding: '0.45rem 1rem', fontSize: '0.8rem', fontWeight: 700, color: '#5B7384', fontFamily: "'Poppins', sans-serif", cursor: 'pointer', whiteSpace: 'nowrap' }}>
-                <FaTimes style={{ fontSize: '0.7rem' }} /> Clear Filters
+                style={{ display: 'flex', alignItems: 'center', gap: 5, background: '#fff', border: '0.5px solid #5B7384', borderRadius: 10, padding: '3px 10px', fontSize: '0.625rem', fontWeight: 700, color: '#5B7384', fontFamily: "'Poppins', sans-serif", cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                <FaTimes style={{ fontSize: '0.6rem' }} /> Clear Filters
               </button>
             )}
           </div>
 
           {loading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2.5rem' }}>
               <div className="bo-spinner" />
-              <p style={{ color: '#5B7384', fontSize: '0.875rem', marginTop: 12, fontFamily: "'Poppins', sans-serif" }}>Loading students...</p>
+              <p style={{ color: '#5B7384', fontSize: '0.75rem', marginTop: 10, fontFamily: "'Poppins', sans-serif" }}>Loading students...</p>
             </div>
           ) : students.length === 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '3rem', color: '#5B7384', fontFamily: "'Poppins', sans-serif" }}>
-              <FaSearch style={{ fontSize: '2rem', color: '#7FA8C4' }} />
-              <p style={{ marginTop: 8 }}>No students found matching your search.</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2.5rem', color: '#5B7384', fontFamily: "'Poppins', sans-serif" }}>
+              <FaSearch style={{ fontSize: '1.6rem', color: '#7FA8C4' }} />
+              <p style={{ marginTop: 8, fontSize: '0.75rem' }}>No students found matching your search.</p>
             </div>
           ) : (
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -615,13 +630,13 @@ const BackOffice = () => {
 
         {/* Pagination */}
         {!loading && pages > 1 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem' }}>
-            <span style={{ fontSize: '1rem', fontWeight: 500, color: '#5B7384', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 500, color: '#5B7384', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>
               Showing {((page - 1) * LIMIT) + 1}–{Math.min(page * LIMIT, total)} Of {total.toLocaleString()} Records
             </span>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 5 }}>
               <button className="bo-page-btn" onClick={() => goToPage(page - 1)} disabled={page === 1}>
-                <FaChevronLeft style={{ fontSize: '0.7rem' }} />
+                <FaChevronLeft style={{ fontSize: '0.6rem' }} />
               </button>
               {pageNumbers().map(n => (
                 <button key={n} className={`bo-page-btn${n === page ? ' bo-page-btn-active' : ''}`}
@@ -630,17 +645,17 @@ const BackOffice = () => {
                 </button>
               ))}
               <button className="bo-page-btn" onClick={() => goToPage(page + 1)} disabled={page === pages}>
-                <FaChevronRight style={{ fontSize: '0.7rem' }} />
+                <FaChevronRight style={{ fontSize: '0.6rem' }} />
               </button>
             </div>
           </div>
         )}
 
         {/* Add New Student CTA */}
-        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 10, padding: '1rem 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 10, padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 500, color: '#091925', margin: '0 0 0.2rem 0', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>Need To Add A New Student?</h3>
-            <p style={{ fontSize: '0.75rem', color: '#7FA8C4', margin: 0, fontFamily: "'Poppins', sans-serif" }}>Create a new student record in the system. You can add exam data after the record is created.</p>
+            <h3 style={{ fontSize: '0.75rem', fontWeight: 500, color: '#091925', margin: '0 0 2px 0', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>Need To Add A New Student?</h3>
+            <p style={{ fontSize: '0.625rem', color: '#7FA8C4', margin: 0, fontFamily: "'Poppins', sans-serif" }}>Create a new student record in the system. You can add exam data after the record is created.</p>
           </div>
           <button className="bo-add-btn">
             <FaPlus /> Add New Student Records

@@ -204,12 +204,18 @@ const T = {
     minHeight: '100vh',
     padding: '24px 0 40px',
     fontFamily: 'Arial, sans-serif',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '100%',
+    boxSizing: 'border-box',
   },
   printBar: {
     display: 'flex',
     justifyContent: 'center',
     gap: 12,
     marginBottom: 20,
+    width: '100%',
   },
   printBtn: {
     padding: '9px 20px',
@@ -234,7 +240,6 @@ const T = {
   doc: {
     background: '#fff',
     width: 720,
-    margin: '0 auto',
     padding: '36px 48px',
     boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
     border: '2px solid #555',
