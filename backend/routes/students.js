@@ -198,4 +198,46 @@ router.get('/:id', protectAdmin, async (req, res) => {
   }
 });
 
+// POST /api/students/:id/add-exam
+router.post('/:id/add-exam', async (req, res) => {
+  try {
+    const { examMasterID, courseTitle } = req.body;
+
+    if (!examMasterID || !courseTitle) {
+      return res.status(400).json({ message: 'examMasterID and courseTitle are required' });
+    }
+
+    // Find student by studentId field (not _id)
+    const student = await Student.findOne({ studentId: req.params.id });
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Build the new course entry (matches your existing courses array shape)
+    const newCourse = {
+      examMasterID,
+      courseTitle,
+      examTitle:        '',
+      registrationDate: new Date().toLocaleDateString('en-US'), // MM/DD/YYYY
+      expirationDate:   '',
+      completionDate:   '',
+      completionPercent: '',
+      status:           'In Progress',
+    };
+
+    // Push to student's courses array and save
+    student.courses = student.courses || [];
+    student.courses.push(newCourse);
+    await student.save();
+
+    res.json({
+      message: 'Exam added successfully',
+      course:  newCourse,
+    });
+  } catch (err) {
+    console.error('add-exam error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
