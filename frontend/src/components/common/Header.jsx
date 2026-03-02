@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+// Header.jsx
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { FaSearch, FaShoppingCart, FaChevronDown, FaSignOutAlt, FaTag, FaTimes } from 'react-icons/fa';
 import logo from '../../assets/images/Left Side Logo.png';
 import AuthModal from './AuthModal';
@@ -19,11 +20,7 @@ const INSURANCE_STATES = [
 ];
 
 const NAV_ITEMS = [
-  {
-    label: 'States',
-    to: '/insurance',
-    isStatesNav: true,
-  },
+  { label: 'States', to: '/insurance', isStatesNav: true },
   {
     label: 'California Real Estate',
     to: '/real-estate',
@@ -50,6 +47,43 @@ const NAV_ITEMS = [
   { label: 'Contact Us', to: '/contact' },
 ];
 
+/* Helpers */
+const slugify = (text) => text.toLowerCase().trim().replace(/\s+/g, '-');
+
+const highlightText = (text, q) => {
+  if (!q) return text;
+  const lower = text.toLowerCase();
+  const query = q.toLowerCase();
+  const idx = lower.indexOf(query);
+  if (idx === -1) return text;
+  const a = text.slice(0, idx);
+  const b = text.slice(idx, idx + q.length);
+  const c = text.slice(idx + q.length);
+  return (
+    <>
+      {a}<mark className="site-header__search-mark">{b}</mark>{c}
+    </>
+  );
+};
+
+/* Build a simple “courses” list from nav dropdown items (you can replace with real API data later) */
+const COURSE_INDEX = (() => {
+  const items = [];
+  const push = (label, to) => items.push({ id: `${to}-${label}`, name: label, to });
+  NAV_ITEMS.forEach((item) => {
+    if (item.dropdown?.length) {
+      item.dropdown.forEach((sub) => push(sub.label, sub.to));
+    } else if (!item.isStatesNav) {
+      // You can include top-level pages too; comment out if you only want dropdown items
+      push(item.label, item.to);
+    }
+  });
+  // Remove duplicates by `to`
+  const uniq = new Map();
+  items.forEach((x) => { if (!uniq.has(x.to)) uniq.set(x.to, x); });
+  return Array.from(uniq.values());
+})();
+
 /* ── States full-width dropdown ── */
 const StatesDropdown = () => (
   <div className="site-header__dropdown site-header__dropdown--states">
@@ -58,7 +92,7 @@ const StatesDropdown = () => (
       {INSURANCE_STATES.map((state) => (
         <Link
           key={state}
-          to={`/insurance/${state.toLowerCase().replace(/\s+/g, '-')}`}
+          to={`/insurance/${slugify(state)}`}
           className="site-header__state-pill"
         >
           {state}
@@ -195,7 +229,6 @@ const CartIcon = () => {
   const ref = useRef(null);
   const leaveTimer = useRef(null);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -210,7 +243,6 @@ const CartIcon = () => {
   };
 
   const handleMouseLeave = () => {
-    // Small delay so user can move cursor into the dropdown
     leaveTimer.current = setTimeout(() => setOpen(false), 150);
   };
 
@@ -221,7 +253,6 @@ const CartIcon = () => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* The cart icon button */}
       <Link to="/cart" className="site-header__action-btn site-header__cart">
         <FaShoppingCart />
         {cartCount > 0 && (
@@ -229,13 +260,10 @@ const CartIcon = () => {
         )}
       </Link>
 
-      {/* Hover dropdown */}
       {open && (
         <div className="cart-preview">
-          {/* Caret pointer */}
           <div className="cart-preview__caret" />
 
-          {/* Header */}
           <div className="cart-preview__head">
             <span className="cart-preview__title">Your Cart</span>
             {cartCount > 0 && (
@@ -246,7 +274,6 @@ const CartIcon = () => {
           </div>
 
           {cartItems.length === 0 ? (
-            /* Empty state */
             <div className="cart-preview__empty">
               <FaShoppingCart className="cart-preview__empty-icon" />
               <p className="cart-preview__empty-text">Your cart is empty</p>
@@ -256,7 +283,6 @@ const CartIcon = () => {
             </div>
           ) : (
             <>
-              {/* Items list */}
               <div className="cart-preview__items">
                 {cartItems.map((item) => {
                   const lineTotal = item.price + (item.withTextbook ? (item.textbookPrice || 0) : 0);
@@ -293,7 +319,6 @@ const CartIcon = () => {
                 })}
               </div>
 
-              {/* Footer */}
               <div className="cart-preview__footer">
                 <div className="cart-preview__total">
                   <span>Total</span>
@@ -318,20 +343,66 @@ const CartIcon = () => {
 
 /* ── Header ── */
 const Header = () => {
+  const navigate = useNavigate();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+
   const [mobileOpenItem, setMobileOpenItem] = useState(null);
   const [mobileStatesOpen, setMobileStatesOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [user, setUser] = useState(null);
 
+  const searchRef = useRef(null);
+
   const handleLogin = (userData) => setUser(userData);
   const handleLogout = () => setUser(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setShowSearchDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const q = searchQuery.trim();
+
+  const { matchedStates, matchedCourses } = useMemo(() => {
+    if (!q) return { matchedStates: [], matchedCourses: [] };
+    const qq = q.toLowerCase();
+
+    const ms = INSURANCE_STATES
+      .filter((s) => s.toLowerCase().includes(qq))
+      .slice(0, 10);
+
+    const mc = COURSE_INDEX
+      .filter((c) => c.name.toLowerCase().includes(qq))
+      .slice(0, 10);
+
+    return { matchedStates: ms, matchedCourses: mc };
+  }, [q]);
+
+  const hasResults = matchedStates.length > 0 || matchedCourses.length > 0;
+
+  const goToState = (state) => {
+    setShowSearchDropdown(false);
+    setSearchQuery('');
+    navigate(`/insurance/${slugify(state)}`);
+  };
+
+  const goToCourse = (course) => {
+    setShowSearchDropdown(false);
+    setSearchQuery('');
+    navigate(course.to);
+  };
 
   return (
     <>
       <header className="site-header">
-        {/* Top Bar */}
         <div className="site-header__top">
           <div className="site-header__container">
             <div className="site-header__top-content">
@@ -339,21 +410,67 @@ const Header = () => {
                 <img src={logo} alt="Relstone Logo" className="site-header__logo-image" />
               </Link>
 
-              <div className="site-header__search">
+              {/* Search states + courses */}
+              <div className="site-header__search" ref={searchRef}>
                 <FaSearch className="site-header__search-icon" />
                 <input
                   type="text"
-                  placeholder="Search courses..."
+                  placeholder="Search states or courses..."
                   className="site-header__search-input"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSearchDropdown(true);
+                  }}
+                  onFocus={() => setShowSearchDropdown(true)}
                 />
+
+                {showSearchDropdown && q && (
+                  <div className="site-header__search-dropdown" role="listbox">
+                    {!hasResults && (
+                      <div className="site-header__search-empty">
+                        No results for “{q}”
+                      </div>
+                    )}
+
+                    {matchedStates.length > 0 && (
+                      <div className="site-header__search-section">
+                        <div className="site-header__search-section-title">States</div>
+                        {matchedStates.map((state) => (
+                          <button
+                            key={state}
+                            type="button"
+                            className="site-header__search-item"
+                            onClick={() => goToState(state)}
+                          >
+                            {highlightText(state, q)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {matchedCourses.length > 0 && (
+                      <div className="site-header__search-section">
+                        <div className="site-header__search-section-title">Courses</div>
+                        {matchedCourses.map((course) => (
+                          <button
+                            key={course.id}
+                            type="button"
+                            className="site-header__search-item"
+                            onClick={() => goToCourse(course)}
+                          >
+                            {highlightText(course.name, q)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="site-header__actions">
                 <span className="site-header__language">🇺🇸 USD</span>
 
-                {/* Cart with hover preview */}
                 <CartIcon />
 
                 {user ? (
@@ -387,7 +504,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Bottom Navigation Bar */}
         <div className="site-header__bottom">
           <div className="site-header__container">
             <nav className="site-header__nav" aria-label="Main navigation">
@@ -398,7 +514,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="site-header__mobile-menu">
             <div className="site-header__container">
@@ -419,7 +534,7 @@ const Header = () => {
                             {INSURANCE_STATES.map((state) => (
                               <Link
                                 key={state}
-                                to={`/insurance/${state.toLowerCase().replace(/\s+/g, '-')}`}
+                                to={`/insurance/${slugify(state)}`}
                                 className="site-header__mobile-state-item"
                                 onClick={() => setIsMenuOpen(false)}
                               >
@@ -433,9 +548,7 @@ const Header = () => {
                       <>
                         <button
                           className="site-header__nav-link-mobile site-header__nav-link-mobile--trigger"
-                          onClick={() =>
-                            setMobileOpenItem(mobileOpenItem === item.to ? null : item.to)
-                          }
+                          onClick={() => setMobileOpenItem(mobileOpenItem === item.to ? null : item.to)}
                         >
                           {item.label}
                           <FaChevronDown
