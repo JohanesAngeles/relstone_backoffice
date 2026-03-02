@@ -333,11 +333,27 @@ const CertificatePage = () => {
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const C = {
-  page:       { background: '#d1d5db', minHeight: '100vh', padding: '24px 0 40px', fontFamily: 'Arial, sans-serif' },
-  printBar:   { display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 20 },
+  page: {
+    background: '#d1d5db',
+    minHeight: '100vh',
+    padding: '24px 0 40px',
+    fontFamily: 'Arial, sans-serif',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  printBar: {
+    display: 'flex',
+    justifyContent: 'center',
+    gap: 12,
+    marginBottom: 20,
+    width: '100%',
+  },
   printBtn:   { padding: '9px 20px', background: '#1d4ed8', color: '#fff', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600 },
   closeBtn:   { padding: '9px 20px', background: '#fff', color: '#374151', border: '1px solid #d1d5db', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' },
-  doc:        { background: '#fff', width: 680, margin: '0 auto', padding: '36px 48px', boxShadow: '0 4px 24px rgba(0,0,0,0.18)', border: '1px solid #999', fontSize: 12, color: '#111', lineHeight: 1.5 },
+  doc:        { background: '#fff', width: 680, padding: '36px 48px', boxShadow: '0 4px 24px rgba(0,0,0,0.18)', border: '1px solid #999', fontSize: 12, color: '#111', lineHeight: 1.5 },
   headerSection: { textAlign: 'center', marginBottom: 14 },
   headerBold:    { fontSize: 13, fontWeight: 700, margin: '0 0 2px 0' },
   headerLine:    { fontSize: 12, margin: '1px 0' },
