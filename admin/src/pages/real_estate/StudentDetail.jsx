@@ -183,6 +183,38 @@ const StudentDetail = () => {
           </div>
         </div>
 
+        {/* ── Action Bar ── */}
+        <div style={sr.actionBarWrap}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              onClick={() => navigate(`/admin/real-estate/online-exam/backoffice/student/${student.studentId}/add-exam`)}
+              style={sr.addExamBtn}
+            >
+              + Add Exam
+            </button>
+            <button style={sr.greenOutlineBtn}>
+              ✉ Email Student Password Link
+            </button>
+            <button style={sr.purpleOutlineBtn}>
+              ✉ Email Student Affidavit Ready
+            </button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={sr.optLabel}>Email Opt Out:</span>
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+              <select defaultValue="No" style={sr.optSelect}>
+                <option>No</option>
+                <option>Yes</option>
+              </select>
+              <svg width={11} height={11} viewBox="0 0 24 24" fill="none" stroke="#5B7384"
+                strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"
+                style={{ position: 'absolute', right: 8, pointerEvents: 'none' }}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
         {/* ── Info Grid ── */}
         <div style={sr.infoGrid}>
           <div style={sr.infoCard}>
@@ -466,6 +498,46 @@ const sr = {
     background: '#f1f5f9', color: '#475569', padding: '2px 5px', borderRadius: 4,
   },
   moneyCell: { fontSize: 12, fontFamily: "'DM Mono', monospace", color: '#374151' },
+
+
+  // ── Action Bar ──
+  actionBarWrap: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    background: '#FFFFFF', borderRadius: 10,
+    padding: '10px 14px', marginBottom: 12,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
+  },
+  addExamBtn: {
+    padding: '7px 14px', borderRadius: 7,
+    border: 'none', background: '#2EABFE',
+    color: '#fff', fontSize: 12, fontWeight: 700,
+    cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+  },
+  greenOutlineBtn: {
+    padding: '7px 14px', borderRadius: 7,
+    border: '1.5px solid #10B981', background: 'transparent',
+    color: '#10B981', fontSize: 12, fontWeight: 600,
+    cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+  },
+  purpleOutlineBtn: {
+    padding: '7px 14px', borderRadius: 7,
+    border: '1.5px solid #A78BFA', background: 'rgba(167,139,250,0.07)',
+    color: '#7C3AED', fontSize: 12, fontWeight: 600,
+    cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+  },
+  optLabel: {
+    fontSize: 12, fontWeight: 500, color: '#5B7384',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  optSelect: {
+    appearance: 'none', WebkitAppearance: 'none',
+    border: '0.5px solid #CBD5E1', borderRadius: 7,
+    padding: '6px 28px 6px 10px',
+    fontSize: 12, fontWeight: 600, color: '#091925',
+    background: '#fff', cursor: 'pointer',
+    fontFamily: "'Poppins', sans-serif",
+  },
 };
+
 
 export default StudentDetail;

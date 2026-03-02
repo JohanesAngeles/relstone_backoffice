@@ -657,7 +657,7 @@ const BackOffice = () => {
             <h3 style={{ fontSize: '0.75rem', fontWeight: 500, color: '#091925', margin: '0 0 2px 0', fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize' }}>Need To Add A New Student?</h3>
             <p style={{ fontSize: '0.625rem', color: '#7FA8C4', margin: 0, fontFamily: "'Poppins', sans-serif" }}>Create a new student record in the system. You can add exam data after the record is created.</p>
           </div>
-          <button className="bo-add-btn">
+          <button className="bo-add-btn" onClick={() => navigate('/admin/real-estate/online-exam/backoffice/add-student')}>
             <FaPlus /> Add New Student Records
           </button>
         </div>
