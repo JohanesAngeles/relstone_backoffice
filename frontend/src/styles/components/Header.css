@@ -259,7 +259,7 @@
   .site-header__logo-text {
     display: none;
   }
-  
+
   .site-header__logo-image {
     height: 35px;
   }
@@ -343,7 +343,6 @@
 }
 
 /* MOBILE DROPDOWN ADDITIONS */
-
 .site-header__nav-link-mobile--trigger {
   display: flex;
   justify-content: space-between;
@@ -651,7 +650,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   CART HOVER PREVIEW — NEW ADDITION (nothing above this line was changed)
+   CART HOVER PREVIEW — NEW ADDITION
 ═══════════════════════════════════════════════════════════════════════════ */
 
 /* Wrapper keeps dropdown anchored to the cart icon */
@@ -911,3 +910,64 @@
   color: #fff;
 }
 .cart-preview__btn--solid:hover { background: #2EABFE; border-color: #2EABFE; }
+
+/* =========================
+   SEARCH DROPDOWN (ADDED)
+   ========================= */
+.site-header__search-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.site-header__search-section {
+  padding: 8px 0;
+}
+
+.site-header__search-section + .site-header__search-section {
+  border-top: 1px solid #f1f5f9;
+}
+
+.site-header__search-section-title {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
+  padding: 8px 12px;
+}
+
+.site-header__search-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #0f172a;
+  transition: background 0.12s ease;
+}
+
+.site-header__search-item:hover {
+  background: #f8fafc;
+}
+
+.site-header__search-empty {
+  padding: 14px 12px;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.site-header__search-mark {
+  background: #fff7cc;
+  padding: 0 2px;
+  border-radius: 4px;
+}
