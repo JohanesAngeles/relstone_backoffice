@@ -27,13 +27,12 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/exams', require('./routes/examRoutes'));
 app.use('/api/dre-approvals', require('./routes/dreApprovals'));
-// <<<<<<< HEAD
+
+// Combined Conflict Routes
 app.use('/api/contact', require('./routes/contactRoutes'));
-// =======
 app.use('/api/cec-students', require('./routes/cecStudents'));
 app.use('/api/orders', require('./routes/orders'));
 
-// >>>>>>> e208d987103144f2d8aa6e798a1df47465a0ee44
 // ── Health check ─────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: '🚀 Relstone API is running' });
@@ -57,5 +56,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`\n🚀 Server running on http://localhost:${PORT}\n`);
 });
-
-
