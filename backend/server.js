@@ -24,6 +24,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/insurance', require('./routes/insuranceRoutes')); 
 app.use('/api/admin', require('./routes/adminAuth'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/students', require('./routes/addStudent'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/exams', require('./routes/examRoutes'));
 app.use('/api/dre-approvals', require('./routes/dreApprovals'));
@@ -32,6 +33,7 @@ app.use('/api/dre-approvals', require('./routes/dreApprovals'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 app.use('/api/cec-students', require('./routes/cecStudents'));
 app.use('/api/orders', require('./routes/orders'));
+
 
 // ── Health check ─────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
