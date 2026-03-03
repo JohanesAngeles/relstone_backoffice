@@ -6,34 +6,68 @@ const ExamQA     = require('../models/ExamQA');
 const ExamCert   = require('../models/ExamCert');
 
 // ─────────────────────────────────────────────
-//  EXAM COURSES
+//  EXAM COURSES  (now fetches from recatalog)
 // ─────────────────────────────────────────────
 
 // GET /api/exams/courses
-// Get all courses (with optional search)
 router.get('/courses', async (req, res) => {
   try {
     const { search, page = 1, limit = 50 } = req.query;
+
+    const { adminDB } = require('../config/db');
+    const mongoose    = require('mongoose');
+
+    const reCatalogSchema = new mongoose.Schema({
+      courseCode:     String,
+      courseTitle:    String,
+      type:           String,
+      hours:          Number,
+      designation:    String,
+      refNumber:      String,
+      stateCert:      String,
+      certExpiry:     String,
+      withinTenYears: String,
+    }, { timestamps: true });
+
+    const RECatalog = adminDB.models.RECatalog ||
+      adminDB.model('RECatalog', reCatalogSchema, 'recatalog');
+
     const query = {};
     if (search) {
       query.$or = [
-        { courseTitle   : { $regex: search, $options: 'i' } },
-        { examMasterID  : { $regex: search, $options: 'i' } },
+        { courseTitle: { $regex: search, $options: 'i' } },
+        { courseCode:  { $regex: search, $options: 'i' } },
+        { type:        { $regex: search, $options: 'i' } },
       ];
     }
-    const skip    = (parseInt(page) - 1) * parseInt(limit);
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
     const [courses, total] = await Promise.all([
-      ExamCourse.find(query).skip(skip).limit(parseInt(limit)).lean(),
-      ExamCourse.countDocuments(query),
+      RECatalog.find(query).skip(skip).limit(parseInt(limit)).lean(),
+      RECatalog.countDocuments(query),
     ]);
-    res.json({ total, page: parseInt(page), limit: parseInt(limit), courses });
+
+    const mapped = courses.map(c => ({
+      _id:            c._id,
+      examMasterID:   c.courseCode,
+      courseTitle:    c.courseTitle,
+      type:           c.type,
+      hours:          c.hours,
+      designation:    c.designation,
+      refNumber:      c.refNumber,
+      stateCert:      c.stateCert,
+      certExpiry:     c.certExpiry,
+      withinTenYears: c.withinTenYears,
+    }));
+
+    res.json({ total, page: parseInt(page), limit: parseInt(limit), courses: mapped });
   } catch (err) {
+    console.error('GET /exams/courses error:', err);
     res.status(500).json({ message: err.message });
   }
 });
 
 // GET /api/exams/courses/:examMasterID
-// Get a single course by ExamMasterID
 router.get('/courses/:examMasterID', async (req, res) => {
   try {
     const course = await ExamCourse.findOne({ examMasterID: req.params.examMasterID }).lean();
@@ -49,7 +83,6 @@ router.get('/courses/:examMasterID', async (req, res) => {
 // ─────────────────────────────────────────────
 
 // GET /api/exams/qa
-// Get Q&A with filters (examMasterID, examSubTestID, search)
 router.get('/qa', async (req, res) => {
   try {
     const { examMasterID, examSubTestID, search, page = 1, limit = 50 } = req.query;
@@ -58,9 +91,9 @@ router.get('/qa', async (req, res) => {
     if (examSubTestID) query.examSubTestID = examSubTestID;
     if (search) {
       query.$or = [
-        { question      : { $regex: search, $options: 'i' } },
-        { courseTitle   : { $regex: search, $options: 'i' } },
-        { examDesc      : { $regex: search, $options: 'i' } },
+        { question    : { $regex: search, $options: 'i' } },
+        { courseTitle : { $regex: search, $options: 'i' } },
+        { examDesc    : { $regex: search, $options: 'i' } },
       ];
     }
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -75,14 +108,12 @@ router.get('/qa', async (req, res) => {
 });
 
 // GET /api/exams/qa/:examMasterID
-// Get all Q&A for a specific ExamMasterID (optionally filtered by examSubTestID)
 router.get('/qa/:examMasterID', async (req, res) => {
   try {
     const { examSubTestID } = req.query;
     const query = { examMasterID: req.params.examMasterID };
     if (examSubTestID) query.examSubTestID = examSubTestID;
     const qa = await ExamQA.find(query).sort({ questionNum: 1 }).lean();
-    // Sort numerically since questionNum is stored as string
     qa.sort((a, b) => parseInt(a.questionNum || 0) - parseInt(b.questionNum || 0));
     res.json({ total: qa.length, qa });
   } catch (err) {
@@ -95,7 +126,6 @@ router.get('/qa/:examMasterID', async (req, res) => {
 // ─────────────────────────────────────────────
 
 // GET /api/exams/certs
-// Get cert tracking with filters (examMasterID, state)
 router.get('/certs', async (req, res) => {
   try {
     const { examMasterID, state, page = 1, limit = 50 } = req.query;
@@ -114,7 +144,6 @@ router.get('/certs', async (req, res) => {
 });
 
 // GET /api/exams/certs/:examMasterID
-// Get all certs for a specific ExamMasterID
 router.get('/certs/:examMasterID', async (req, res) => {
   try {
     const certs = await ExamCert.find({ examMasterID: req.params.examMasterID }).lean();
@@ -125,11 +154,10 @@ router.get('/certs/:examMasterID', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────
-//  COMBINED - Get everything for one ExamMasterID
+//  COMBINED
 // ─────────────────────────────────────────────
 
 // GET /api/exams/:examMasterID/full
-// Get course + all Q&A + all certs in one call
 router.get('/:examMasterID/full', async (req, res) => {
   try {
     const { examMasterID } = req.params;
