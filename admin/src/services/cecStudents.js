@@ -1,6 +1,6 @@
 // src/services/cecStudents.js
 
-const API = '/api/cec-students';
+const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/cec-students`;
 const token = () => localStorage.getItem('adminToken') || '';
 
 export const getCECStudent = async (id) => {
