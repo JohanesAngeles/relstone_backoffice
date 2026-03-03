@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import AppLayout from '../../layouts/AppLayout';
 
-const API = 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ── SVG Icon ──────────────────────────────────────────────────
 const Icon = ({ d, size = 14 }) => (
