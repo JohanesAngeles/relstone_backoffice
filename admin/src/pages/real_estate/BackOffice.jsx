@@ -8,7 +8,7 @@ import {
   FaChevronLeft, FaChevronRight, FaEye, FaPhone, FaEnvelope,
 } from 'react-icons/fa';
 
-const API = '/api/students';
+const API = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/students`;
 
 // ── helpers ──────────────────────────────────────────────────
 const token = () => localStorage.getItem('adminToken') || '';
