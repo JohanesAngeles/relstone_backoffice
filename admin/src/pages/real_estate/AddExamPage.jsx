@@ -23,10 +23,10 @@ const ChevronDown = () => (
 // ── Skeleton rows ─────────────────────────────────────────────
 const SkeletonRow = () => (
   <tr>
-    {[36, 90, 340].map((w, i) => (
-      <td key={i} style={{ padding: '11px 16px' }}>
+    {[20, 20, 70, 60, 280, 50, 90, 80].map((w, i) => (
+      <td key={i} style={{ padding: '9px 16px' }}>
         <div style={{
-          height: 10, borderRadius: 4, width: w,
+          height: 9, borderRadius: 4, width: w,
           background: 'linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%)',
           backgroundSize: '200% 100%',
           animation: 'shimmer 1.4s infinite',
@@ -36,7 +36,7 @@ const SkeletonRow = () => (
   </tr>
 );
 
-// ── Smart pagination: 1 … 12 13 [14] 15 16 … 98 ──────────────
+// ── Smart pagination ──────────────────────────────────────────
 const getPageWindow = (current, total) => {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
   const pages = [];
@@ -50,7 +50,7 @@ const getPageWindow = (current, total) => {
   return pages;
 };
 
-// ── Type filter: keyword → courseTitle substring match ────────
+// ── Type filter ───────────────────────────────────────────────
 const TYPE_OPTIONS = [
   { label: 'All Type',    keyword: '' },
   { label: 'Pre-license', keyword: 'pre-license' },
@@ -58,7 +58,7 @@ const TYPE_OPTIONS = [
   { label: 'Exam Prep',   keyword: 'exam prep' },
 ];
 
-// ── Hours filter: keyword → courseTitle substring match ───────
+// ── Hours filter ──────────────────────────────────────────────
 const HOURS_OPTIONS = [
   { label: 'All Hours', keyword: '' },
   { label: '3 Hour',    keyword: '3 hour' },
@@ -70,51 +70,40 @@ const HOURS_OPTIONS = [
 
 const PAGE_SIZE = 10;
 
-// Custom Select component (styled, no native ugliness)
-const FilterSelect = ({ value, onChange, options }) => {
-  return (
-    <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-      <select
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        style={s.filterSelect}
-      >
-        {options.map(o => (
-          <option key={o.label} value={o.label}>{o.label}</option>
-        ))}
-      </select>
-      <span style={s.chevronWrap}><ChevronDown /></span>
-    </div>
-  );
+// ── Helpers ───────────────────────────────────────────────────
+const getTypeLabel = (title = '') => {
+  const t = title.toLowerCase();
+  if (t.includes('pre-license') || t.includes('pre license')) return 'Pre-License';
+  if (t.includes('r.e.') || t.includes('real estate principles')) return 'R.E.';
+  if (t.includes('exam prep')) return 'Exam Prep';
+  if (t.includes('c.e.') || t.includes('continuing')) return 'C.E.';
+  return 'Course';
+};
+
+const getHours = (title = '') => {
+  const m = title.match(/(\d+)\s*hour/i);
+  return m ? `${m[1]} hrs` : '—';
 };
 
 const AddExamPage = () => {
   const { id }   = useParams();
   const navigate = useNavigate();
 
-  // ── Student ───────────────────────────────────────────────
   const [student,        setStudent]        = useState(null);
   const [studentLoading, setStudentLoading] = useState(true);
+  const [exams,          setExams]          = useState([]);
+  const [total,          setTotal]          = useState(0);
+  const [examsLoading,   setExamsLoading]   = useState(false);
+  const [examsError,     setExamsError]     = useState('');
+  const [query,          setQuery]          = useState('');
+  const [debouncedQ,     setDebouncedQ]     = useState('');
+  const [typeFilter,     setTypeFilter]     = useState('All Type');
+  const [hoursFilter,    setHoursFilter]    = useState('All Hours');
+  const [emailOptOut,    setEmailOptOut]    = useState('No');
+  const [selected,       setSelected]       = useState(new Set());
+  const [page,           setPage]           = useState(1);
+  const [saving,         setSaving]         = useState(false);
 
-  // ── Exam list (full page from API) ────────────────────────
-  const [exams,        setExams]        = useState([]);    // raw from API
-  const [total,        setTotal]        = useState(0);     // total in DB (for search)
-  const [examsLoading, setExamsLoading] = useState(false);
-  const [examsError,   setExamsError]   = useState('');
-
-  // ── Filters ───────────────────────────────────────────────
-  const [query,       setQuery]       = useState('');
-  const [debouncedQ,  setDebouncedQ]  = useState('');
-  const [typeFilter,  setTypeFilter]  = useState('All Type');
-  const [hoursFilter, setHoursFilter] = useState('All Hours');
-  const [emailOptOut, setEmailOptOut] = useState('No');
-
-  // ── Selection & pagination ────────────────────────────────
-  const [selected, setSelected] = useState(null);
-  const [page,     setPage]     = useState(1);
-  const [saving,   setSaving]   = useState(false);
-
-  // ── Load student ──────────────────────────────────────────
   useEffect(() => {
     (async () => {
       const res = await getStudent(id);
@@ -123,22 +112,17 @@ const AddExamPage = () => {
     })();
   }, [id]);
 
-  // ── Debounce search 400ms ─────────────────────────────────
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedQ(query); setPage(1); }, 400);
     return () => clearTimeout(t);
   }, [query]);
 
-  // Reset page when frontend filters change
   useEffect(() => { setPage(1); }, [typeFilter, hoursFilter]);
 
-  // ── Fetch from API (search only — type/hours filtered FE) ─
   const fetchExams = useCallback(async () => {
     setExamsLoading(true);
     setExamsError('');
     try {
-      // Fetch a larger batch so frontend type/hours filters have data to work with.
-      // When no search, fetch 200 at a time; when searching, just fetch 50.
       const batchSize = debouncedQ ? 50 : 200;
       const params = new URLSearchParams({ page: 1, limit: batchSize });
       if (debouncedQ) params.set('search', debouncedQ);
@@ -158,15 +142,12 @@ const AddExamPage = () => {
 
   useEffect(() => { fetchExams(); }, [fetchExams]);
 
-  // ── Frontend filter + paginate ────────────────────────────
   const typeKeyword  = TYPE_OPTIONS.find(o => o.label === typeFilter)?.keyword  || '';
   const hoursKeyword = HOURS_OPTIONS.find(o => o.label === hoursFilter)?.keyword || '';
 
   const filtered = exams.filter(exam => {
     const title = (exam.courseTitle || '').toLowerCase();
-    const matchType  = !typeKeyword  || title.includes(typeKeyword);
-    const matchHours = !hoursKeyword || title.includes(hoursKeyword);
-    return matchType && matchHours;
+    return (!typeKeyword || title.includes(typeKeyword)) && (!hoursKeyword || title.includes(hoursKeyword));
   });
 
   const totalFiltered = filtered.length;
@@ -176,19 +157,21 @@ const AddExamPage = () => {
   const startRecord   = totalFiltered === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
   const endRecord     = Math.min(page * PAGE_SIZE, totalFiltered);
 
-  // ── Add exam to student ───────────────────────────────────
   const handleAddExam = async () => {
-    if (!selected) return;
-    const exam = exams.find(e => e.examMasterID === selected);
+    if (selected.size === 0) return;
     setSaving(true);
     try {
-      const res = await fetch(`/api/students/${id}/add-exam`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ examMasterID: exam.examMasterID, courseTitle: exam.courseTitle }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to add exam');
+      for (const examMasterID of selected) {
+        const exam = exams.find(e => e.examMasterID === examMasterID);
+        if (!exam) continue;
+        const res = await fetch(`/api/students/${id}/add-exam`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ examMasterID: exam.examMasterID, courseTitle: exam.courseTitle }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to add exam');
+      }
       navigate(`/admin/real-estate/online-exam/backoffice/student/${id}`);
     } catch (err) {
       alert(`❌ ${err.message}`);
@@ -197,7 +180,27 @@ const AddExamPage = () => {
     }
   };
 
-  // ── Derived student info ──────────────────────────────────
+  // ── Toggle one row ────────────────────────────────────────
+  const toggleRow = (examMasterID) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(examMasterID) ? next.delete(examMasterID) : next.add(examMasterID);
+      return next;
+    });
+  };
+
+  // ── Select all visible on current page ───────────────────
+  const selectAllVisible = () => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      pageData.forEach(e => next.add(e.examMasterID));
+      return next;
+    });
+  };
+
+  // ── Clear all ─────────────────────────────────────────────
+  const clearSelection = () => setSelected(new Set());
+
   const name       = student?.name           || '—';
   const studentId  = student?.studentId      || id;
   const city       = student?.state          || '';
@@ -210,10 +213,14 @@ const AddExamPage = () => {
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         .ae-row { transition: background 0.12s; }
         .ae-row:hover { background: rgba(46,171,254,0.05) !important; cursor: pointer; }
+        .ae-row.ae-selected:hover { background: rgba(46,171,254,0.13) !important; }
         .ae-fs { appearance: none; -webkit-appearance: none; }
         .ae-fs:focus { outline: none; border-color: #2EABFE !important; }
         .ae-search:focus { outline: none; }
         .ae-pg:hover:not(.ae-active):not(.ae-dots) { background: rgba(46,171,254,0.1) !important; color: #2EABFE !important; border-color: rgba(46,171,254,0.4) !important; }
+        .ae-checkbox { width: 15px; height: 15px; border: 1px solid #CBD5E1; border-radius: 3px; background: #fff; appearance: none; -webkit-appearance: none; cursor: pointer; flex-shrink: 0; transition: all 0.1s; }
+        .ae-checkbox:checked { background: #2EABFE; border-color: #2EABFE; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 10 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 4L3.5 6.5L9 1' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: center; background-size: 10px 8px; }
+        .ae-checkbox:hover { border-color: #2EABFE; }
       `}</style>
 
       <div style={{ padding: '1.5rem 2rem' }}>
@@ -236,57 +243,55 @@ const AddExamPage = () => {
           </button>
         </div>
 
-        {/* Dark Header Card */}
+        {/* ── Dark Header Card ── */}
         <div style={s.headerCard}>
-          <div style={s.headerLeft}>
-            <div style={s.bigAvatar}>
-              {studentLoading ? '…' : (name[0] || '?').toUpperCase()}
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+          <div style={s.headerInner}>
+            <div style={s.headerLeft}>
+              <div style={s.bigAvatar}>
+                {studentLoading ? '…' : (name[0] || '?').toUpperCase()}
+              </div>
+              <div>
+                <div style={s.headerTags}>
+                  <span style={s.idBadge}>ID: {studentId}</span>
+                  {city && (
+                    <span style={s.stateBadge}>
+                      <Icon d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z M12 10m-3 0a3 3 0 1 0 6 0 3 3 0 0 0-6 0" size={10} color="#2EABFE" />
+                      {city}
+                    </span>
+                  )}
+                  {registered && (
+                    <span style={s.regBadge}>
+                      <Icon d="M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" size={10} color="#2EABFE" />
+                      Registered: {registered}
+                    </span>
+                  )}
+                  {email && (
+                    <span style={s.emailBadge}>
+                      <Icon d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6" size={10} color="#2EABFE" />
+                      {email}
+                    </span>
+                  )}
+                </div>
                 <h1 style={s.studentName}>{studentLoading ? 'Loading…' : name}</h1>
-                {!studentLoading && (
-                  <span style={s.activeBadge}>
-                    <svg width={7} height={7} viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#10B981"/></svg>
-                    Active
-                  </span>
-                )}
-              </div>
-              <div style={s.headerMeta}>
-                {city && (
-                  <span style={s.metaItem}>
-                    <Icon d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z M12 10m-3 0a3 3 0 1 0 6 0 3 3 0 0 0-6 0" size={11} color="#2EABFE" />
-                    <span style={s.metaLabel}>City:</span>
-                    <span style={s.metaValue}>{city}</span>
-                  </span>
-                )}
-                {registered && (
-                  <span style={s.metaItem}>
-                    <Icon d="M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" size={11} color="#2EABFE" />
-                    <span style={s.metaLabel}>Registered:</span>
-                    <span style={s.metaValue}>{registered}</span>
-                  </span>
-                )}
-                {email && (
-                  <span style={s.metaItem}>
-                    <Icon d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z M22 6l-10 7L2 6" size={11} color="#2EABFE" />
-                    <span style={s.metaValue}>{email}</span>
-                  </span>
-                )}
               </div>
             </div>
-          </div>
-          <div style={s.headerRight}>
-            <p style={s.studentIdLabel}>Student ID</p>
-            <p style={s.studentIdValue}>[{studentId}]</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+              {!studentLoading && (
+                <span style={s.activeBadge}>
+                  <svg width={7} height={7} viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#00FF09"/></svg>
+                  Active
+                </span>
+              )}
+              <p style={s.studentIdLabel}>Student ID</p>
+              <p style={s.studentIdValue}>[{studentId}]</p>
+            </div>
           </div>
         </div>
 
-        {/* Filter Bar */}
+        {/* ── Filter Bar ── */}
         <div style={s.filterBar}>
-          {/* Search */}
           <div style={s.searchWrap}>
-            <Icon d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" size={14} color="#94a3b8" />
+            <Icon d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" size={13} color="#94a3b8" />
             <input
               className="ae-search"
               value={query}
@@ -294,32 +299,18 @@ const AddExamPage = () => {
               placeholder="Search Courses By Title, Code, Type..."
               style={s.searchInput}
             />
-            {query && (
-              <button onClick={() => setQuery('')} style={s.clearX}>×</button>
-            )}
+            {query && <button onClick={() => setQuery('')} style={s.clearX}>×</button>}
           </div>
 
-          {/* All Type */}
           <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-            <select
-              className="ae-fs"
-              value={typeFilter}
-              onChange={e => setTypeFilter(e.target.value)}
-              style={s.filterSelect}
-            >
+            <select className="ae-fs" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={s.filterSelect}>
               {TYPE_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
             </select>
             <span style={s.chevronWrap}><ChevronDown /></span>
           </div>
 
-          {/* All Hours */}
           <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-            <select
-              className="ae-fs"
-              value={hoursFilter}
-              onChange={e => setHoursFilter(e.target.value)}
-              style={s.filterSelect}
-            >
+            <select className="ae-fs" value={hoursFilter} onChange={e => setHoursFilter(e.target.value)} style={s.filterSelect}>
               {HOURS_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
             </select>
             <span style={s.chevronWrap}><ChevronDown /></span>
@@ -327,16 +318,10 @@ const AddExamPage = () => {
 
           <div style={{ flex: 1 }} />
 
-          {/* Email Opt Out */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={s.optOutLabel}>Email Opt Out:</span>
             <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-              <select
-                className="ae-fs"
-                value={emailOptOut}
-                onChange={e => setEmailOptOut(e.target.value)}
-                style={{ ...s.filterSelect, minWidth: 68 }}
-              >
+              <select className="ae-fs" value={emailOptOut} onChange={e => setEmailOptOut(e.target.value)} style={{ ...s.filterSelect, minWidth: 60 }}>
                 <option>No</option>
                 <option>Yes</option>
               </select>
@@ -345,33 +330,34 @@ const AddExamPage = () => {
           </div>
         </div>
 
-        {/* Table Card */}
+        {/* ── Table Card ── */}
         <div style={s.tableCard}>
 
           {/* Top bar */}
           <div style={s.tableTopBar}>
-            <span style={s.tableTitle}>Search Results</span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              {selected && (
-                <button
-                  onClick={handleAddExam}
-                  disabled={saving}
-                  style={{ ...s.addBtn, opacity: saving ? 0.7 : 1 }}
-                >
-                  <Icon d="M12 5v14 M5 12h14" size={12} color="#fff" />
-                  {saving ? 'Adding…' : 'Add Selected Exam'}
-                </button>
-              )}
-              <button onClick={() => setSelected(null)} style={s.clearSelBtn}>
-                ✕ Clear Selection
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={s.tableTitle}>Available Courses</span>
+              <span style={s.countBadgeBlue}>{totalFiltered}</span>
+              {selected.size > 0 && <span style={s.countBadgeGreen}>{selected.size} SELECTED</span>}
+            </div>
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button onClick={clearSelection} style={s.clearSelBtn}>✕ Clear Selection</button>
+              <button onClick={selectAllVisible} style={s.selectAllBtn}>
+                <svg width={11} height={11} viewBox="0 0 12 12" fill="none">
+                  <rect x="0.5" y="0.5" width="11" height="11" rx="1.5" stroke="#091925" strokeWidth="1"/>
+                  <path d="M2.5 6L5 8.5L9.5 4" stroke="#091925" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Select All Visible
               </button>
             </div>
           </div>
 
+          <div style={{ borderBottom: '0.5px solid #5B7384' }} />
+
           {/* Error */}
           {examsError && (
-            <div style={{ padding: '12px 16px', background: 'rgba(239,68,68,0.05)', borderBottom: '0.5px solid #fca5a5', display: 'flex', gap: 10, alignItems: 'center' }}>
-              <span style={{ fontSize: 12, color: '#dc2626', fontFamily: "'Poppins',sans-serif" }}>⚠ {examsError}</span>
+            <div style={{ padding: '10px 16px', background: 'rgba(239,68,68,0.05)', borderBottom: '0.5px solid #fca5a5', display: 'flex', gap: 8, alignItems: 'center' }}>
+              <span style={{ fontSize: 11, color: '#dc2626', fontFamily: "'Poppins',sans-serif" }}>⚠ {examsError}</span>
               <button onClick={fetchExams} style={s.clearSelBtn}>Retry</button>
             </div>
           )}
@@ -380,9 +366,14 @@ const AddExamPage = () => {
           <table style={s.table}>
             <thead>
               <tr style={s.thead}>
-                <th style={{ ...s.th, width: 40 }}>#</th>
-                <th style={{ ...s.th, width: 130 }}>Exam Master ID</th>
-                <th style={s.th}>Course Title</th>
+                <th style={{ ...s.th, width: 36 }}>#</th>
+                <th style={{ ...s.th, width: 36 }}>SELECT</th>
+                <th style={{ ...s.th, width: 100 }}>TYPE</th>
+                <th style={s.th}>COURSE TITLE</th>
+                <th style={{ ...s.th, width: 70 }}>HOURS</th>
+                <th style={{ ...s.th, width: 110 }}>COURSE CODE</th>
+                <th style={{ ...s.th, width: 210 }}>REF / STATE CERT INFO</th>
+                <th style={{ ...s.th, width: 90 }}>CERT EXPIRY</th>
               </tr>
             </thead>
             <tbody>
@@ -391,38 +382,43 @@ const AddExamPage = () => {
                 : pageData.length === 0
                   ? (
                     <tr>
-                      <td colSpan={3} style={{ padding: '40px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 13, fontFamily: "'Poppins',sans-serif" }}>
-                        {(debouncedQ || typeKeyword || hoursKeyword)
-                          ? 'No courses match your filters.'
-                          : 'No courses found.'
-                        }
+                      <td colSpan={8} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 12, fontFamily: "'Poppins',sans-serif" }}>
+                        {(debouncedQ || typeKeyword || hoursKeyword) ? 'No courses match your filters.' : 'No courses found.'}
                       </td>
                     </tr>
                   )
                   : pageData.map((exam, i) => {
                     const rowNum     = (page - 1) * PAGE_SIZE + i + 1;
-                    const isSelected = selected === exam.examMasterID;
+                    const isSelected = selected.has(exam.examMasterID);
+                    const typeLabel  = getTypeLabel(exam.courseTitle);
+                    const hours      = getHours(exam.courseTitle);
                     return (
                       <tr
                         key={exam._id}
-                        className="ae-row"
-                        onClick={() => setSelected(isSelected ? null : exam.examMasterID)}
-                        style={{ ...s.tr, background: isSelected ? 'rgba(46,171,254,0.08)' : 'transparent' }}
+                        className={`ae-row${isSelected ? ' ae-selected' : ''}`}
+                        onClick={() => toggleRow(exam.examMasterID)}
+                        style={{ ...s.tr, background: isSelected ? 'rgba(46,171,254,0.13)' : 'transparent', borderTop: isSelected ? '0.5px solid rgba(46,171,254,0.35)' : undefined, borderBottom: isSelected ? '0.5px solid rgba(46,171,254,0.35)' : '0.5px solid #5B7384' }}
                       >
-                        <td style={s.td}>
-                          {isSelected
-                            ? <Icon d="M20 6L9 17l-5-5" size={13} color="#2EABFE" />
-                            : <span style={s.numCell}>{rowNum}</span>
-                          }
+                        <td style={s.td}><span style={s.numCell}>{rowNum}</span></td>
+                        <td style={{ ...s.td, textAlign: 'center' }}>
+                          <input
+                            type="checkbox"
+                            className="ae-checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleRow(exam.examMasterID)}
+                            onClick={e => e.stopPropagation()}
+                          />
                         </td>
-                        <td style={s.td}>
-                          <span style={s.codeCell}>{exam.examMasterID || '—'}</span>
-                        </td>
+                        <td style={s.td}><span style={s.typeBadge}>{typeLabel}</span></td>
                         <td style={s.td}>
                           <span style={{ ...s.titleCell, fontWeight: isSelected ? 600 : 500 }}>
                             {exam.courseTitle || '—'}
                           </span>
                         </td>
+                        <td style={s.td}><span style={s.hoursCell}>{hours}</span></td>
+                        <td style={s.td}><span style={s.codeCell}>{exam.examMasterID || '—'}</span></td>
+                        <td style={s.td}><span style={s.refCell}>ref: — / [state cert: —]</span></td>
+                        <td style={s.td}><span style={s.expiryCell}>—</span></td>
                       </tr>
                     );
                   })
@@ -430,7 +426,9 @@ const AddExamPage = () => {
             </tbody>
           </table>
 
-          {/* Smart Pagination */}
+          <div style={{ borderTop: '0.5px solid #5B7384' }} />
+
+          {/* Pagination */}
           {!examsLoading && totalFiltered > 0 && (
             <div style={s.pagination}>
               <div style={s.paginationInfo}>
@@ -440,59 +438,50 @@ const AddExamPage = () => {
                 <strong style={{ color: '#091925' }}>{totalFiltered}</strong>
                 <span>Records</span>
                 {(typeKeyword || hoursKeyword) && total !== totalFiltered && (
-                  <span style={{ color: '#94a3b8', marginLeft: 4 }}>
-                    (filtered from {total})
-                  </span>
+                  <span style={{ color: '#94a3b8', marginLeft: 4 }}>(filtered from {total})</span>
                 )}
               </div>
-              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                {/* Prev */}
-                <button
-                  className="ae-pg"
-                  disabled={page === 1}
-                  onClick={() => setPage(p => p - 1)}
-                  style={{ ...s.pageBtn, opacity: page === 1 ? 0.35 : 1 }}
-                >‹</button>
-
+              <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
+                <button className="ae-pg" disabled={page === 1} onClick={() => setPage(p => p - 1)}
+                  style={{ ...s.pageBtn, opacity: page === 1 ? 0.35 : 1 }}>‹</button>
                 {pageWindow.map((p, i) =>
                   p === '...'
-                    ? <span key={`d${i}`} className="ae-pg ae-dots"
-                        style={{ ...s.pageBtn, border: 'none', background: 'none', color: '#94a3b8', cursor: 'default' }}>
-                        …
-                      </span>
-                    : <button
-                        key={p}
-                        className={`ae-pg${page === p ? ' ae-active' : ''}`}
-                        onClick={() => setPage(p)}
-                        style={{
-                          ...s.pageBtn,
-                          background:  page === p ? '#2EABFE' : 'transparent',
-                          color:       page === p ? '#091925' : '#5B7384',
-                          fontWeight:  page === p ? 700 : 500,
-                          borderColor: page === p ? '#2EABFE' : '#E2E8F0',
-                        }}
-                      >{p}</button>
+                    ? <span key={`d${i}`} className="ae-pg ae-dots" style={{ ...s.pageBtn, border: 'none', background: 'none', color: '#94a3b8', cursor: 'default' }}>…</span>
+                    : <button key={p} className={`ae-pg${page === p ? ' ae-active' : ''}`} onClick={() => setPage(p)}
+                        style={{ ...s.pageBtn, background: page === p ? '#2EABFE' : '#fff', color: page === p ? '#091925' : '#5B7384', fontWeight: page === p ? 700 : 500, borderColor: page === p ? '#2EABFE' : '#5B7384' }}>{p}</button>
                 )}
-
-                {/* Next */}
-                <button
-                  className="ae-pg"
-                  disabled={page === totalPages}
-                  onClick={() => setPage(p => p + 1)}
-                  style={{ ...s.pageBtn, opacity: page === totalPages ? 0.35 : 1 }}
-                >›</button>
+                <button className="ae-pg" disabled={page === totalPages} onClick={() => setPage(p => p + 1)}
+                  style={{ ...s.pageBtn, opacity: page === totalPages ? 0.35 : 1 }}>›</button>
+              </div>
+              <button onClick={clearSelection} style={s.clearSelBtn}>✕ Clear Selection</button>
+            </div>
+          )}
+          {selected.size > 0 && (
+            <div style={s.bottomBar}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={s.selectedCountBox}><span style={s.selectedCountNum}>{selected.size}</span></div>
+                <span style={s.bottomBarLabel}>Course(s) Selected To Add To Student Record</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <button onClick={clearSelection} style={s.cancelBtn}>Cancel</button>
+                <button onClick={handleAddExam} disabled={saving} style={{ ...s.addSelectedBtn, opacity: saving ? 0.7 : 1 }}>
+                  <Icon d="M12 5v14 M5 12h14" size={13} color="#fff" />
+                  {saving ? 'Adding…' : 'Add Selected Exam(s) to Student Record'}
+                </button>
               </div>
             </div>
           )}
         </div>
-
       </div>
+
+
     </AppLayout>
   );
 };
 
-// ── Styles ────────────────────────────────────────────────────
+// ── Styles — sized to match StudentDetail.jsx ─────────────────
 const s = {
+  // ── Back button ──
   backBtn: {
     display: 'inline-flex', alignItems: 'center', gap: 6,
     padding: '7px 14px', borderRadius: 7,
@@ -501,51 +490,54 @@ const s = {
     cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
     boxShadow: '0 1px 3px rgba(0,0,0,0.06)', whiteSpace: 'nowrap',
   },
+
+  // ── Header card — mirrors sr.headerCard exactly ──
   headerCard: {
     background: '#091925',
-    backgroundImage: 'linear-gradient(135deg, rgba(9,25,37,0.92) 0%, rgba(46,171,254,0.18) 100%)',
-    borderRadius: 10, padding: '16px 22px', marginBottom: 12,
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    backgroundImage: 'linear-gradient(180deg, rgba(9,25,37,0.05) 0%, rgba(46,171,254,0.3) 100%)',
+    borderRadius: 10, padding: '14px 20px 12px', marginBottom: 12,
   },
-  headerLeft:  { display: 'flex', alignItems: 'center', gap: 14 },
+  headerInner: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' },
+  headerLeft:  { display: 'flex', alignItems: 'center', gap: 12 },
   bigAvatar: {
-    width: 46, height: 46, borderRadius: '50%',
+    width: 42, height: 42, borderRadius: '50%',
     background: 'linear-gradient(135deg,#2EABFE,#1a7fc4)',
     color: '#091925', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 18, fontWeight: 700, flexShrink: 0,
+    fontSize: 16, fontWeight: 700, flexShrink: 0,
   },
+  headerTags:  { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 3 },
+  idBadge:     { fontSize: 12, fontFamily: "'Poppins', monospace", fontWeight: 700, color: '#2EABFE' },
+  stateBadge:  { fontSize: 12, fontWeight: 700, color: '#2EABFE', display: 'inline-flex', alignItems: 'center', gap: 3 },
+  regBadge:    { fontSize: 12, fontWeight: 700, color: '#2EABFE', display: 'inline-flex', alignItems: 'center', gap: 3 },
+  emailBadge:  { fontSize: 12, fontWeight: 400, color: '#2EABFE', display: 'inline-flex', alignItems: 'center', gap: 3 },
   studentName: {
     fontSize: 22, fontWeight: 700, color: '#fff',
-    fontFamily: "'Poppins', sans-serif", margin: 0,
+    fontFamily: "'Poppins', sans-serif", margin: '3px 0 0',
+    textTransform: 'capitalize', letterSpacing: '-0.2px',
   },
   activeBadge: {
     display: 'inline-flex', alignItems: 'center', gap: 5,
     fontSize: 11, fontWeight: 700,
-    background: 'rgba(16,185,129,0.15)', color: '#10B981',
-    border: '0.5px solid rgba(16,185,129,0.4)',
+    background: 'rgba(0,255,9,0.10)', color: '#00FF09',
+    border: '0.5px solid #00FF09',
     padding: '3px 10px', borderRadius: 100,
     fontFamily: "'Poppins', sans-serif",
   },
-  headerMeta: { display: 'flex', alignItems: 'center', gap: 18, marginTop: 7, flexWrap: 'wrap' },
-  metaItem:   { display: 'inline-flex', alignItems: 'center', gap: 5 },
-  metaLabel:  { fontSize: 12, color: '#fff',    fontWeight: 400, fontFamily: "'Poppins', sans-serif" },
-  metaValue:  { fontSize: 12, color: '#2EABFE', fontWeight: 600, fontFamily: "'Poppins', sans-serif" },
-  headerRight:    { textAlign: 'right', flexShrink: 0 },
-  studentIdLabel: { fontSize: 11, color: '#7FA8C4', fontFamily: "'Poppins', sans-serif", marginBottom: 2 },
-  studentIdValue: { fontSize: 17, fontWeight: 700, color: '#fff', fontFamily: "'DM Mono', monospace" },
+  studentIdLabel: { fontSize: 11, color: '#7FA8C4', fontFamily: "'Poppins', sans-serif", margin: '2px 0 0', textAlign: 'right' },
+  studentIdValue: { fontSize: 15, fontWeight: 700, color: '#fff', fontFamily: "'JetBrains Mono', monospace", textAlign: 'right' },
 
+  // ── Filter bar ──
   filterBar: {
     display: 'flex', alignItems: 'center', gap: 8,
     background: '#fff', borderRadius: 10,
-    padding: '10px 16px', marginBottom: 10,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.05)',
-    flexWrap: 'wrap',
+    padding: '8px 14px', marginBottom: 10,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.05)', flexWrap: 'wrap',
   },
   searchWrap: {
-    display: 'flex', alignItems: 'center', gap: 8,
-    flex: 1, minWidth: 200, maxWidth: 360,
+    display: 'flex', alignItems: 'center', gap: 7,
+    flex: 1, minWidth: 180, maxWidth: 340,
     border: '0.5px solid #CBD5E1', borderRadius: 7,
-    padding: '7px 12px', background: '#F8FAFC',
+    padding: '6px 11px', background: '#F8FAFC',
   },
   searchInput: {
     border: 'none', outline: 'none', background: 'transparent',
@@ -554,19 +546,19 @@ const s = {
   },
   clearX: {
     border: 'none', background: 'transparent',
-    color: '#94a3b8', cursor: 'pointer', fontSize: 17, lineHeight: 1, padding: '0 2px',
+    color: '#94a3b8', cursor: 'pointer', fontSize: 16, lineHeight: 1, padding: '0 2px',
   },
   filterSelect: {
     border: '0.5px solid #CBD5E1', borderRadius: 7,
-    padding: '7px 28px 7px 11px',
+    padding: '6px 26px 6px 10px',
     fontSize: 12, fontWeight: 500, color: '#091925',
     background: '#fff', cursor: 'pointer',
     fontFamily: "'Poppins', sans-serif",
     appearance: 'none', WebkitAppearance: 'none',
-    minWidth: 110,
+    minWidth: 100,
   },
   chevronWrap: {
-    position: 'absolute', right: 9, top: '50%',
+    position: 'absolute', right: 8, top: '50%',
     transform: 'translateY(-50%)', pointerEvents: 'none',
   },
   optOutLabel: {
@@ -574,20 +566,36 @@ const s = {
     fontFamily: "'Poppins', sans-serif", whiteSpace: 'nowrap',
   },
 
+  // ── Table card ──
   tableCard: {
     background: '#fff', borderRadius: 10,
     boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden',
+    border: '0.5px solid #E2E8F0',
   },
   tableTopBar: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '12px 16px', borderBottom: '0.5px solid #E2E8F0',
+    padding: '10px 16px',
   },
   tableTitle: { fontSize: 13, fontWeight: 600, color: '#091925', fontFamily: "'Poppins', sans-serif" },
-  addBtn: {
-    display: 'inline-flex', alignItems: 'center', gap: 6,
-    padding: '6px 14px', borderRadius: 7,
-    background: '#2EABFE', color: '#fff',
-    border: 'none', fontSize: 12, fontWeight: 600,
+  countBadgeBlue: {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    minWidth: 36, height: 22, borderRadius: 100,
+    background: 'rgba(26,122,184,0.10)',
+    fontSize: 10, fontWeight: 700, color: '#1A7AB8',
+    fontFamily: "'Poppins', sans-serif", padding: '0 8px',
+  },
+  countBadgeGreen: {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    minWidth: 70, height: 22, borderRadius: 100,
+    background: 'rgba(0,128,0,0.10)', border: '0.5px solid #008000',
+    fontSize: 10, fontWeight: 700, color: '#008000',
+    fontFamily: "'Poppins', sans-serif", padding: '0 8px',
+  },
+  selectAllBtn: {
+    display: 'inline-flex', alignItems: 'center', gap: 5,
+    padding: '6px 12px', borderRadius: 7,
+    border: '0.5px solid #CBD5E1', background: '#fff',
+    color: '#091925', fontSize: 12, fontWeight: 600,
     cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
   },
   clearSelBtn: {
@@ -597,29 +605,41 @@ const s = {
     cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
   },
 
+  // ── Table — mirrors sr.table / sr.th / sr.td ──
   table: { width: '100%', borderCollapse: 'collapse' },
-  thead: { background: 'rgba(127,168,196,0.08)' },
+  thead: { background: 'rgba(127,168,196,0.1)' },
   th: {
     padding: '9px 16px', textAlign: 'left',
-    fontSize: 10, fontWeight: 700, color: '#5B7384',
-    textTransform: 'uppercase', letterSpacing: '0.05em',
-    borderBottom: '0.5px solid #E2E8F0',
+    fontSize: 10, fontWeight: 500, color: '#5B7384',
+    textTransform: 'uppercase', letterSpacing: '0.04em',
+    borderTop: '0.5px solid #7FA8C4', borderBottom: '0.5px solid #7FA8C4',
     fontFamily: "'Poppins', sans-serif", whiteSpace: 'nowrap',
   },
-  tr: { borderBottom: '0.5px solid #F1F5F9' },
-  td: { padding: '10px 16px', verticalAlign: 'middle' },
-  numCell:  { fontSize: 11, fontFamily: "'DM Mono', monospace", color: '#94a3b8' },
+  tr: { borderBottom: '0.5px solid #5B7384' },
+  td: { padding: '9px 16px', verticalAlign: 'middle' },
+
+  numCell:   { fontSize: 11, fontFamily: "'DM Mono', monospace", color: '#94a3b8' },
+  typeBadge: {
+    fontSize: 10, fontWeight: 700,
+    background: 'rgba(0,128,0,0.10)', color: '#008000',
+    border: '0.5px solid #008000',
+    padding: '3px 10px', borderRadius: 100, display: 'inline-block',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  titleCell:  { fontSize: 12, color: '#091925', fontFamily: "'Poppins', sans-serif", fontWeight: 500 },
+  hoursCell:  { fontSize: 12, color: '#091925', fontFamily: "'Poppins', sans-serif", fontWeight: 500 },
   codeCell: {
     fontSize: 11, fontFamily: "'DM Mono', monospace",
-    background: '#F1F5F9', color: '#475569',
-    padding: '2px 7px', borderRadius: 4, display: 'inline-block',
+    background: '#f1f5f9', color: '#475569',
+    padding: '2px 6px', borderRadius: 4, display: 'inline-block',
   },
-  titleCell: { fontSize: 12, color: '#091925', fontFamily: "'Poppins', sans-serif" },
+  refCell:    { fontSize: 12, color: '#5B7384', fontFamily: "'Poppins', sans-serif", fontWeight: 400 },
+  expiryCell: { fontSize: 12, color: '#EF4444', fontFamily: "'Poppins', sans-serif", fontWeight: 500 },
 
+  // ── Pagination ──
   pagination: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    padding: '12px 16px', borderTop: '0.5px solid #E2E8F0',
-    flexWrap: 'wrap', gap: 10,
+    padding: '10px 16px', flexWrap: 'wrap', gap: 8,
   },
   paginationInfo: {
     display: 'flex', gap: 5, alignItems: 'center',
@@ -627,12 +647,52 @@ const s = {
   },
   pageBtn: {
     minWidth: 32, height: 32, borderRadius: 6,
-    border: '0.5px solid #E2E8F0', fontSize: 12,
+    border: '0.5px solid #5B7384', fontSize: 12,
     fontFamily: "'Poppins', sans-serif", cursor: 'pointer',
-    transition: 'all 0.15s', background: 'transparent',
+    transition: 'all 0.15s', background: '#fff',
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
     padding: '0 6px',
   },
+
+  // ── Bottom action bar — inside table card ──
+  bottomBar: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '12px 16px',
+    background: '#091925',
+    backgroundImage: 'linear-gradient(180deg, rgba(9,25,37,0.05) 0%, rgba(46,171,254,0.3) 100%)',
+    borderRadius: '0 0 10px 10px',
+  },
+  selectedCountBox: {
+    minWidth: 35, height: 35, borderRadius: 5,
+    background: 'rgba(46,171,254,0.1)', border: '0.5px solid #2EABFE',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    padding: '0 8px',
+  },
+  selectedCountNum: {
+    fontSize: 14, fontWeight: 700, color: '#2EABFE',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  bottomBarLabel: {
+    fontSize: 13, fontWeight: 500, color: '#fff',
+    fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize',
+  },
+  cancelBtn: {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    padding: '0 16px', height: 36, borderRadius: 5,
+    border: '0.5px solid #5B7384', background: '#fff',
+    color: '#5B7384', fontSize: 12, fontWeight: 700,
+    cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+    textTransform: 'capitalize',
+  },
+  addSelectedBtn: {
+    display: 'inline-flex', alignItems: 'center', gap: 6,
+    padding: '0 20px', height: 36, borderRadius: 5,
+    background: '#008000', border: '0.5px solid #008000',
+    color: '#fff', fontSize: 13, fontWeight: 500,
+    cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+    whiteSpace: 'nowrap',
+  },
+
 };
 
 export default AddExamPage;
