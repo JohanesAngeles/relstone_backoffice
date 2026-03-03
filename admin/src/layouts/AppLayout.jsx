@@ -212,11 +212,13 @@ const AppLayout = ({ children, badges = {} }) => {
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .nav-item:hover { background: rgba(59,130,246,0.08) !important; }
-        .nav-item:hover .nav-icon { color: #3b82f6 !important; }
+        .nav-item:hover { background: #ECF7FF !important; }
+        .nav-item:hover .nav-icon-box { background: #D0EBFF !important; }
+        .nav-item:hover .nav-icon { color: #2EABFE !important; }
         @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
         @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
         .main-content > * { animation: fadeIn 0.3s ease forwards; }
+        .sign-out-btn:hover { background: rgba(239,68,68,0.08) !important; }
       `}</style>
 
       {/* ── TOP NAVBAR ── */}
@@ -264,16 +266,15 @@ const AppLayout = ({ children, badges = {} }) => {
         {/* ── SIDEBAR ── */}
         <aside style={{ ...s.sidebar, width: sidebarOpen ? 210 : 56 }}>
           {/* Sidebar controls + Search */}
-          {/* Sidebar controls */}
           <div style={s.sidebarControls}>
             <button style={s.iconBtn} onClick={() => setSidebarOpen(!sidebarOpen)}>
-              <SvgIcon d="M3 6h18 M3 12h18 M3 18h18" size={16} />
+              <SvgIcon d="M3 6h18 M3 12h18 M3 18h18" size={18} />
             </button>
 
             {sidebarOpen && (
               <div style={s.sideSearchWrap} data-side-search="1">
                 <span style={s.sideSearchIcon}>
-                  <SvgIcon d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" size={16} />
+                  <SvgIcon d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" size={15} />
                 </span>
 
                 <input
@@ -331,9 +332,13 @@ const AppLayout = ({ children, badges = {} }) => {
 
           {/* Nav */}
           <nav style={s.nav}>
-            {NAV.map((group) => (
-              <div key={group.section} style={s.navGroup}>
+            {NAV.map((group, gi) => (
+              <div key={group.section} style={{ ...s.navGroup, marginTop: gi > 0 ? 8 : 0 }}>
+                {/* Section divider line */}
+                {gi > 0 && sidebarOpen && <div style={s.sectionDivider} />}
+
                 {sidebarOpen && <p style={s.navSection}>{group.section}</p>}
+
                 {group.items.map((item) => {
                   const isActive = location.pathname === item.to;
                   const badgeCount = item.badge ? badges[item.badge] || 0 : 0;
@@ -347,28 +352,44 @@ const AppLayout = ({ children, badges = {} }) => {
                         ...s.navItem,
                         ...(isActive ? s.navItemActive : {}),
                         justifyContent: sidebarOpen ? 'flex-start' : 'center',
-                        padding: sidebarOpen ? '9px 12px' : '10px 0',
+                        padding: sidebarOpen ? '10px 16px 10px 0' : '10px 0',
+                        paddingLeft: sidebarOpen ? 0 : 0,
                       }}
                       title={!sidebarOpen ? item.label : ''}
                     >
+                      {/* Blue left accent bar for active */}
+                      {isActive && sidebarOpen && <div style={s.activeAccent} />}
+                      {!isActive && sidebarOpen && <div style={s.inactiveAccentSpace} />}
+
+                      {/* Icon Box */}
                       <span
-                        className="nav-icon"
+                        className="nav-icon-box"
                         style={{
-                          ...s.navIcon,
-                          color: isActive ? '#2563eb' : '#64748b',
+                          ...s.navIconBox,
+                          background: isActive ? '#D0EBFF' : 'rgba(127,168,196,0.1)',
+                          marginLeft: sidebarOpen ? 10 : 'auto',
+                          marginRight: sidebarOpen ? 0 : 'auto',
                         }}
                       >
-                        <SvgIcon d={item.icon} size={15} />
+                        <span
+                          className="nav-icon"
+                          style={{
+                            ...s.navIcon,
+                            color: isActive ? '#2EABFE' : '#7FA8C4',
+                          }}
+                        >
+                          <SvgIcon d={item.icon} size={16} />
+                        </span>
                       </span>
 
                       {sidebarOpen && (
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ flex: 1, minWidth: 0, marginLeft: 9 }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                             <span
                               style={{
                                 ...s.navLabel,
-                                color: isActive ? '#1e40af' : '#1e293b',
-                                fontWeight: isActive ? 600 : 500,
+                                color: isActive ? '#163347' : '#091925',
+                                fontWeight: isActive ? 600 : 400,
                               }}
                             >
                               {item.label}
@@ -377,7 +398,7 @@ const AppLayout = ({ children, badges = {} }) => {
                               <span
                                 style={{
                                   ...s.badge,
-                                  background: item.badgeRed ? '#ef4444' : '#3b82f6',
+                                  background: item.badgeRed ? '#ef4444' : '#2EABFE',
                                 }}
                               >
                                 {badgeCount}
@@ -395,22 +416,35 @@ const AppLayout = ({ children, badges = {} }) => {
           </nav>
 
           {/* Sign Out */}
+          {sidebarOpen && <div style={s.sectionDivider} />}
           <button
             onClick={handleLogout}
+            className="sign-out-btn"
             style={{
               ...s.sidebarSignOut,
               justifyContent: sidebarOpen ? 'flex-start' : 'center',
+              padding: sidebarOpen ? '14px 16px 14px 0' : '14px 0',
             }}
           >
-            <span style={{ color: '#ef4444', display: 'flex' }}>
-              <SvgIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" size={15} />
+            {sidebarOpen && <div style={s.inactiveAccentSpace} />}
+            <span
+              style={{
+                ...s.navIconBox,
+                background: 'rgba(239,68,68,0.1)',
+                marginLeft: sidebarOpen ? 10 : 'auto',
+                marginRight: sidebarOpen ? 0 : 'auto',
+              }}
+            >
+              <span style={{ color: '#EF4444', display: 'flex' }}>
+                <SvgIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" size={20} />
+              </span>
             </span>
             {sidebarOpen && (
-              <div>
-                <p style={{ color: '#ef4444', fontSize: 13, fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+              <div style={{ marginLeft: 9 }}>
+                <p style={{ color: '#EF4444', fontSize: 13, fontWeight: 600, fontFamily: "'Poppins', sans-serif", lineHeight: '20px' }}>
                   Sign Out
                 </p>
-                <p style={{ color: '#94a3b8', fontSize: 11 }}>End Your Session</p>
+                <p style={{ color: '#7FA8C4', fontSize: 12, lineHeight: '18px' }}>End Your Session</p>
               </div>
             )}
           </button>
@@ -453,9 +487,10 @@ const s = {
     display: 'flex',
     flexDirection: 'column',
     width: '100vw',
-    minHeight: '100vh',
+    height: '100vh',
     fontFamily: "'Poppins', sans-serif",
     background: '#f1f5f9',
+    overflow: 'hidden',
   },
   topNav: {
     display: 'flex',
@@ -465,7 +500,7 @@ const s = {
     height: 52,
     background: '#0f172a',
     flexShrink: 0,
-    zIndex: 10,
+    zIndex: 100,
   },
   topNavLeft: { display: 'flex', alignItems: 'center', gap: 10 },
   topNavRight: { display: 'flex', alignItems: 'center', gap: 12 },
@@ -505,6 +540,7 @@ const s = {
     background: '#0f172a',
     borderTop: '1px solid #1e293b',
     flexShrink: 0,
+    zIndex: 100,
   },
   greeting: {
     fontFamily: "'Poppins', sans-serif",
@@ -550,60 +586,70 @@ const s = {
   clockDate: { fontSize: 11, color: '#94a3b8', fontFamily: "'DM Mono', monospace" },
   clockDivider: { color: '#334155', fontSize: 12 },
   clockTime: { fontSize: 11, color: '#60a5fa', fontFamily: "'DM Mono', monospace", fontWeight: 500 },
-  body: { display: 'flex', flex: 1 },
+
+  body: {
+    display: 'flex',
+    flex: 1,
+    overflow: 'hidden',
+  },
 
   sidebar: {
-    background: '#fff',
+    background: '#FFFFFF',
     borderRight: '1px solid #e2e8f0',
     display: 'flex',
     flexDirection: 'column',
     transition: 'width 0.2s ease',
     overflow: 'hidden',
     flexShrink: 0,
-    height: '100vh',
+    // Fixed sidebar - does not scroll with content
     position: 'sticky',
     top: 0,
+    height: '100%',
+    overflowY: 'auto',
   },
+
   sidebarControls: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '10px 12px',
+    padding: '12px 16px',
     borderBottom: '1px solid #f1f5f9',
-    minHeight: 42,
+    minHeight: 52,
     gap: 10,
+    flexShrink: 0,
   },
   iconBtn: {
     background: 'none',
     border: 'none',
-    color: '#64748b',
+    color: '#163347',
     cursor: 'pointer',
     display: 'flex',
     padding: 4,
     borderRadius: 5,
+    flexShrink: 0,
   },
 
   // Sidebar search styles
   sideSearchWrap: {
     position: 'relative',
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 6,
     display: 'flex',
     alignItems: 'center',
     background: '#f8fafc',
     border: '1px solid #e2e8f0',
     borderRadius: 8,
-    padding: '6px 8px',
+    padding: '7px 10px',
     gap: 6,
   },
-  sideSearchIcon: { color: '#94a3b8', display: 'flex' },
+  sideSearchIcon: { color: '#7FA8C4', display: 'flex' },
   sideSearchInput: {
     width: '100%',
     border: 'none',
     outline: 'none',
     background: 'transparent',
-    fontSize: 12,
-    color: '#0f172a',
+    fontSize: 13,
+    color: '#091925',
     fontFamily: "'Poppins', sans-serif",
   },
   sideSearchClear: {
@@ -650,7 +696,7 @@ const s = {
   searchItemLabel: {
     fontSize: 13,
     fontWeight: 600,
-    color: '#0f172a',
+    color: '#091925',
   },
   searchItemSection: {
     fontSize: 10,
@@ -661,39 +707,84 @@ const s = {
   searchItemSub: {
     marginTop: 2,
     fontSize: 10,
-    color: '#64748b',
+    color: '#7FA8C4',
   },
 
-  nav: { flex: 1, overflowY: 'auto', padding: '6px 8px' },
-  navGroup: { marginBottom: 4 },
+  nav: { flex: 1, overflowY: 'auto', paddingBottom: 8 },
+  navGroup: { marginBottom: 0 },
+
+  sectionDivider: {
+    width: 'calc(100% - 60px)',
+    height: '0.5px',
+    background: '#7FA8C4',
+    margin: '6px 12px',
+    opacity: 0.4,
+  },
+
   navSection: {
     fontSize: 9,
     fontWeight: 700,
-    color: '#94a3b8',
+    color: '#7FA8C4',
     letterSpacing: '0.1em',
-    padding: '8px 6px 4px',
+    padding: '8px 12px 4px',
     textTransform: 'uppercase',
+    fontFamily: "'Poppins', sans-serif",
   },
+
   navItem: {
     display: 'flex',
     alignItems: 'center',
-    gap: 9,
-    borderRadius: 7,
+    borderRadius: 0,
     cursor: 'pointer',
     transition: 'all 0.15s',
-    marginBottom: 1,
+    marginBottom: 0,
     textDecoration: 'none',
+    position: 'relative',
+    minHeight: 52,
   },
-  navItemActive: { background: 'rgba(37,99,235,0.08)' },
+  navItemActive: { background: '#ECF7FF' },
+
+  activeAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 5,
+    background: '#2EABFE',
+    borderRadius: '0 3px 3px 0',
+    flexShrink: 0,
+  },
+  inactiveAccentSpace: {
+    width: 5,
+    flexShrink: 0,
+  },
+
+  navIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 5,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    transition: 'background 0.15s',
+  },
   navIcon: { display: 'flex', flexShrink: 0 },
-  navLabel: { fontSize: 13, fontFamily: "'Poppins', sans-serif" },
+  navLabel: {
+    fontSize: 13,
+    fontFamily: "'Poppins', sans-serif",
+    lineHeight: '20px',
+    textTransform: 'capitalize',
+  },
   navSub: {
-    fontSize: 10,
-    color: '#94a3b8',
+    fontSize: 12,
+    color: '#7FA8C4',
     marginTop: 1,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+    fontWeight: 400,
+    lineHeight: '18px',
   },
   badge: {
     fontSize: 10,
@@ -703,20 +794,30 @@ const s = {
     borderRadius: 10,
     flexShrink: 0,
   },
+
   sidebarSignOut: {
     display: 'flex',
     alignItems: 'center',
-    gap: 9,
-    padding: '12px 12px',
-    borderTop: '1px solid #f1f5f9',
+    gap: 0,
     background: 'none',
     border: 'none',
+    borderTop: 'none',
     cursor: 'pointer',
     width: '100%',
     fontFamily: "'Poppins', sans-serif",
+    minHeight: 52,
+    flexShrink: 0,
+    transition: 'background 0.15s',
+    borderRadius: 0,
   },
 
-  mainWrap: { flex: 1, display: 'flex', flexDirection: 'column' },
+  mainWrap: {
+    flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
+    minWidth: 0,
+  },
   main: {
     flex: 1,
     overflowY: 'auto',
@@ -734,6 +835,7 @@ const s = {
     color: '#475569',
     flexShrink: 0,
     fontFamily: "'DM Mono', monospace",
+    zIndex: 100,
   },
   footerRight: { display: 'flex', alignItems: 'center', gap: 6, color: '#334155' },
   footerDot: { color: '#1e293b' },
