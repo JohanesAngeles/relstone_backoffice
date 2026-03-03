@@ -7,10 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "node server.js",
+    "heroku-postbuild": "npm run build"
   },
   "dependencies": {
     "docx": "^9.6.0",
+    "express": "^5.2.1",
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
