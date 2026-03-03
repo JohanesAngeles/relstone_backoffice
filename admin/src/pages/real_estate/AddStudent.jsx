@@ -39,9 +39,9 @@ const ConfirmDialog = ({ config, onConfirm, onCancel }) => {
   if (!config) return null;
 
   const themeMap = {
-    danger:  { bg: '#fef2f2', border: '#fca5a5', iconBg: 'rgba(239,68,68,0.1)',  iconColor: '#dc2626', btnBg: '#dc2626', btnHover: '#b91c1c' },
-    warning: { bg: '#fffbeb', border: '#fcd34d', iconBg: 'rgba(245,158,11,0.1)', iconColor: '#d97706', btnBg: '#d97706', btnHover: '#b45309' },
-    success: { bg: '#f0fdf4', border: '#86efac', iconBg: 'rgba(16,185,129,0.1)', iconColor: '#059669', btnBg: '#059669', btnHover: '#047857' },
+    danger:  { iconBg: 'rgba(239,68,68,0.1)',   iconBorder: '#EF4444', iconColor: '#EF4444', btnBg: '#EF4444',  btnHover: '#c93b3b', btnTextColor: '#FFFFFF' },
+    warning: { iconBg: 'rgba(245,158,11,0.1)',  iconBorder: '#F59E0B', iconColor: '#F59E0B', btnBg: '#F59E0B',  btnHover: '#c97f09', btnTextColor: '#091925' },
+    success: { iconBg: 'rgba(0,128,0,0.1)',     iconBorder: '#008000', iconColor: '#008000', btnBg: '#008000',  btnHover: '#006600', btnTextColor: '#FFFFFF' },
   };
 
   const t = themeMap[config.theme] || themeMap.warning;
@@ -54,7 +54,7 @@ const ConfirmDialog = ({ config, onConfirm, onCancel }) => {
         onClick={onCancel}
         style={{
           position: 'fixed', inset: 0,
-          background: 'rgba(15,23,42,0.45)',
+          background: 'rgba(9,25,37,0.55)',
           backdropFilter: 'blur(3px)',
           zIndex: 999,
           animation: 'fadeIn 0.15s ease',
@@ -67,66 +67,84 @@ const ConfirmDialog = ({ config, onConfirm, onCancel }) => {
         transform: 'translate(-50%,-50%)',
         zIndex: 1000,
         background: '#fff',
-        borderRadius: 14,
-        boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-        width: 400,
+        borderRadius: 10,
+        boxShadow: '0 20px 60px rgba(9,25,37,0.22)',
+        width: 500,
         overflow: 'hidden',
         animation: 'slideUp 0.2s ease',
       }}>
-        {/* Colored top strip */}
-        <div style={{ height: 4, background: t.btnBg }} />
+        <div style={{ padding: '40px 47px 32px', textAlign: 'center' }}>
 
-        <div style={{ padding: '28px 28px 24px' }}>
-          {/* Icon */}
+          {/* Icon — rounded square, centered */}
           <div style={{
-            width: 52, height: 52, borderRadius: '50%',
+            width: 59, height: 59,
+            borderRadius: 7,
             background: t.iconBg,
+            border: `0.35px solid ${t.iconBorder}`,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            marginBottom: 16,
+            margin: '0 auto 28px',
           }}>
-            <Icon size={24} color={t.iconColor} />
+            <Icon size={22} color={t.iconColor} />
           </div>
 
           {/* Title */}
           <h3 style={{
-            fontSize: 16, fontWeight: 700, color: '#0f172a',
-            margin: '0 0 8px', fontFamily: "'Poppins',sans-serif",
+            fontSize: 32, fontWeight: 400, color: '#000000',
+            margin: '0 0 10px',
+            fontFamily: "'HomepageBaukasten','Poppins',sans-serif",
+            textTransform: 'capitalize',
+            lineHeight: '35px',
           }}>
             {config.title}
           </h3>
 
           {/* Body */}
           <p style={{
-            fontSize: 13, color: '#64748b', margin: '0 0 24px',
-            fontFamily: "'Poppins',sans-serif", lineHeight: 1.6,
+            fontSize: 14, color: '#5B7384', margin: '0 0 40px',
+            fontFamily: "'Poppins',sans-serif",
+            fontWeight: 500,
+            lineHeight: '20px',
           }}>
             {config.message}
           </p>
 
-          {/* Detail pill (optional) */}
-          {config.detail && (
-            <div style={{
-              background: t.bg, border: `1px solid ${t.border}`,
-              borderRadius: 7, padding: '9px 14px',
-              fontSize: 12, color: '#374151',
-              fontFamily: "'Poppins',sans-serif",
-              marginBottom: 20,
-            }}>
-              {config.detail}
-            </div>
-          )}
-
           {/* Actions */}
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'space-between' }}>
+            {/* Cancel button */}
             <button
               onClick={onCancel}
-              style={s.dialogCancelBtn}
+              style={{
+                flex: '0 0 159px',
+                height: 50,
+                background: '#FFFFFF',
+                color: '#5B7384',
+                border: '0.5px solid #5B7384',
+                borderRadius: 5,
+                fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                fontFamily: "'Poppins',sans-serif",
+                textTransform: 'capitalize',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              }}
             >
-              <FiX size={13} /> {config.cancelLabel || 'Cancel'}
+              {config.cancelLabel || 'Cancel'}
             </button>
+
+            {/* Confirm button */}
             <button
               onClick={onConfirm}
-              style={{ ...s.dialogConfirmBtn, background: t.btnBg }}
+              style={{
+                flex: 1,
+                height: 50,
+                background: t.btnBg,
+                color: t.btnTextColor,
+                border: `0.5px solid ${t.btnBg}`,
+                borderRadius: 5,
+                fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                fontFamily: "'Poppins',sans-serif",
+                textTransform: 'capitalize',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                transition: 'background 0.15s',
+              }}
               onMouseEnter={e => e.currentTarget.style.background = t.btnHover}
               onMouseLeave={e => e.currentTarget.style.background = t.btnBg}
             >
@@ -134,6 +152,7 @@ const ConfirmDialog = ({ config, onConfirm, onCancel }) => {
               {config.confirmLabel || 'Confirm'}
             </button>
           </div>
+
         </div>
       </div>
 
@@ -166,7 +185,7 @@ const AddStudent = () => {
   const [showPass,  setShowPass]  = useState(false);
 
   // ── Dialog state ───────────────────────────────────────────
-  const [dialog, setDialog] = useState(null); // { config, onConfirm }
+  const [dialog, setDialog] = useState(null);
 
   const openDialog = (config, onConfirm) => setDialog({ config, onConfirm });
   const closeDialog = () => setDialog(null);
@@ -222,10 +241,10 @@ const AddStudent = () => {
       theme: 'danger',
       icon: FiTrash2,
       title: 'Clear All Fields?',
-      message: 'This will erase everything you have entered in the form. This action cannot be undone.',
+      message: "This will erase everything you've typed in this form. This cannot be undone.",
       detail: 'All fields will be reset to their empty default state.',
-      cancelLabel: 'Keep Editing',
-      confirmLabel: 'Clear Form',
+      cancelLabel: 'Keep My Data',
+      confirmLabel: 'Yes, Clear Everything',
       confirmIcon: FiTrash2,
     }, doClear);
   };
@@ -237,11 +256,11 @@ const AddStudent = () => {
     openDialog({
       theme: 'warning',
       icon: FiAlertTriangle,
-      title: 'Discard & Go Back?',
-      message: 'You have unsaved changes. If you leave now, all entered data will be lost.',
+      title: 'Cancel & Go Back?',
+      message: "Any information you've entered will be lost. Are you sure you want to leave this form without saving?",
       detail: 'You will be returned to the BackOffice search page.',
       cancelLabel: 'Stay on Page',
-      confirmLabel: 'Discard & Leave',
+      confirmLabel: 'Yes, Leave Without Saving',
       confirmIcon: FiArrowLeft,
     }, doCancel);
   };
@@ -270,7 +289,6 @@ const AddStudent = () => {
   };
 
   const handleSaveClick = () => {
-    // Run validation first so the user sees errors before the confirm dialog
     const e = validate();
     if (Object.keys(e).length > 0) { setErrors(e); return; }
 
@@ -278,10 +296,10 @@ const AddStudent = () => {
       theme: 'success',
       icon: FiCheckCircle,
       title: 'Save Student Record?',
-      message: `You are about to create a new student record for ${form.firstName} ${form.lastName}. Please confirm the details are correct.`,
+      message: `You're about to create a new student record for ${form.firstName} ${form.lastName}. This will assign them a Student ID and activate their account.`,
       detail: `Email: ${form.email}  ·  State: ${form.state}  ·  Password set`,
-      cancelLabel: 'Review Again',
-      confirmLabel: 'Save Record',
+      cancelLabel: 'Go Back',
+      confirmLabel: 'Yes, Save Record',
       confirmIcon: FiSave,
     }, doSave);
   };
@@ -300,7 +318,7 @@ const AddStudent = () => {
           ]} />
           <div style={s.successCard}>
             <div style={s.successIcon}>
-              <FiCheckCircle size={28} color="#059669" />
+              <FiCheckCircle size={28} color="#2EABFE" />
             </div>
             <h2 style={s.successTitle}>Student Record Created!</h2>
             <p style={s.successSub}>The new student has been saved to the database.</p>
@@ -336,14 +354,62 @@ const AddStudent = () => {
   return (
     <AppLayout>
       <style>{`
-        .as-input { width:100%; padding:8px 12px; border:1px solid #e2e8f0; border-radius:7px; font-size:12px; font-family:'Poppins',sans-serif; color:#0f172a; background:#fafafa; outline:none; box-sizing:border-box; transition:border-color 0.15s; }
-        .as-input:focus { border-color:#2563eb; background:#fff; }
-        .as-input.error { border-color:#ef4444; background:#fff5f5; }
-        .as-select { width:100%; padding:8px 12px; border:1px solid #e2e8f0; border-radius:7px; font-size:12px; font-family:'Poppins',sans-serif; color:#0f172a; background:#fafafa; outline:none; box-sizing:border-box; cursor:pointer; }
-        .as-select:focus { border-color:#2563eb; }
-        .as-select.error { border-color:#ef4444; }
-        .as-textarea { width:100%; padding:10px 12px; border:1px solid #e2e8f0; border-radius:7px; font-size:12px; font-family:'Poppins',sans-serif; color:#0f172a; background:#fafafa; outline:none; box-sizing:border-box; resize:vertical; min-height:90px; transition:border-color 0.15s; }
-        .as-textarea:focus { border-color:#2563eb; background:#fff; }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+        .as-input {
+          width: 100%;
+          padding: 8px 12px;
+          border: 0.5px solid #7FA8C4;
+          border-radius: 5px;
+          font-size: 12px;
+          font-family: 'Poppins', sans-serif;
+          color: #091925;
+          background: rgba(127,168,196,0.1);
+          outline: none;
+          box-sizing: border-box;
+          transition: border-color 0.15s, background 0.15s;
+        }
+        .as-input::placeholder { color: #5B7384; font-weight: 500; }
+        .as-input:focus { border-color: #2EABFE; background: rgba(46,171,254,0.05); }
+        .as-input.error { border-color: #ef4444; background: rgba(239,68,68,0.05); }
+
+        .as-select {
+          width: 100%;
+          padding: 8px 12px;
+          border: 0.5px solid #7FA8C4;
+          border-radius: 5px;
+          font-size: 12px;
+          font-family: 'Poppins', sans-serif;
+          color: #091925;
+          background: rgba(127,168,196,0.1);
+          outline: none;
+          box-sizing: border-box;
+          cursor: pointer;
+          appearance: none;
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237FA8C4' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+          background-repeat: no-repeat;
+          background-position: right 12px center;
+        }
+        .as-select:focus { border-color: #2EABFE; }
+        .as-select.error { border-color: #ef4444; }
+
+        .as-textarea {
+          width: 100%;
+          padding: 8px 12px;
+          border: 0.5px solid #7FA8C4;
+          border-radius: 5px;
+          font-size: 12px;
+          font-family: 'Poppins', sans-serif;
+          color: #091925;
+          background: rgba(127,168,196,0.1);
+          outline: none;
+          box-sizing: border-box;
+          resize: vertical;
+          min-height: 110px;
+          transition: border-color 0.15s;
+        }
+        .as-textarea::placeholder { color: #5B7384; font-weight: 500; }
+        .as-textarea:focus { border-color: #2EABFE; background: rgba(46,171,254,0.05); }
       `}</style>
 
       {/* Confirmation Dialog */}
@@ -382,7 +448,7 @@ const AddStudent = () => {
             <p style={s.idSub}>Auto-Assigned · Next Available ID In System</p>
           </div>
           <div style={s.idBadge}>
-            <FiLock size={11} style={{ marginRight: 5 }} />
+            <FiLock size={11} style={{ marginRight: 6 }} />
             ID Is Assigned Automatically When The Record Is Saved
           </div>
         </div>
@@ -428,7 +494,7 @@ const AddStudent = () => {
             <h2 style={s.sectionTitle}>Contact Information</h2>
             <p style={s.sectionSub}>Email, phone numbers, and communication preferences</p>
           </div>
-          <div style={{ marginBottom:14 }}>
+          <div style={{ marginBottom:12 }}>
             <label style={s.label}>Email Address <span style={s.req}>*</span></label>
             <input className={`as-input${errors.email ? ' error' : ''}`} placeholder="e.g. student@email.com"
               type="email" value={form.email} onChange={e => set('email', e.target.value)} />
@@ -454,7 +520,7 @@ const AddStudent = () => {
             <h2 style={s.sectionTitle}>Mailing Address</h2>
             <p style={s.sectionSub}>Student's current mailing address</p>
           </div>
-          <div style={{ marginBottom:14 }}>
+          <div style={{ marginBottom:12 }}>
             <label style={s.label}>Street Address <span style={s.req}>*</span></label>
             <input className={`as-input${errors.streetAddress ? ' error' : ''}`} placeholder="e.g. 1629 Georgetown Way"
               value={form.streetAddress} onChange={e => set('streetAddress', e.target.value)} />
@@ -506,7 +572,7 @@ const AddStudent = () => {
                 <input className={`as-input${errors.password ? ' error' : ''}`}
                   type={showPass ? 'text' : 'password'} placeholder="Min. 6 characters"
                   value={form.password} onChange={e => set('password', e.target.value)}
-                  style={{ paddingRight:36 }} />
+                  style={{ paddingRight:40 }} />
                 <button onClick={() => setShowPass(p => !p)} style={s.eyeBtn} type="button">
                   {showPass ? <FiEyeOff size={14} /> : <FiEye size={14} />}
                 </button>
@@ -526,8 +592,8 @@ const AddStudent = () => {
         {/* ── Section: Internal Notes ── */}
         <div style={s.section}>
           <div style={s.sectionHeader}>
-            <h2 style={s.sectionTitle}>Internal Notes</h2>
-            <p style={s.sectionSub}>For internal use only — the student will not see these notes</p>
+            <h2 style={s.sectionTitle}>Internal Notes <span style={s.opt}>Optional</span></h2>
+            <p style={s.sectionSub}>This is for internal use only. The student will not see these notes.</p>
           </div>
           <textarea className="as-textarea"
             placeholder="e.g. Student called in to register. Referred by John Smith at ABC Realty..."
@@ -537,7 +603,8 @@ const AddStudent = () => {
         {/* ── Footer actions ── */}
         <div style={s.footer}>
           <p style={s.footerNote}>
-            <span style={{ color:'#ef4444' }}>*</span> Fields marked <span style={{ color:'#ef4444' }}>*</span> are required before saving.
+            <span style={{ color:'#ef4444', marginRight: 4 }}>ⓘ</span>
+            Field Marked <span style={{ color:'#ef4444' }}>*</span> Are Required Before Saving.
           </p>
           <div style={{ display:'flex', gap:10 }}>
             <button style={s.clearBtn} onClick={handleClearClick}>
@@ -551,7 +618,7 @@ const AddStudent = () => {
               onClick={handleSaveClick}
               disabled={saving}
             >
-              <FiSave size={13} />
+              <FiUserPlus size={14} />
               {saving ? 'Saving...' : 'Save New Student Record'}
             </button>
           </div>
@@ -564,54 +631,136 @@ const AddStudent = () => {
 
 // ── Styles ─────────────────────────────────────────────────────
 const s = {
-  topRow:     { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 },
-  pageTitle:  { fontSize:22, fontWeight:700, color:'#0f172a', fontFamily:"'Poppins',sans-serif", margin:'0 0 4px 0' },
-  pageSub:    { fontSize:12, color:'#64748b', margin:0, fontFamily:"'Poppins',sans-serif" },
+  topRow:     { display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:16 },
+  pageTitle:  { fontSize:22, fontWeight:700, color:'#000000', fontFamily:"'Poppins',sans-serif", margin:'0 0 4px 0', textTransform:'capitalize' },
+  pageSub:    { fontSize:12, color:'#5B7384', margin:0, fontFamily:"'Poppins',sans-serif", fontWeight:500 },
 
-  idBanner:   { background:'#0f172a', borderRadius:10, padding:'18px 24px', marginBottom:16, display:'flex', justifyContent:'space-between', alignItems:'center' },
-  idLabel:    { fontSize:11, color:'#94a3b8', margin:'0 0 4px 0', fontFamily:"'Poppins',sans-serif", textTransform:'uppercase', letterSpacing:'0.05em' },
-  idValue:    { fontSize:26, fontWeight:700, color:'#2563eb', margin:'0 0 3px 0', fontFamily:"'DM Mono',monospace" },
-  idSub:      { fontSize:11, color:'#64748b', margin:0, fontFamily:"'Poppins',sans-serif" },
-  idBadge:    { fontSize:11, color:'#f59e0b', background:'rgba(245,158,11,0.1)', border:'1px solid rgba(245,158,11,0.3)', borderRadius:6, padding:'6px 12px', fontWeight:600, display:'flex', alignItems:'center' },
+  // ID Banner — dark navy with blue gradient overlay (matches Figma #091925 + gradient)
+  idBanner:   {
+    background: 'linear-gradient(180deg, #091925 0%, rgba(9,25,37,0.92) 100%)',
+    borderRadius: 5,
+    padding: '14px 20px',
+    marginBottom: 12,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  idLabel:    { fontSize:11, color:'#ffffff', margin:'0 0 2px 0', fontFamily:"'JetBrains Mono','Courier New',monospace", textTransform:'capitalize', letterSpacing:'0.02em' },
+  idValue:    { fontSize:28, fontWeight:700, color:'#2EABFE', margin:'0 0 2px 0', fontFamily:"'JetBrains Mono','Courier New',monospace" },
+  idSub:      { fontSize:11, color:'#ffffff', margin:0, fontFamily:"'JetBrains Mono','Courier New',monospace", textTransform:'capitalize' },
+  idBadge:    {
+    fontSize: 11,
+    color: '#F5801B',
+    background: 'rgba(245,128,27,0.1)',
+    border: '0.5px solid #F5801B',
+    borderRadius: 5,
+    padding: '10px 14px',
+    fontWeight: 700,
+    display: 'flex',
+    alignItems: 'center',
+    fontFamily: "'Poppins',sans-serif",
+    textTransform: 'capitalize',
+    whiteSpace: 'nowrap',
+    lineHeight: 1.4,
+  },
 
-  errorBanner:{ background:'#fef2f2', border:'1px solid #fca5a5', borderRadius:8, padding:'10px 16px', color:'#dc2626', fontSize:12, fontFamily:"'Poppins',sans-serif", marginBottom:14, display:'flex', alignItems:'center' },
+  errorBanner:{ background:'rgba(239,68,68,0.08)', border:'0.5px solid #ef4444', borderRadius:5, padding:'8px 14px', color:'#ef4444', fontSize:12, fontFamily:"'Poppins',sans-serif", marginBottom:12, display:'flex', alignItems:'center' },
 
-  section:    { background:'#fff', borderRadius:10, boxShadow:'0 1px 4px rgba(0,0,0,0.06)', padding:'20px 24px', marginBottom:14 },
-  sectionHeader:{ marginBottom:16, paddingBottom:12, borderBottom:'1px solid #f1f5f9' },
-  sectionTitle: { fontSize:14, fontWeight:700, color:'#0f172a', margin:'0 0 3px 0', fontFamily:"'Poppins',sans-serif" },
-  sectionSub:   { fontSize:11, color:'#94a3b8', margin:0, fontFamily:"'Poppins',sans-serif" },
+  // Sections — white cards with subtle shadow
+  section:    { background:'#FFFFFF', borderRadius:5, boxShadow:'0 1px 4px rgba(9,25,37,0.08)', padding:'16px 20px', marginBottom:10 },
+  sectionHeader:{ marginBottom:14, paddingBottom:10, borderBottom:'0.5px solid #5B7384' },
+  sectionTitle: { fontSize:13, fontWeight:500, color:'#091925', margin:'0 0 3px 0', fontFamily:"'Poppins',sans-serif", textTransform:'capitalize' },
+  sectionSub:   { fontSize:11, color:'#7FA8C4', margin:0, fontFamily:"'Poppins',sans-serif" },
 
-  grid3:      { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:16 },
-  grid2:      { display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 },
+  grid3:      { display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 },
+  grid2:      { display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 },
 
-  label:      { display:'block', fontSize:11, fontWeight:600, color:'#374151', marginBottom:5, fontFamily:"'Poppins',sans-serif", textTransform:'uppercase', letterSpacing:'0.04em' },
+  label:      { display:'block', fontSize:11, fontWeight:500, color:'#091925', marginBottom:5, fontFamily:"'Poppins',sans-serif", textTransform:'uppercase' },
   req:        { color:'#ef4444' },
-  opt:        { color:'#94a3b8', fontWeight:400, fontSize:10, textTransform:'none', letterSpacing:0, marginLeft:4 },
-  fieldErr:   { fontSize:11, color:'#ef4444', margin:'4px 0 0 0', fontFamily:"'Poppins',sans-serif" },
-  fieldNote:  { fontSize:10, color:'#94a3b8', margin:'4px 0 0 0', fontFamily:"'Poppins',sans-serif" },
+  opt:        { color:'#5B7384', fontWeight:700, fontSize:7, background:'rgba(91,115,132,0.1)', borderRadius:100, padding:'2px 6px', marginLeft:5, textTransform:'none', letterSpacing:0, verticalAlign:'middle' },
+  fieldErr:   { fontSize:10, color:'#ef4444', margin:'3px 0 0 0', fontFamily:"'Poppins',sans-serif" },
+  fieldNote:  { fontSize:10, color:'#5B7384', margin:'4px 0 0 0', fontFamily:"'Poppins',sans-serif" },
 
-  eyeBtn:     { position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#94a3b8', padding:0, display:'flex', alignItems:'center' },
+  eyeBtn:     { position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#7FA8C4', padding:0, display:'flex', alignItems:'center' },
 
-  footer:     { background:'#fff', borderRadius:10, boxShadow:'0 1px 4px rgba(0,0,0,0.06)', padding:'16px 24px', display:'flex', alignItems:'center', justifyContent:'space-between' },
-  footerNote: { fontSize:12, color:'#64748b', margin:0, fontFamily:"'Poppins',sans-serif" },
+  // Footer — white card
+  footer:     { background:'#FFFFFF', borderRadius:5, boxShadow:'0 1px 4px rgba(9,25,37,0.08)', padding:'12px 20px', display:'flex', alignItems:'center', justifyContent:'space-between' },
+  footerNote: { fontSize:12, color:'#091925', margin:0, fontFamily:"'Poppins',sans-serif", fontWeight:700, display:'flex', alignItems:'center', gap:5, textTransform:'capitalize' },
 
-  primaryBtn: { display:'inline-flex', alignItems:'center', gap:6, padding:'9px 20px', background:'#2563eb', color:'#fff', border:'none', borderRadius:7, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:"'Poppins',sans-serif" },
-  outlineBtn: { display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', background:'#fff', color:'#374151', border:'1px solid #e2e8f0', borderRadius:7, fontSize:12, fontWeight:500, cursor:'pointer', fontFamily:"'Poppins',sans-serif" },
-  clearBtn:   { display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', background:'#fff', color:'#ef4444', border:'1px solid #fca5a5', borderRadius:7, fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:"'Poppins',sans-serif" },
-  cancelBtn:  { display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', background:'#fff', color:'#374151', border:'1px solid #e2e8f0', borderRadius:7, fontSize:12, fontWeight:500, cursor:'pointer', fontFamily:"'Poppins',sans-serif" },
+  // Buttons matching Figma
+  primaryBtn: {
+    display:'inline-flex', alignItems:'center', gap:6,
+    padding:'0 18px', height:38,
+    background:'#2EABFE',
+    color:'#091925',
+    border:'0.5px solid #2EABFE',
+    borderRadius:5,
+    fontSize:12, fontWeight:700, cursor:'pointer',
+    fontFamily:"'Poppins',sans-serif",
+    textTransform:'capitalize',
+  },
+  outlineBtn: {
+    display:'inline-flex', alignItems:'center', gap:6,
+    padding:'0 14px', height:38,
+    background:'#FFFFFF',
+    color:'#5B7384',
+    border:'0.5px solid #5B7384',
+    borderRadius:5,
+    fontSize:12, fontWeight:700, cursor:'pointer',
+    fontFamily:"'Poppins',sans-serif",
+    textTransform:'capitalize',
+  },
+  clearBtn: {
+    display:'inline-flex', alignItems:'center', gap:6,
+    padding:'0 14px', height:38,
+    background:'rgba(239,68,68,0.1)',
+    color:'#EF4444',
+    border:'0.5px solid #EF4444',
+    borderRadius:5,
+    fontSize:12, fontWeight:700, cursor:'pointer',
+    fontFamily:"'Poppins',sans-serif",
+    textTransform:'capitalize',
+  },
+  cancelBtn: {
+    display:'inline-flex', alignItems:'center', gap:6,
+    padding:'0 14px', height:38,
+    background:'#FFFFFF',
+    color:'#5B7384',
+    border:'0.5px solid #5B7384',
+    borderRadius:5,
+    fontSize:12, fontWeight:500, cursor:'pointer',
+    fontFamily:"'Poppins',sans-serif",
+    textTransform:'capitalize',
+  },
 
   // Dialog buttons
-  dialogCancelBtn: { display:'inline-flex', alignItems:'center', gap:6, padding:'8px 16px', background:'#fff', color:'#374151', border:'1px solid #e2e8f0', borderRadius:7, fontSize:12, fontWeight:500, cursor:'pointer', fontFamily:"'Poppins',sans-serif" },
-  dialogConfirmBtn:{ display:'inline-flex', alignItems:'center', gap:6, padding:'9px 18px', color:'#fff', border:'none', borderRadius:7, fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:"'Poppins',sans-serif", transition:'background 0.15s' },
+  dialogCancelBtn: {
+    display:'inline-flex', alignItems:'center', gap:6,
+    padding:'7px 14px',
+    background:'#FFFFFF', color:'#5B7384',
+    border:'0.5px solid #5B7384',
+    borderRadius:5, fontSize:12, fontWeight:500, cursor:'pointer',
+    fontFamily:"'Poppins',sans-serif",
+  },
+  dialogConfirmBtn: {
+    display:'inline-flex', alignItems:'center', gap:6,
+    padding:'7px 16px',
+    color:'#fff', border:'none',
+    borderRadius:5, fontSize:12, fontWeight:700, cursor:'pointer',
+    fontFamily:"'Poppins',sans-serif", transition:'background 0.15s',
+  },
 
-  successCard:  { background:'#fff', borderRadius:12, boxShadow:'0 4px 24px rgba(0,0,0,0.08)', padding:'48px 40px', textAlign:'center', maxWidth:480, margin:'60px auto' },
-  successIcon:  { width:60, height:60, borderRadius:'50%', background:'rgba(16,185,129,0.1)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' },
-  successTitle: { fontSize:20, fontWeight:700, color:'#0f172a', margin:'0 0 8px 0', fontFamily:"'Poppins',sans-serif" },
-  successSub:   { fontSize:13, color:'#64748b', margin:'0 0 24px 0', fontFamily:"'Poppins',sans-serif" },
-  successDetails:{ background:'#f8fafc', borderRadius:8, padding:'16px 20px', textAlign:'left', marginBottom:8 },
-  successRow:   { display:'flex', justifyContent:'space-between', padding:'6px 0', borderBottom:'1px solid #f1f5f9' },
-  successLabel: { fontSize:12, color:'#64748b', fontFamily:"'Poppins',sans-serif" },
-  successVal:   { fontSize:12, fontWeight:600, color:'#0f172a', fontFamily:"'DM Mono',monospace" },
+  // Success card
+  successCard:  { background:'#FFFFFF', borderRadius:5, boxShadow:'0 4px 24px rgba(9,25,37,0.12)', padding:'40px 32px', textAlign:'center', maxWidth:440, margin:'50px auto' },
+  successIcon:  { width:52, height:52, borderRadius:'50%', background:'rgba(46,171,254,0.1)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px' },
+  successTitle: { fontSize:17, fontWeight:700, color:'#091925', margin:'0 0 6px 0', fontFamily:"'Poppins',sans-serif" },
+  successSub:   { fontSize:12, color:'#5B7384', margin:'0 0 20px 0', fontFamily:"'Poppins',sans-serif" },
+  successDetails:{ background:'rgba(127,168,196,0.08)', borderRadius:5, padding:'12px 16px', textAlign:'left', marginBottom:8, border:'0.5px solid #7FA8C4' },
+  successRow:   { display:'flex', justifyContent:'space-between', padding:'5px 0', borderBottom:'0.5px solid #e2e8f0' },
+  successLabel: { fontSize:11, color:'#5B7384', fontFamily:"'Poppins',sans-serif" },
+  successVal:   { fontSize:11, fontWeight:600, color:'#091925', fontFamily:"'JetBrains Mono','Courier New',monospace" },
 };
 
 export default AddStudent;
