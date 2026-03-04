@@ -28,21 +28,20 @@ const InfoRow = ({ label, value }) => (
 // ── Status Badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
   const cfg = {
-    'Completed':   { bg: 'rgba(16,185,129,0.1)',  color: '#059669', border: 'rgba(16,185,129,0.3)' },
-    'Passed':      { bg: 'rgba(16,185,129,0.1)',  color: '#059669', border: 'rgba(16,185,129,0.3)' },
+    'Completed':   { bg: 'rgba(16,185,129,0.1)',  color: '#059669', border: 'transparent' },
+    'Passed':      { bg: '#E7F8F2',               color: '#10B981', border: 'transparent' },
     'In Progress': { bg: 'rgba(59,130,246,0.1)',  color: '#2563eb', border: 'rgba(59,130,246,0.3)' },
     'Expired':     { bg: 'rgba(239,68,68,0.1)',   color: '#dc2626', border: 'rgba(239,68,68,0.3)' },
   };
   const c = cfg[status] || { bg: 'rgba(100,116,139,0.1)', color: '#475569', border: 'rgba(100,116,139,0.3)' };
   return (
-    <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: c.bg, color: c.color, border: `1px solid ${c.border}` }}>
+    <span style={{ fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 100, background: c.bg, color: c.color, border: `0.5px solid ${c.border}` }}>
       {status || 'Unknown'}
     </span>
   );
 };
 
 // ── Docs Dropdown ─────────────────────────────────────────────
-// Replaces the emoji <select> with a proper icon-driven dropdown
 const DocsDropdown = ({ onTranscript, onCertificate }) => {
   const [open, setOpen] = useState(false);
 
@@ -59,7 +58,6 @@ const DocsDropdown = ({ onTranscript, onCertificate }) => {
 
       {open && (
         <>
-          {/* Backdrop — closes dropdown on outside click */}
           <div
             onClick={() => setOpen(false)}
             style={{ position: 'fixed', inset: 0, zIndex: 10 }}
@@ -71,7 +69,7 @@ const DocsDropdown = ({ onTranscript, onCertificate }) => {
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = 'none'}
             >
-              <FiFileText size={13} color="#2563eb" />
+              <FiFileText size={13} color="#2EABFE" />
               Transcript
             </button>
             <button
@@ -80,7 +78,7 @@ const DocsDropdown = ({ onTranscript, onCertificate }) => {
               onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
               onMouseLeave={e => e.currentTarget.style.background = 'none'}
             >
-              <FiAward size={13} color="#059669" />
+              <FiAward size={13} color="#10B981" />
               Certificate
             </button>
           </div>
@@ -187,36 +185,56 @@ const CECStudentDetail = () => {
           </button>
         </div>
 
-        {/* Header Card */}
+        {/* ── Dark Header Card ── */}
         <div style={sr.headerCard}>
-          <div style={sr.headerLeft}>
-            <div style={sr.bigAvatar}>
-              {(student.name || '?')[0].toUpperCase()}
-            </div>
-            <div>
-              <h1 style={sr.studentName}>{student.name}</h1>
-              {student.companyName && <p style={sr.companyName}>{student.companyName}</p>}
-              <div style={sr.headerTags}>
-                <span style={sr.idBadge}>ID: {student.studentId}</span>
-                <span style={{ ...sr.stateBadge, background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' }}>
-                  CEC
-                </span>
-                {student.state && <span style={sr.stateBadge}>{student.state}</span>}
-                <span style={{ ...sr.statsBadge, background: 'rgba(16,185,129,0.1)', color: '#059669', border: '1px solid rgba(16,185,129,0.2)' }}>
-                  {student.courses?.length || 0} courses
-                </span>
-                <span style={{ ...sr.statsBadge, background: 'rgba(245,158,11,0.1)', color: '#d97706', border: '1px solid rgba(245,158,11,0.2)' }}>
-                  {student.orders?.length || 0} orders
-                </span>
+          <div style={sr.headerInner}>
+            <div style={sr.headerLeft}>
+              <div style={sr.bigAvatar}>
+                {(student.name || '?')[0].toUpperCase()}
+              </div>
+              <div>
+                <div style={sr.headerTags}>
+                  <span style={sr.idBadge}>ID: {student.studentId}</span>
+                  <span style={sr.cecBadge}>CEC</span>
+                  {student.state && (
+                    <span style={sr.stateBadge}>
+                      <svg width={10} height={12} viewBox="0 0 24 24" fill="none" stroke="#2EABFE" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {student.state}
+                    </span>
+                  )}
+                  {student.companyName && (
+                    <span style={sr.companyBadge}>
+                      <svg width={11} height={12} viewBox="0 0 24 24" fill="none" stroke="#2EABFE" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 3 }}>
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                      </svg>
+                      {student.companyName}
+                    </span>
+                  )}
+                </div>
+                <h1 style={sr.studentName}>{student.name}</h1>
               </div>
             </div>
+            {student.firstOrderDate && (
+              <div style={sr.headerRight}>
+                <p style={sr.firstOrderLabel}>First Order</p>
+                <p style={sr.firstOrderDate}>{student.firstOrderDate}</p>
+              </div>
+            )}
           </div>
-          {student.firstOrderDate && (
-            <div style={sr.headerRight}>
-              <p style={sr.firstOrderLabel}>First Order</p>
-              <p style={sr.firstOrderDate}>{student.firstOrderDate}</p>
-            </div>
-          )}
+
+          {/* Stats row */}
+          <div style={sr.statsRow}>
+            <span style={sr.statsPillBlue}>
+              {student.courses?.length || 0} courses
+            </span>
+            <span style={sr.statsPillGray}>
+              {student.orders?.length || 0} orders
+            </span>
+          </div>
         </div>
 
         {/* Info Grid */}
@@ -225,7 +243,10 @@ const CECStudentDetail = () => {
           {/* Contact Info */}
           <div style={sr.infoCard}>
             <div style={sr.infoCardHeader}>
-              <FiUser size={13} />
+              <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#2EABFE" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
               Contact Information
             </div>
             <div style={sr.infoCardBody}>
@@ -239,7 +260,9 @@ const CECStudentDetail = () => {
           {/* License & ID Numbers */}
           <div style={sr.infoCard}>
             <div style={sr.infoCardHeader}>
-              <FiShield size={13} />
+              <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="#2EABFE" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
               License &amp; ID Numbers
             </div>
             <div style={sr.infoCardBody}>
@@ -256,12 +279,18 @@ const CECStudentDetail = () => {
         <div style={sr.tabsCard}>
           <div style={sr.tabsHeader}>
             {[
-              { key: 'courses', label: `Courses (${student.courses?.length || 0})` },
-              { key: 'orders',  label: `Orders (${student.orders?.length || 0})` },
+              { key: 'courses', label: 'Courses', count: student.courses?.length || 0 },
+              { key: 'orders',  label: 'Orders',  count: student.orders?.length  || 0 },
             ].map(t => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 style={{ ...sr.tabBtn, ...(tab === t.key ? sr.tabBtnActive : {}) }}>
                 {t.label}
+                <span style={{
+                  ...sr.tabCount,
+                  ...(tab === t.key ? sr.tabCountActive : sr.tabCountInactive),
+                }}>
+                  {t.count}
+                </span>
               </button>
             ))}
           </div>
@@ -288,7 +317,7 @@ const CECStudentDetail = () => {
                   {student.courses.map((c, i) => (
                     <tr key={i} style={sr.tr}>
                       <td style={sr.td}><span style={sr.courseTitle}>{c.courseTitle || '—'}</span></td>
-                      <td style={sr.td}><span style={{ fontSize: 12, color: '#64748b' }}>{c.examTitle || '—'}</span></td>
+                      <td style={sr.td}><span style={{ fontSize: 12, color: '#091925' }}>{c.examTitle || '—'}</span></td>
                       <td style={sr.td}><span style={sr.dateCell}>{c.registrationDate || '—'}</span></td>
                       <td style={sr.td}><span style={sr.dateCell}>{c.expirationDate || '—'}</span></td>
                       <td style={sr.td}>
@@ -373,55 +402,139 @@ const sr = {
     background: '#2563eb', color: '#fff', border: 'none',
     fontSize: 13, cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
   },
-  headerCard: {
-    background: '#fff', borderRadius: 10,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-    padding: '20px 24px', marginBottom: 14,
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-  },
-  headerLeft: { display: 'flex', alignItems: 'center', gap: 16 },
-  bigAvatar: {
-    width: 52, height: 52, borderRadius: '50%',
-    background: 'linear-gradient(135deg,#10b981,#059669)',
-    color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 20, fontWeight: 700, flexShrink: 0,
-  },
-  studentName: { fontSize: 18, fontWeight: 700, color: '#0f172a', fontFamily: "'Poppins',sans-serif" },
-  companyName: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  headerTags: { display: 'flex', alignItems: 'center', gap: 6, marginTop: 8, flexWrap: 'wrap' },
-  idBadge: { fontSize: 10, fontFamily: "'DM Mono',monospace", background: '#f1f5f9', color: '#64748b', padding: '2px 7px', borderRadius: 4 },
-  stateBadge: { fontSize: 10, fontWeight: 700, background: 'rgba(59,130,246,0.1)', color: '#2563eb', padding: '2px 7px', borderRadius: 10, border: '1px solid rgba(59,130,246,0.2)' },
-  statsBadge: { fontSize: 10, fontWeight: 600, padding: '2px 7px', borderRadius: 10 },
-  headerRight: { textAlign: 'right' },
-  firstOrderLabel: { fontSize: 10, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' },
-  firstOrderDate: { fontSize: 14, fontWeight: 600, color: '#0f172a', marginTop: 3, fontFamily: "'DM Mono',monospace" },
-  infoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 },
-  infoCard: { background: '#fff', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' },
-  infoCardHeader: { display: 'flex', alignItems: 'center', gap: 7, padding: '11px 16px', borderBottom: '1px solid #f1f5f9', fontSize: 12, fontWeight: 700, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: "'Poppins',sans-serif" },
-  infoCardBody: { padding: '4px 0' },
-  infoRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '8px 16px', borderBottom: '1px solid #f8fafc', gap: 16 },
-  infoLabel: { fontSize: 11, color: '#94a3b8', fontWeight: 500, flexShrink: 0 },
-  infoValue: { fontSize: 12, color: '#0f172a', textAlign: 'right', wordBreak: 'break-word' },
-  tabsCard: { background: '#fff', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' },
-  tabsHeader: { display: 'flex', borderBottom: '1px solid #e2e8f0' },
-  tabBtn: { padding: '11px 18px', border: 'none', background: 'none', fontSize: 13, fontWeight: 500, color: '#64748b', cursor: 'pointer', fontFamily: "'Poppins',sans-serif", borderBottom: '2px solid transparent', marginBottom: -1, transition: 'all 0.15s' },
-  tabBtnActive: { color: '#2563eb', fontWeight: 600, borderBottom: '2px solid #2563eb' },
-  emptyTab: { padding: '32px 20px', textAlign: 'center', color: '#94a3b8', fontSize: 13 },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  thead: { background: '#f8fafc' },
-  th: { padding: '10px 16px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid #e2e8f0', fontFamily: "'Poppins',sans-serif", whiteSpace: 'nowrap' },
-  tr: { borderBottom: '1px solid #f8fafc' },
-  td: { padding: '10px 16px', verticalAlign: 'middle' },
-  courseTitle: { fontSize: 12, fontWeight: 500, color: '#0f172a' },
-  dateCell: { fontSize: 11, color: '#64748b', fontFamily: "'DM Mono',monospace" },
-  orderNum: { fontSize: 11, fontFamily: "'DM Mono',monospace", background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: 4 },
-  moneyCell: { fontSize: 12, fontFamily: "'DM Mono',monospace", color: '#374151' },
 
-  // DocsDropdown styles
+  // ── Dark Header Card ──
+  headerCard: {
+    background: '#091925',
+    backgroundImage: 'linear-gradient(180deg, rgba(9,25,37,0.05) 0%, rgba(46,171,254,0.3) 100%)',
+    borderRadius: 10,
+    padding: '14px 20px 12px',
+    marginBottom: 12,
+    position: 'relative',
+  },
+  headerInner: {
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+  },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: 12 },
+  bigAvatar: {
+    width: 42, height: 42, borderRadius: '50%',
+    background: 'linear-gradient(135deg,#2EABFE,#1a7fc4)',
+    color: '#091925', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 16, fontWeight: 700, flexShrink: 0,
+  },
+  studentName: {
+    fontSize: 22, fontWeight: 700, color: '#FFFFFF',
+    fontFamily: "'Poppins', sans-serif",
+    margin: '3px 0 0',
+    textTransform: 'capitalize',
+    letterSpacing: '-0.2px',
+  },
+  headerTags: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  idBadge: {
+    fontSize: 12, fontFamily: "'Poppins', monospace", fontWeight: 700,
+    color: '#2EABFE', padding: 0,
+  },
+  cecBadge: {
+    fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 10,
+    background: 'rgba(16,185,129,0.2)', color: '#10B981',
+    border: '1px solid rgba(16,185,129,0.3)',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  stateBadge: {
+    fontSize: 12, fontWeight: 700, color: '#2EABFE',
+    display: 'inline-flex', alignItems: 'center',
+  },
+  companyBadge: {
+    fontSize: 12, fontWeight: 700, color: '#2EABFE',
+    display: 'inline-flex', alignItems: 'center',
+  },
+  statsRow: {
+    display: 'flex', alignItems: 'center', gap: 6, marginTop: 8,
+  },
+  statsPillBlue: {
+    fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 100,
+    background: '#2EABFE', color: '#091925',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  statsPillGray: {
+    fontSize: 10, fontWeight: 700, padding: '3px 10px', borderRadius: 100,
+    background: 'rgba(91,115,132,0.25)', color: '#7FA8C4',
+    fontFamily: "'Poppins', sans-serif",
+  },
+  headerRight: { textAlign: 'right' },
+  firstOrderLabel: {
+    fontSize: 11, color: '#FFFFFF', textTransform: 'capitalize',
+    letterSpacing: '0.02em', fontFamily: "'Poppins', sans-serif", fontWeight: 400,
+  },
+  firstOrderDate: {
+    fontSize: 15, fontWeight: 700, color: '#FFFFFF', marginTop: 2,
+    fontFamily: "'Poppins', sans-serif",
+  },
+
+  // ── Info Cards ──
+  infoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 },
+  infoCard: { background: '#FFFFFF', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' },
+  infoCardHeader: {
+    display: 'flex', alignItems: 'center', gap: 6,
+    padding: '10px 16px',
+    borderBottom: '0.5px solid #5B7384',
+    fontSize: 12, fontWeight: 500, color: '#091925',
+    textTransform: 'capitalize', fontFamily: "'Poppins', sans-serif",
+  },
+  infoCardBody: { padding: 0 },
+  infoRow: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    padding: '9px 16px', borderBottom: '0.5px solid #5B7384', gap: 16,
+  },
+  infoLabel: { fontSize: 11, color: '#5B7384', fontWeight: 500, flexShrink: 0, fontFamily: "'Poppins', sans-serif" },
+  infoValue: { fontSize: 11, color: '#091925', textAlign: 'right', wordBreak: 'break-word', fontFamily: "'Poppins', sans-serif", fontWeight: 500 },
+
+  // ── Tabs ──
+  tabsCard: { background: '#FFFFFF', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' },
+  tabsHeader: { display: 'flex', borderBottom: '0.5px solid #5B7384', padding: '0 6px' },
+  tabBtn: {
+    display: 'inline-flex', alignItems: 'center', gap: 5,
+    padding: '10px 13px', border: 'none', background: 'none',
+    fontSize: 13, fontWeight: 500, color: '#5B7384',
+    cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+    borderBottom: '3px solid transparent', marginBottom: -1, transition: 'all 0.15s',
+    textTransform: 'capitalize',
+  },
+  tabBtnActive: { color: '#2EABFE', fontWeight: 500, borderBottom: '3px solid #2EABFE' },
+  tabCount: {
+    fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 100,
+    fontFamily: "'Poppins', sans-serif",
+  },
+  tabCountActive: { background: '#2EABFE', color: '#091925' },
+  tabCountInactive: { background: 'rgba(91,115,132,0.15)', color: '#5B7384' },
+
+  emptyTab: { padding: '32px 20px', textAlign: 'center', color: '#94a3b8', fontSize: 13 },
+
+  // ── Table ──
+  table: { width: '100%', borderCollapse: 'collapse' },
+  thead: { background: 'rgba(127,168,196,0.1)' },
+  th: {
+    padding: '9px 16px', textAlign: 'left',
+    fontSize: 10, fontWeight: 500, color: '#5B7384',
+    textTransform: 'uppercase', letterSpacing: '0.04em',
+    borderTop: '0.5px solid #7FA8C4', borderBottom: '0.5px solid #7FA8C4',
+    fontFamily: "'Poppins', sans-serif", whiteSpace: 'nowrap',
+  },
+  tr: { borderBottom: '0.5px solid #5B7384' },
+  td: { padding: '9px 16px', verticalAlign: 'middle' },
+  courseTitle: { fontSize: 12, fontWeight: 500, color: '#091925', fontFamily: "'Poppins', sans-serif" },
+  dateCell: { fontSize: 12, color: '#091925', fontFamily: "'Poppins', sans-serif", fontWeight: 500 },
+  orderNum: {
+    fontSize: 11, fontFamily: "'DM Mono', monospace",
+    background: '#f1f5f9', color: '#475569', padding: '2px 5px', borderRadius: 4,
+  },
+  moneyCell: { fontSize: 12, fontFamily: "'DM Mono', monospace", color: '#374151' },
+
+  // ── DocsDropdown ──
   docsBtn: {
     display: 'flex', alignItems: 'center', gap: 5,
     padding: '4px 10px', fontSize: 11, fontWeight: 600,
-    background: '#2563eb', color: '#fff',
+    background: '#2EABFE', color: '#091925',
     border: 'none', borderRadius: 5, cursor: 'pointer',
     fontFamily: "'Poppins', sans-serif",
   },
