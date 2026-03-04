@@ -4,9 +4,10 @@ const router     = express.Router();
 const ExamCourse = require('../models/ExamCourse');
 const ExamQA     = require('../models/ExamQA');
 const ExamCert   = require('../models/ExamCert');
+const ExamQanda  = require('../models/ExamQanda');
 
 // ─────────────────────────────────────────────
-//  EXAM COURSES  (now fetches from recatalog)
+//  EXAM COURSES  (fetches from recatalog)
 // ─────────────────────────────────────────────
 
 // GET /api/exams/courses
@@ -79,7 +80,7 @@ router.get('/courses/:examMasterID', async (req, res) => {
 });
 
 // ─────────────────────────────────────────────
-//  Q&A
+//  Q&A  (legacy examqanda collection)
 // ─────────────────────────────────────────────
 
 // GET /api/exams/qa
@@ -149,6 +150,96 @@ router.get('/certs/:examMasterID', async (req, res) => {
     const certs = await ExamCert.find({ examMasterID: req.params.examMasterID }).lean();
     res.json({ total: certs.length, certs });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ─────────────────────────────────────────────
+//  QANDA — CE / RE / PreLicense question bank
+//  ⚠️  Route order matters: exact → static → param
+// ─────────────────────────────────────────────
+
+// GET /api/exams/qanda
+router.get('/qanda', async (req, res) => {
+  try {
+    const { courseType, examName, version, search, page = 1, limit = 50 } = req.query;
+
+    const query = {};
+    if (courseType) query.courseType = courseType;
+    if (examName)   query.examName   = { $regex: examName, $options: 'i' };
+    if (version)    query.version    = version;
+    if (search) {
+      query.$or = [
+        { question:    { $regex: search, $options: 'i' } },
+        { examName:    { $regex: search, $options: 'i' } },
+        { 'options.A': { $regex: search, $options: 'i' } },
+        { 'options.B': { $regex: search, $options: 'i' } },
+        { 'options.C': { $regex: search, $options: 'i' } },
+        { 'options.D': { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const [questions, total] = await Promise.all([
+      ExamQanda.find(query).sort({ examName: 1, version: 1, questionNumber: 1 }).skip(skip).limit(parseInt(limit)).lean(),
+      ExamQanda.countDocuments(query),
+    ]);
+
+    res.json({ total, page: parseInt(page), limit: parseInt(limit), questions });
+  } catch (err) {
+    console.error('GET /exams/qanda error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/exams/qanda/summary  ← static segment BEFORE /:examName param
+router.get('/qanda/summary', async (req, res) => {
+  try {
+    const { courseType } = req.query;
+    const matchStage = courseType ? { $match: { courseType } } : { $match: {} };
+
+    const summary = await ExamQanda.aggregate([
+      matchStage,
+      {
+        $group: {
+          _id:        { courseType: '$courseType', examName: '$examName' },
+          totalCount: { $sum: 1 },
+          versions:   { $addToSet: '$version' },
+        },
+      },
+      {
+        $group: {
+          _id:            '$_id.courseType',
+          exams:          { $push: { examName: '$_id.examName', totalCount: '$totalCount', versions: '$versions' } },
+          totalQuestions: { $sum: '$totalCount' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    res.json({ summary });
+  } catch (err) {
+    console.error('GET /exams/qanda/summary error:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/exams/qanda/:examName  ← param route LAST
+router.get('/qanda/:examName', async (req, res) => {
+  try {
+    const { version, courseType } = req.query;
+    const query = { examName: { $regex: `^${req.params.examName}$`, $options: 'i' } };
+    if (version)    query.version    = version;
+    if (courseType) query.courseType = courseType;
+
+    const questions = await ExamQanda
+      .find(query)
+      .sort({ version: 1, questionNumber: 1 })
+      .lean();
+
+    res.json({ total: questions.length, questions });
+  } catch (err) {
+    console.error('GET /exams/qanda/:examName error:', err);
     res.status(500).json({ message: err.message });
   }
 });
