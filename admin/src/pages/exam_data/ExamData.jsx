@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import AppLayout from '../../layouts/AppLayout';
+import Breadcrumb from '../../components/common/Breadcrumb';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -150,10 +151,22 @@ const ExamData = () => {
 
         {/* ── Page Header ── */}
         <div style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#2EABFE', fontFamily: "'Poppins', sans-serif" }}>Dashboard</span>
-            <span style={{ color: '#94a3b8', fontSize: 14 }}>/</span>
-            <span style={{ fontSize: 14, fontWeight: 500, color: '#5B7384', fontFamily: "'Poppins', sans-serif" }}>Exam Data</span>
+          <div onClick={e => {
+            const anchor = e.target.closest('a');
+            if (anchor && anchor.getAttribute('href') === '#') {
+              e.preventDefault();
+              setView('exams');
+              setSelectedExam(null);
+            }
+          }}>
+            <Breadcrumb crumbs={[
+              { label: 'Dashboard', to: '/admin' },
+              { label: 'Exam Data', to: view === 'questions' ? '#' : undefined },
+              ...(view === 'questions' && selectedExam
+                ? [{ label: selectedExam.examName }]
+                : []
+              ),
+            ]} />
           </div>
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
