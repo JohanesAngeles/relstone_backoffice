@@ -21,7 +21,7 @@ const SYSTEMS = [
     actions: [
       { label: 'BackOffice', to: '/admin/real-estate/online-exam/backoffice', primary: true },
       { label: 'Secure Orders', to: '/admin/real-estate/secure-orders', primary: true },
-      { label: 'RELS CMS', to: '/real-estate/online-exam/rels-cms', primary: true },
+      { label: 'RELS CMS', to: '/admin/real-estate/online-exam/rels-cms', primary: true },
     ],
   },
   {
