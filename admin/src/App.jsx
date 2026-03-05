@@ -23,6 +23,10 @@ import SecureOrders from './pages/real_estate/SecureOrders';
 import AddStudent from './pages/real_estate/AddStudent';
 import AddExamPage from './pages/real_estate/AddExamPage';
 
+import RelsCMSDashboard from './pages/real_estate/RelsCMSDashboard';
+import ExamAnswerKeyPage  from './pages/real_estate/ExamAnswerKeyPage';
+
+
 
 
 function App() {
@@ -82,6 +86,13 @@ function App() {
           <Route path="/admin/real-estate/online-exam/backoffice/add-student" element={<AddStudent />} />
 
           <Route path="/admin/real-estate/online-exam/backoffice/student/:id/add-exam" element={<AddExamPage />} />
+
+          <Route path="/admin/real-estate/online-exam/rels-cms" element={
+            <ProtectedRoute><RelsCMSDashboard /></ProtectedRoute>
+          } />
+
+          <Route path="/admin/real-estate/online-exam/rels-cms/exam-banks/:bundleId" element={<ExamAnswerKeyPage />} />
+
 
         </Routes>
       </BrowserRouter>
