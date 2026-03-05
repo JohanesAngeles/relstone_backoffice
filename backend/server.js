@@ -31,6 +31,7 @@ app.use('/api/students', require('./routes/addStudent'));
 app.use('/api/students', require('./routes/students'));
 app.use('/api/exams', require('./routes/examRoutes'));
 app.use('/api/dre-approvals', require('./routes/dreApprovals'));
+app.use('/api/exam-qanda', require('./routes/examQanda'));
 
 // Combined Conflict Routes
 app.use('/api/contact', require('./routes/contactRoutes'));
