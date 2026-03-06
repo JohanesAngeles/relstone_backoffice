@@ -264,7 +264,7 @@ const AppLayout = ({ children, badges = {} }) => {
       {/* ── BODY ── */}
       <div style={s.body}>
         {/* ── SIDEBAR ── */}
-        <aside style={{ ...s.sidebar, width: sidebarOpen ? 210 : 56 }}>
+        <aside style={{ ...s.sidebar, width: sidebarOpen ? 240 : 56 }}>
           {/* Sidebar controls + Search */}
           <div style={s.sidebarControls}>
             <button style={s.iconBtn} onClick={() => setSidebarOpen(!sidebarOpen)}>
@@ -416,38 +416,62 @@ const AppLayout = ({ children, badges = {} }) => {
           </nav>
 
           {/* Sign Out */}
-          {sidebarOpen && <div style={s.sectionDivider} />}
-          <button
-            onClick={handleLogout}
-            className="sign-out-btn"
-            style={{
-              ...s.sidebarSignOut,
-              justifyContent: sidebarOpen ? 'flex-start' : 'center',
-              padding: sidebarOpen ? '14px 16px 14px 0' : '14px 0',
-            }}
-          >
-            {sidebarOpen && <div style={s.inactiveAccentSpace} />}
-            <span
+          {sidebarOpen ? (
+            <div style={{ padding: '8px 12px 12px' }}>
+              <button
+                onClick={handleLogout}
+                className="sign-out-btn"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  width: '100%',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 8,
+                  padding: '8px 12px',
+                  height: 56,
+                  cursor: 'pointer',
+                  fontFamily: "'Poppins', sans-serif",
+                  transition: 'background 0.15s',
+                }}
+              >
+                <span style={{
+                  width: 36, height: 36, borderRadius: 5,
+                  background: 'rgba(239,68,68,0.1)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                }}>
+                  <span style={{ color: '#EF4444', display: 'flex' }}>
+                    <SvgIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" size={18} />
+                  </span>
+                </span>
+                <div style={{ textAlign: 'left' }}>
+                  <p style={{ fontSize: 13, color: '#EF4444', fontWeight: 600, fontFamily: "'Poppins', sans-serif", lineHeight: '20px' }}>Sign Out</p>
+                  <p style={{ fontSize: 12, color: '#7FA8C4', lineHeight: '18px' }}>End Your Session</p>
+                </div>
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleLogout}
+              className="sign-out-btn"
               style={{
-                ...s.navIconBox,
-                background: 'rgba(239,68,68,0.1)',
-                marginLeft: sidebarOpen ? 10 : 'auto',
-                marginRight: sidebarOpen ? 0 : 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: 'none',
+                border: 'none',
+                width: '100%',
+                padding: '14px 0',
+                cursor: 'pointer',
+                transition: 'background 0.15s',
               }}
             >
               <span style={{ color: '#EF4444', display: 'flex' }}>
                 <SvgIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" size={20} />
               </span>
-            </span>
-            {sidebarOpen && (
-              <div style={{ marginLeft: 9 }}>
-                <p style={{ color: '#EF4444', fontSize: 13, fontWeight: 600, fontFamily: "'Poppins', sans-serif", lineHeight: '20px' }}>
-                  Sign Out
-                </p>
-                <p style={{ color: '#7FA8C4', fontSize: 12, lineHeight: '18px' }}>End Your Session</p>
-              </div>
-            )}
-          </button>
+            </button>
+          )}
         </aside>
 
         {/* ── MAIN + FOOTER ── */}
@@ -601,7 +625,6 @@ const s = {
     transition: 'width 0.2s ease',
     overflow: 'hidden',
     flexShrink: 0,
-    // Fixed sidebar - does not scroll with content
     position: 'sticky',
     top: 0,
     height: '100%',
@@ -799,16 +822,17 @@ const s = {
     display: 'flex',
     alignItems: 'center',
     gap: 0,
-    background: 'none',
-    border: 'none',
-    borderTop: 'none',
     cursor: 'pointer',
-    width: '100%',
     fontFamily: "'Poppins', sans-serif",
-    minHeight: 52,
     flexShrink: 0,
     transition: 'background 0.15s',
+    border: 'none',
     borderRadius: 0,
+    background: 'transparent',
+    margin: 0,
+    width: '100%',
+    minHeight: 52,
+    padding: '10px 16px 10px 0',
   },
 
   mainWrap: {

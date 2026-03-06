@@ -25,7 +25,7 @@ const ChevronDown = () => (
 // ── Skeleton ──────────────────────────────────────────────────
 const SkeletonRow = () => (
   <tr>
-    {[20, 20, 70, 60, 280, 50, 90, 80].map((w, i) => (
+    {[20, 20, 80, 60, 300, 70, 80].map((w, i) => (
       <td key={i} style={{ padding: '9px 16px' }}>
         <div style={{
           height: 9, borderRadius: 4, width: w,
@@ -51,40 +51,28 @@ const getPageWindow = (current, total) => {
   return pages;
 };
 
-// ── Type filter ───────────────────────────────────────────────
+// ── Course Type filter options (matches courseType in examqanda) ──
 const TYPE_OPTIONS = [
-  { label: 'All Type',    keyword: '' },
-  { label: 'Pre-license', keyword: 'pre-license' },
-  { label: 'R.E.',        keyword: 'r.e.' },
-  { label: 'Exam Prep',   keyword: 'exam prep' },
-];
-
-// ── Hours filter ──────────────────────────────────────────────
-const HOURS_OPTIONS = [
-  { label: 'All Hours', keyword: '' },
-  { label: '3 Hour',    keyword: '3 hour' },
-  { label: '8 Hour',    keyword: '8 hour' },
-  { label: '12 Hour',   keyword: '12 hour' },
-  { label: '15 Hour',   keyword: '15 hour' },
-  { label: '45 Hour',   keyword: '45 hour' },
+  { label: 'All Types',   value: '' },
+  { label: 'CE',          value: 'CE' },
+  { label: 'RE',          value: 'RE' },
+  { label: 'Pre-License', value: 'PreLicense' },
 ];
 
 const PAGE_SIZE = 10;
 
 // ── Helpers ───────────────────────────────────────────────────
-const getTypeLabel = (title = '') => {
-  const t = title.toLowerCase();
-  if (t.includes('pre-license') || t.includes('pre license')) return 'Pre-License';
-  if (t.includes('r.e.') || t.includes('real estate principles')) return 'R.E.';
-  if (t.includes('exam prep')) return 'Exam Prep';
-  if (t.includes('c.e.') || t.includes('continuing')) return 'C.E.';
-  return 'Course';
+// Map bundleId to a readable label  e.g. "CE-15HR" → "15 Hour C.E."
+const getBundleLabel = (bundleId = '') => {
+  const b = bundleId.toUpperCase();
+  if (b.includes('CE-15'))  return '15 Hour C.E.';
+  if (b.includes('CE-45'))  return '45 Hour C.E.';
+  if (b.includes('RE-45'))  return '45 Hour R.E.';
+  if (b.includes('PRE'))    return 'Pre-License';
+  return bundleId;
 };
 
-const getHours = (title = '') => {
-  const m = title.match(/(\d+)\s*hour/i);
-  return m ? `${m[1]} hrs` : '—';
-};
+// Derive credit hours from bundleId
 
 const AddExamPage = () => {
   const { id }   = useParams();
@@ -92,19 +80,23 @@ const AddExamPage = () => {
 
   const [student,        setStudent]        = useState(null);
   const [studentLoading, setStudentLoading] = useState(true);
-  const [exams,          setExams]          = useState([]);
-  const [total,          setTotal]          = useState(0);
-  const [examsLoading,   setExamsLoading]   = useState(false);
-  const [examsError,     setExamsError]     = useState('');
+
+  // ── Bundle data ───────────────────────────────────────────
+  const [bundles,        setBundles]        = useState([]);
+  const [bundlesLoading, setBundlesLoading] = useState(false);
+  const [bundlesError,   setBundlesError]   = useState('');
+
+  // ── Filters ───────────────────────────────────────────────
   const [query,          setQuery]          = useState('');
   const [debouncedQ,     setDebouncedQ]     = useState('');
-  const [typeFilter,     setTypeFilter]     = useState('All Type');
-  const [hoursFilter,    setHoursFilter]    = useState('All Hours');
-  const [emailOptOut,    setEmailOptOut]    = useState('No');
-  const [selected,       setSelected]       = useState(new Set());
+  const [typeFilter,     setTypeFilter]     = useState('');
   const [page,           setPage]           = useState(1);
+
+  // ── Selection & save ─────────────────────────────────────
+  const [selected,       setSelected]       = useState(new Set());
   const [saving,         setSaving]         = useState(false);
 
+  // ── Load student ──────────────────────────────────────────
   useEffect(() => {
     (async () => {
       const res = await getStudent(id);
@@ -113,68 +105,123 @@ const AddExamPage = () => {
     })();
   }, [id]);
 
+  // ── Debounce search ───────────────────────────────────────
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedQ(query); setPage(1); }, 400);
     return () => clearTimeout(t);
   }, [query]);
 
-  useEffect(() => { setPage(1); }, [typeFilter, hoursFilter]);
+  useEffect(() => { setPage(1); }, [typeFilter]);
 
-  const fetchExams = useCallback(async () => {
-    setExamsLoading(true);
-    setExamsError('');
+  // ── Get student's state — priority: insCertState → mailingAddress ──
+  const getStudentState = (student) => {
+    if (!student) return '';
+    // 1. Use insCertState field directly (e.g. "CA")
+    if (student.insCertState?.trim()) return student.insCertState.trim().toUpperCase();
+    // 2. Fall back to extracting from mailingAddress: "..., CA 94510"
+    const match = (student.mailingAddress || '').match(/,\s*([A-Z]{2})\s*\d{0,5}\s*$/i);
+    return match ? match[1].toUpperCase() : '';
+  };
+
+  // ── Fetch bundles — waits for student so we have their state ─
+  const fetchBundles = useCallback(async () => {
+    if (studentLoading) return; // wait until student data is ready
+    setBundlesLoading(true);
+    setBundlesError('');
     try {
-      const batchSize = debouncedQ ? 50 : 200;
-      const params = new URLSearchParams({ page: 1, limit: batchSize });
-      if (debouncedQ) params.set('search', debouncedQ);
-      const token = localStorage.getItem('adminToken');
-      const res   = await fetch(`${API}/api/exams/courses?${params}`, {
+      const token        = localStorage.getItem('adminToken');
+      const studentState = getStudentState(student);
+      const params       = new URLSearchParams();
+      if (studentState) params.set('state', studentState);
+
+      const res = await fetch(`${API}/api/exam-qanda/bundles?${params}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to load courses');
-      setExams(data.courses || []);
-      setTotal(data.total   || 0);
+      if (!res.ok) throw new Error(data.message || 'Failed to load bundles');
+      setBundles(data.bundles || []);
     } catch (err) {
-      setExamsError(err.message);
-      setExams([]);
+      setBundlesError(err.message);
+      setBundles([]);
     } finally {
-      setExamsLoading(false);
+      setBundlesLoading(false);
     }
-  }, [debouncedQ]);
+  }, [student, studentLoading]);
 
-  useEffect(() => { fetchExams(); }, [fetchExams]);
+  // Re-fetch bundles once student has loaded (to apply state filter)
+  useEffect(() => { fetchBundles(); }, [fetchBundles]);
 
-  const typeKeyword  = TYPE_OPTIONS.find(o => o.label === typeFilter)?.keyword  || '';
-  const hoursKeyword = HOURS_OPTIONS.find(o => o.label === hoursFilter)?.keyword || '';
-
-  const filtered = exams.filter(exam => {
-    const title = (exam.courseTitle || '').toLowerCase();
-    return (!typeKeyword || title.includes(typeKeyword)) && (!hoursKeyword || title.includes(hoursKeyword));
+  // ── Filter bundles client-side ────────────────────────────
+  const filtered = bundles.filter(b => {
+    const matchType  = !typeFilter || b.courseType === typeFilter;
+    const matchQuery = !debouncedQ  ||
+      (b._id         || '').toLowerCase().includes(debouncedQ.toLowerCase()) ||
+      (b.courseType  || '').toLowerCase().includes(debouncedQ.toLowerCase()) ||
+      (b.examNames   || []).some(n => n.toLowerCase().includes(debouncedQ.toLowerCase()));
+    return matchType && matchQuery;
   });
 
   const totalFiltered = filtered.length;
-  const totalPages = Math.ceil(totalFiltered / PAGE_SIZE);
-  const pageData   = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
-  const pageWindow = getPageWindow(page, totalPages);
-  const startRecord = totalFiltered === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const endRecord   = Math.min(page * PAGE_SIZE, totalFiltered);
+  const totalPages    = Math.ceil(totalFiltered / PAGE_SIZE);
+  const pageData      = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const pageWindow    = getPageWindow(page, totalPages);
+  const startRecord   = totalFiltered === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
+  const endRecord     = Math.min(page * PAGE_SIZE, totalFiltered);
 
+  // ── Toggle one row ────────────────────────────────────────
+  const toggleRow = (bundleId) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(bundleId) ? next.delete(bundleId) : next.add(bundleId);
+      return next;
+    });
+  };
+
+  const selectAllVisible = () => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      pageData.forEach(b => next.add(b._id));
+      return next;
+    });
+  };
+
+  const clearSelection = () => setSelected(new Set());
+
+  // ── Add selected bundles to student record ────────────────
   const handleAddExam = async () => {
     if (selected.size === 0) return;
     setSaving(true);
     try {
-      for (const examMasterID of selected) {
-        const exam = exams.find(e => e.examMasterID === examMasterID);
-        if (!exam) continue;
-        const res = await fetch(`/api/students/${id}/add-exam`, {
+      const token = localStorage.getItem('adminToken');
+
+      for (const bundleId of selected) {
+        const bundle = bundles.find(b => b._id === bundleId);
+        if (!bundle) continue;
+
+        // Use the first examName as the courseTitle, or bundleId as fallback
+        const courseTitle = bundle.examNames?.[0] || getBundleLabel(bundleId);
+
+        const res = await fetch(`${API}/api/students/${id}/add-exam`, {
           method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ examMasterID: exam.examMasterID, courseTitle: exam.courseTitle }),
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            examMasterID: bundleId,       // bundleId used as the course identifier
+            courseTitle:  courseTitle,
+            bundleId:     bundleId,
+            courseType:   bundle.courseType,
+            versions:     bundle.versions || [],
+            examNames:    bundle.examNames || [],
+            totalQuestions: bundle.totalQuestions || 0,
+          }),
         });
+
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || 'Failed to add exam');
       }
+
       navigate(`/admin/real-estate/online-exam/backoffice/student/${id}`);
     } catch (err) {
       alert(`❌ ${err.message}`);
@@ -183,27 +230,7 @@ const AddExamPage = () => {
     }
   };
 
-  // ── Toggle one row ────────────────────────────────────────
-  const toggleRow = (examMasterID) => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      next.has(examMasterID) ? next.delete(examMasterID) : next.add(examMasterID);
-      return next;
-    });
-  };
-
-  // ── Select all visible on current page ───────────────────
-  const selectAllVisible = () => {
-    setSelected(prev => {
-      const next = new Set(prev);
-      pageData.forEach(e => next.add(e.examMasterID));
-      return next;
-    });
-  };
-
-  // ── Clear all ─────────────────────────────────────────────
-  const clearSelection = () => setSelected(new Set());
-
+  // ── Student display values ────────────────────────────────
   const name       = student?.name           || '—';
   const studentId  = student?.studentId      || id;
   const city       = student?.state          || '';
@@ -296,38 +323,45 @@ const AddExamPage = () => {
               className="ae-search"
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Search Courses By Title, Code, Type..."
+              placeholder="Search by Bundle ID, Course Type, Exam Name..."
               style={s.searchInput}
             />
             {query && <button onClick={() => setQuery('')} style={s.clearX}>×</button>}
           </div>
 
+          {/* Course Type filter */}
           <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-            <select className="ae-fs" value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={s.filterSelect}>
-              {TYPE_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
-            </select>
-            <span style={s.chevronWrap}><ChevronDown /></span>
-          </div>
-
-          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-            <select className="ae-fs" value={hoursFilter} onChange={e => setHoursFilter(e.target.value)} style={s.filterSelect}>
-              {HOURS_OPTIONS.map(o => <option key={o.label}>{o.label}</option>)}
+            <select
+              className="ae-fs"
+              value={typeFilter}
+              onChange={e => { setTypeFilter(e.target.value); setPage(1); }}
+              style={s.filterSelect}
+            >
+              {TYPE_OPTIONS.map(o => (
+                <option key={o.value} value={o.value}>{o.label}</option>
+              ))}
             </select>
             <span style={s.chevronWrap}><ChevronDown /></span>
           </div>
 
           <div style={{ flex: 1 }} />
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={s.optOutLabel}>Email Opt Out:</span>
-            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-              <select className="ae-fs" value={emailOptOut} onChange={e => setEmailOptOut(e.target.value)} style={{ ...s.filterSelect, minWidth: 60 }}>
-                <option>No</option>
-                <option>Yes</option>
-              </select>
-              <span style={s.chevronWrap}><ChevronDown /></span>
-            </div>
-          </div>
+          {/* State indicator + Bundle count */}
+          {(() => {
+            const st = student?.insCertState?.trim()?.toUpperCase() ||
+              (student?.mailingAddress || '').match(/,\s*([A-Z]{2})\s*\d{0,5}\s*$/i)?.[1]?.toUpperCase();
+            return st ? (
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#2EABFE', fontFamily: "'Poppins', sans-serif",
+                background: 'rgba(46,171,254,0.08)', border: '0.5px solid #2EABFE',
+                padding: '4px 10px', borderRadius: 100, display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/></svg>
+                Filtering for: {st}
+              </span>
+            ) : null;
+          })()}
+          <span style={{ fontSize: 12, color: '#64748b', fontFamily: "'Poppins', sans-serif" }}>
+            {bundlesLoading ? 'Loading…' : `${totalFiltered} bundle${totalFiltered !== 1 ? 's' : ''} available`}
+          </span>
         </div>
 
         {/* ── Table Card ── */}
@@ -336,9 +370,11 @@ const AddExamPage = () => {
           {/* Top bar */}
           <div style={s.tableTopBar}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={s.tableTitle}>Available Courses</span>
+              <span style={s.tableTitle}>Exam Bundles</span>
               <span style={s.countBadgeBlue}>{totalFiltered}</span>
-              {selected.size > 0 && <span style={s.countBadgeGreen}>{selected.size} SELECTED</span>}
+              {selected.size > 0 && (
+                <span style={s.countBadgeGreen}>{selected.size} SELECTED</span>
+              )}
             </div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <button onClick={clearSelection} style={s.clearSelBtn}>✕ Clear Selection</button>
@@ -355,10 +391,10 @@ const AddExamPage = () => {
           <div style={{ borderBottom: '0.5px solid #5B7384' }} />
 
           {/* Error */}
-          {examsError && (
+          {bundlesError && (
             <div style={{ padding: '10px 16px', background: 'rgba(239,68,68,0.05)', borderBottom: '0.5px solid #fca5a5', display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#dc2626', fontFamily: "'Poppins',sans-serif" }}>⚠ {examsError}</span>
-              <button onClick={fetchExams} style={s.clearSelBtn}>Retry</button>
+              <span style={{ fontSize: 11, color: '#dc2626', fontFamily: "'Poppins',sans-serif" }}>⚠ {bundlesError}</span>
+              <button onClick={fetchBundles} style={s.clearSelBtn}>Retry</button>
             </div>
           )}
 
@@ -368,57 +404,117 @@ const AddExamPage = () => {
               <tr style={s.thead}>
                 <th style={{ ...s.th, width: 36 }}>#</th>
                 <th style={{ ...s.th, width: 36 }}>SELECT</th>
-                <th style={{ ...s.th, width: 100 }}>TYPE</th>
-                <th style={s.th}>COURSE TITLE</th>
-                <th style={{ ...s.th, width: 70 }}>HOURS</th>
-                <th style={{ ...s.th, width: 110 }}>COURSE CODE</th>
-                <th style={{ ...s.th, width: 210 }}>REF / STATE CERT INFO</th>
-                <th style={{ ...s.th, width: 90 }}>CERT EXPIRY</th>
+                <th style={{ ...s.th, width: 110 }}>BUNDLE ID</th>
+                <th style={{ ...s.th, width: 100 }}>COURSE TYPE</th>
+                <th style={s.th}>EXAM NAMES</th>
+                <th style={{ ...s.th, width: 80 }}>VERSIONS</th>
+                <th style={{ ...s.th, width: 90 }}>QUESTIONS</th>
               </tr>
             </thead>
             <tbody>
-              {examsLoading
+              {bundlesLoading
                 ? [...Array(PAGE_SIZE)].map((_, i) => <SkeletonRow key={i} />)
                 : pageData.length === 0
                   ? (
                     <tr>
-                      <td colSpan={8} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 12, fontFamily: "'Poppins',sans-serif" }}>
-                        {(debouncedQ || typeKeyword || hoursKeyword) ? 'No courses match your filters.' : 'No courses found.'}
+                      <td colSpan={7} style={{ padding: '32px 16px', textAlign: 'center', color: '#94a3b8', fontSize: 12, fontFamily: "'Poppins',sans-serif" }}>
+                        {(debouncedQ || typeFilter)
+                          ? 'No bundles match your filters.'
+                          : 'No exam bundles found.'}
                       </td>
                     </tr>
                   )
-                  : pageData.map((exam, i) => {
+                  : pageData.map((bundle, i) => {
                     const rowNum     = (page - 1) * PAGE_SIZE + i + 1;
-                    const isSelected = selected.has(exam.examMasterID);
-                    const typeLabel  = getTypeLabel(exam.courseTitle);
-                    const hours      = getHours(exam.courseTitle);
+                    const isSelected = selected.has(bundle._id);
+
                     return (
                       <tr
-                        key={exam._id}
+                        key={bundle._id}
                         className={`ae-row${isSelected ? ' ae-selected' : ''}`}
-                        onClick={() => toggleRow(exam.examMasterID)}
-                        style={{ ...s.tr, background: isSelected ? 'rgba(46,171,254,0.13)' : 'transparent', borderTop: isSelected ? '0.5px solid rgba(46,171,254,0.35)' : undefined, borderBottom: isSelected ? '0.5px solid rgba(46,171,254,0.35)' : '0.5px solid #5B7384' }}
+                        onClick={() => toggleRow(bundle._id)}
+                        style={{
+                          ...s.tr,
+                          background:   isSelected ? 'rgba(46,171,254,0.13)' : 'transparent',
+                          borderTop:    isSelected ? '0.5px solid rgba(46,171,254,0.35)' : undefined,
+                          borderBottom: isSelected ? '0.5px solid rgba(46,171,254,0.35)' : '0.5px solid #5B7384',
+                        }}
                       >
-                        <td style={s.td}><span style={s.numCell}>{rowNum}</span></td>
+                        {/* Row number */}
+                        <td style={s.td}>
+                          <span style={s.numCell}>{rowNum}</span>
+                        </td>
+
+                        {/* Checkbox */}
                         <td style={{ ...s.td, textAlign: 'center' }}>
                           <input
                             type="checkbox"
                             className="ae-checkbox"
                             checked={isSelected}
-                            onChange={() => toggleRow(exam.examMasterID)}
+                            onChange={() => toggleRow(bundle._id)}
                             onClick={e => e.stopPropagation()}
                           />
                         </td>
-                        <td style={s.td}><span style={s.typeBadge}>{typeLabel}</span></td>
+
+                        {/* Bundle ID */}
                         <td style={s.td}>
-                          <span style={{ ...s.titleCell, fontWeight: isSelected ? 600 : 500 }}>
-                            {exam.courseTitle || '—'}
+                          <span style={s.codeCell}>{bundle._id}</span>
+                        </td>
+
+                        {/* Course Type */}
+                        <td style={s.td}>
+                          <span style={{
+                            ...s.typeBadge,
+                            background: bundle.courseType === 'CE'         ? 'rgba(46,171,254,0.1)'  :
+                                        bundle.courseType === 'RE'         ? 'rgba(0,128,0,0.1)'     :
+                                                                             'rgba(149,105,247,0.1)',
+                            color:      bundle.courseType === 'CE'         ? '#1a7fc4'               :
+                                        bundle.courseType === 'RE'         ? '#008000'               :
+                                                                             '#7c3aed',
+                            border:     bundle.courseType === 'CE'         ? '0.5px solid #2EABFE'   :
+                                        bundle.courseType === 'RE'         ? '0.5px solid #008000'   :
+                                                                             '0.5px solid #9569F7',
+                          }}>
+                            {bundle.courseType}
                           </span>
                         </td>
-                        <td style={s.td}><span style={s.hoursCell}>{hours}</span></td>
-                        <td style={s.td}><span style={s.codeCell}>{exam.examMasterID || '—'}</span></td>
-                        <td style={s.td}><span style={s.refCell}>ref: — / [state cert: —]</span></td>
-                        <td style={s.td}><span style={s.expiryCell}>—</span></td>
+
+                        {/* Exam Names */}
+                        <td style={s.td}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                            {(bundle.examNames || []).sort().map((name, ni) => (
+                              <span key={ni} style={s.titleCell}>{name}</span>
+                            ))}
+                          </div>
+                        </td>
+
+                        {/* Versions */}
+                        <td style={s.td}>
+                          <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                            {(bundle.versions || []).sort().map(v => (
+                              <span key={v} style={{
+                                fontSize: 10, fontWeight: 700,
+                                padding: '2px 8px', borderRadius: 100,
+                                fontFamily: "'Poppins', sans-serif",
+                                background: v === 'Version A' ? 'rgba(46,171,254,0.1)'  : 'rgba(149,105,247,0.1)',
+                                color:      v === 'Version A' ? '#2EABFE'               : '#9569F7',
+                                border:     v === 'Version A' ? '0.5px solid #2EABFE'   : '0.5px solid #9569F7',
+                              }}>
+                                {v.replace('Version ', 'Ver ')}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+
+                        {/* Question count */}
+                        <td style={s.td}>
+                          <span style={{ fontSize: 12, fontWeight: 700, color: '#091925', fontFamily: "'Poppins', sans-serif" }}>
+                            {bundle.totalQuestions}
+                          </span>
+                          <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 3, fontFamily: "'Poppins', sans-serif" }}>
+                            Qs
+                          </span>
+                        </td>
                       </tr>
                     );
                   })
@@ -429,17 +525,14 @@ const AddExamPage = () => {
           <div style={{ borderTop: '0.5px solid #5B7384' }} />
 
           {/* Pagination */}
-          {!examsLoading && totalFiltered > 0 && (
+          {!bundlesLoading && totalFiltered > 0 && (
             <div style={s.pagination}>
               <div style={s.paginationInfo}>
                 <span>Showing</span>
                 <strong style={{ color: '#091925' }}>{startRecord}–{endRecord}</strong>
-                <span>Of</span>
+                <span>of</span>
                 <strong style={{ color: '#091925' }}>{totalFiltered}</strong>
-                <span>Records</span>
-                {(typeKeyword || hoursKeyword) && total !== totalFiltered && (
-                  <span style={{ color: '#94a3b8', marginLeft: 4 }}>(filtered from {total})</span>
-                )}
+                <span>bundles</span>
               </div>
               <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', alignItems: 'center' }}>
                 <button className="ae-pg" disabled={page === 1} onClick={() => setPage(p => p - 1)}
@@ -456,17 +549,23 @@ const AddExamPage = () => {
               <button onClick={clearSelection} style={s.clearSelBtn}>✕ Clear Selection</button>
             </div>
           )}
+
+          {/* Bottom Action Bar */}
           {selected.size > 0 && (
             <div style={s.bottomBar}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={s.selectedCountBox}><span style={s.selectedCountNum}>{selected.size}</span></div>
-                <span style={s.bottomBarLabel}>Course(s) Selected To Add To Student Record</span>
+                <div style={s.selectedCountBox}>
+                  <span style={s.selectedCountNum}>{selected.size}</span>
+                </div>
+                <span style={s.bottomBarLabel}>
+                  Bundle(s) Selected To Add To Student Record
+                </span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                 <button onClick={clearSelection} style={s.cancelBtn}>Cancel</button>
                 <button onClick={handleAddExam} disabled={saving} style={{ ...s.addSelectedBtn, opacity: saving ? 0.7 : 1 }}>
                   <Icon d="M12 5v14 M5 12h14" size={13} color="#fff" />
-                  {saving ? 'Adding…' : 'Add Selected Exam(s) to Student Record'}
+                  {saving ? 'Adding…' : 'Add Selected Bundle(s) to Student Record'}
                 </button>
               </div>
             </div>
@@ -528,7 +627,7 @@ const s = {
   },
   searchWrap: {
     display: 'flex', alignItems: 'center', gap: 7,
-    flex: 1, minWidth: 180, maxWidth: 340,
+    flex: 1, minWidth: 180, maxWidth: 380,
     border: '0.5px solid #CBD5E1', borderRadius: 7,
     padding: '6px 11px', background: '#F8FAFC',
   },
@@ -548,15 +647,11 @@ const s = {
     background: '#fff', cursor: 'pointer',
     fontFamily: "'Poppins', sans-serif",
     appearance: 'none', WebkitAppearance: 'none',
-    minWidth: 100,
+    minWidth: 110,
   },
   chevronWrap: {
     position: 'absolute', right: 8, top: '50%',
     transform: 'translateY(-50%)', pointerEvents: 'none',
-  },
-  optOutLabel: {
-    fontSize: 12, fontWeight: 500, color: '#5B7384',
-    fontFamily: "'Poppins', sans-serif", whiteSpace: 'nowrap',
   },
   tableCard: {
     background: '#fff', borderRadius: 10,
@@ -595,8 +690,8 @@ const s = {
     color: '#5B7384', fontSize: 12, fontWeight: 500,
     cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
   },
-  table: { width: '100%', borderCollapse: 'collapse' },
-  thead: { background: 'rgba(127,168,196,0.1)' },
+  table:  { width: '100%', borderCollapse: 'collapse' },
+  thead:  { background: 'rgba(127,168,196,0.1)' },
   th: {
     padding: '9px 16px', textAlign: 'left',
     fontSize: 10, fontWeight: 500, color: '#5B7384',
@@ -604,25 +699,21 @@ const s = {
     borderTop: '0.5px solid #7FA8C4', borderBottom: '0.5px solid #7FA8C4',
     fontFamily: "'Poppins', sans-serif", whiteSpace: 'nowrap',
   },
-  tr: { borderBottom: '0.5px solid #5B7384' },
-  td: { padding: '9px 16px', verticalAlign: 'middle' },
+  tr:  { borderBottom: '0.5px solid #5B7384' },
+  td:  { padding: '9px 16px', verticalAlign: 'middle' },
   numCell:   { fontSize: 11, fontFamily: "'DM Mono', monospace", color: '#94a3b8' },
   typeBadge: {
     fontSize: 10, fontWeight: 700,
-    background: 'rgba(0,128,0,0.10)', color: '#008000',
-    border: '0.5px solid #008000',
     padding: '3px 10px', borderRadius: 100, display: 'inline-block',
     fontFamily: "'Poppins', sans-serif",
   },
-  titleCell:  { fontSize: 12, color: '#091925', fontFamily: "'Poppins', sans-serif", fontWeight: 500 },
-  hoursCell:  { fontSize: 12, color: '#091925', fontFamily: "'Poppins', sans-serif", fontWeight: 500 },
+  titleCell: { fontSize: 12, color: '#091925', fontFamily: "'Poppins', sans-serif", fontWeight: 500 },
   codeCell: {
     fontSize: 11, fontFamily: "'DM Mono', monospace",
     background: '#f1f5f9', color: '#475569',
-    padding: '2px 6px', borderRadius: 4, display: 'inline-block',
+    padding: '2px 8px', borderRadius: 4, display: 'inline-block',
+    fontWeight: 700,
   },
-  refCell:    { fontSize: 12, color: '#5B7384', fontFamily: "'Poppins', sans-serif", fontWeight: 400 },
-  expiryCell: { fontSize: 12, color: '#EF4444', fontFamily: "'Poppins', sans-serif", fontWeight: 500 },
   pagination: {
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
     padding: '10px 16px', flexWrap: 'wrap', gap: 8,
@@ -658,7 +749,7 @@ const s = {
   },
   bottomBarLabel: {
     fontSize: 13, fontWeight: 500, color: '#fff',
-    fontFamily: "'Poppins', sans-serif", textTransform: 'capitalize',
+    fontFamily: "'Poppins', sans-serif",
   },
   cancelBtn: {
     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
@@ -666,7 +757,6 @@ const s = {
     border: '0.5px solid #5B7384', background: '#fff',
     color: '#5B7384', fontSize: 12, fontWeight: 700,
     cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
-    textTransform: 'capitalize',
   },
   addSelectedBtn: {
     display: 'inline-flex', alignItems: 'center', gap: 6,
