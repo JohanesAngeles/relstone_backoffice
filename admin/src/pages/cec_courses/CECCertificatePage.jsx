@@ -319,11 +319,16 @@ const CECCertificatePage = () => {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const C = {
   page: {
-    background: '#e2e8f0',
-    minHeight: '100vh',
-    padding: '24px 0 48px',
-    fontFamily: 'Georgia, "Times New Roman", serif',
-  },
+  background: '#e2e8f0',
+  minHeight: '100vh',
+  padding: '24px 0 48px',
+  fontFamily: 'Georgia, "Times New Roman", serif',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  width: '100%',
+  boxSizing: 'border-box',
+},
   errorPage: {
     padding: 60, textAlign: 'center', fontFamily: 'sans-serif', color: '#dc2626',
   },

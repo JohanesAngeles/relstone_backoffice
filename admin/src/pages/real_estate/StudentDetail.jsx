@@ -28,14 +28,30 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+// Toggle badge — matches Figma: red box for N, green box for Y
+const FlagToggle = ({ value, onChange }) => {
+  const isY = value === 'Y';
+  return (
+    <button
+      onClick={() => onChange(isY ? 'N' : 'Y')}
+      style={{
+        width: 30, height: 30, borderRadius: 5, border: `0.5px solid ${isY ? '#10B981' : '#EF4444'}`,
+        background: isY ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+        color: isY ? '#10B981' : '#EF4444',
+        fontFamily: "'Poppins', sans-serif", fontWeight: 700, fontSize: 14,
+        cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexShrink: 0, transition: 'all 0.15s',
+      }}>
+      {isY ? 'Y' : 'N'}
+    </button>
+  );
+};
+
 // Editable row — inline Edit/Add + Save/Cancel, calls onSave(newValue)
 const EditableRow = ({ label, value, onSave, isAdd = false }) => {
   const [editing, setEditing] = useState(false);
   const [val, setVal]         = useState(value || '');
   const [busy, setBusy]       = useState(false);
-
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { setVal(value || ''); }, [value]);
 
   const handleSave = async () => {
     setBusy(true);
@@ -217,14 +233,12 @@ const StudentDetail = () => {
     })();
   }, [id]);
 
-  // Generic single-field save (contact, license, flags)
   const handleFieldSave = async (field, value) => {
     const res = await updateStudent(id, { [field]: value });
     if (res.ok) { setStudent(prev => ({ ...prev, [field]: value })); showToast('Saved ✓'); }
     else showToast('Save failed', 'error');
   };
 
-  // Save main notes textarea
   const handleSaveMainNotes = async () => {
     setSavingNotes(true);
     const res = await updateMainNotes(id, mainNotes);
@@ -232,7 +246,6 @@ const StudentDetail = () => {
     res.ok ? showToast('Notes saved ✓') : showToast('Save failed', 'error');
   };
 
-  // Save all telemarketing fields at once
   const handleSaveTeleNotes = async () => {
     setSavingTele(true);
     const res = await updateTeleNotes(id, { teleNotes, assignedRep, callbackDate, okayToCall });
@@ -240,7 +253,6 @@ const StudentDetail = () => {
     res.ok ? showToast('Telemarketing notes saved ✓') : showToast('Save failed', 'error');
   };
 
-  // Inject a phrase with timestamp into the teleNotes textarea
   const handlePhraseSelect = (phrase) => {
     if (!phrase) return;
     const now  = new Date().toLocaleString('en-US');
@@ -250,20 +262,20 @@ const StudentDetail = () => {
   };
 
   const handleEmailAffidavit = async () => {
-  setSendingAffidavit(true);
-  const res = await emailAffidavit(student.studentId);
-  setSendingAffidavit(false);
-  if (res.ok) setAffidavitResult(res.data);
-  else showToast(res.data?.message || 'Failed to send email', 'error');
-};
+    setSendingAffidavit(true);
+    const res = await emailAffidavit(student.studentId);
+    setSendingAffidavit(false);
+    if (res.ok) setAffidavitResult(res.data);
+    else showToast(res.data?.message || 'Failed to send email', 'error');
+  };
 
-const handleEmailPasswordLink = async () => {
-  setSendingPasswordLink(true);
-  const res = await emailPasswordLink(student.studentId);
-  setSendingPasswordLink(false);
-  if (res.ok) setPasswordLinkResult(res.data);
-  else showToast(res.data?.message || 'Failed to send email', 'error');
-};
+  const handleEmailPasswordLink = async () => {
+    setSendingPasswordLink(true);
+    const res = await emailPasswordLink(student.studentId);
+    setSendingPasswordLink(false);
+    if (res.ok) setPasswordLinkResult(res.data);
+    else showToast(res.data?.message || 'Failed to send email', 'error');
+  };
 
   const openTranscript = (i) => {
     const payload = { student: { studentId: student.studentId, name: student.name, mailingAddress: student.mailingAddress, workPhone: student.workPhone, mobilePhone: student.mobilePhone, dreNumber: student.dreNumber }, courses: student.courses };
@@ -418,27 +430,25 @@ const handleEmailPasswordLink = async () => {
 
         {/* ── Flag Row ── */}
         <div style={sr.flagRow}>
+          {/* TX Ethics */}
           <div style={sr.flagItem}>
             <span style={sr.flagLabel}>TX Ethics Cust Y/N?</span>
-            <select value={student.txEthicsCust || 'N'} onChange={e => handleFieldSave('txEthicsCust', e.target.value)} style={sr.flagSelect}>
-              <option value="N">N</option><option value="Y">Y</option>
-            </select>
+            <FlagToggle value={student.txEthicsCust || 'N'} onChange={v => handleFieldSave('txEthicsCust', v)} />
           </div>
           <div style={sr.flagDivider} />
+          {/* CFP */}
           <div style={sr.flagItem}>
             <span style={sr.flagLabel}>CFP Cust Y/N?</span>
-            <select value={student.cfpCust || 'N'} onChange={e => handleFieldSave('cfpCust', e.target.value)} style={sr.flagSelect}>
-              <option value="N">N</option><option value="Y">Y</option>
-            </select>
+            <FlagToggle value={student.cfpCust || 'N'} onChange={v => handleFieldSave('cfpCust', v)} />
           </div>
           <div style={sr.flagDivider} />
+          {/* DMV */}
           <div style={sr.flagItem}>
             <span style={sr.flagLabel}>DMV Cust Y/N?</span>
-            <select value={student.dmvCust || 'N'} onChange={e => handleFieldSave('dmvCust', e.target.value)} style={sr.flagSelect}>
-              <option value="N">N</option><option value="Y">Y</option>
-            </select>
+            <FlagToggle value={student.dmvCust || 'N'} onChange={v => handleFieldSave('dmvCust', v)} />
           </div>
           <div style={sr.flagDivider} />
+          {/* DMV Exp Date */}
           <div style={sr.flagItem}>
             <span style={sr.flagLabel}>DMV Exp Date:</span>
             <input type="text" placeholder="mm/dd/yyyy"
@@ -448,10 +458,11 @@ const handleEmailPasswordLink = async () => {
               style={sr.flagDateInput} />
           </div>
           <div style={{ flex: 1 }} />
+          {/* Org. Record Source */}
           <div style={{ textAlign: 'right' }}>
-            <span style={sr.flagLabel}>Org. Record Source</span>
-            <div style={sr.orgSourceBadge}>{student.orgRecordSource || 'PC'}</div>
-            <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 2 }}>(website, com name, or if numeric, DOI floppy import)</div>
+            <div style={{ fontSize: 10, color: '#5B7384', fontFamily: "'Poppins', sans-serif", fontWeight: 400, marginBottom: 2 }}>Org. Record Source</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: '#F59E0B', fontFamily: "'Poppins', sans-serif", textAlign: 'right' }}>{student.orgRecordSource || 'PC'}</div>
+            <div style={{ fontSize: 9, color: '#94a3b8', marginTop: 2, fontStyle: 'italic', fontFamily: "'Poppins', sans-serif" }}>(website .com name, or if numeric, DOS floppy import)</div>
           </div>
         </div>
 
@@ -664,9 +675,7 @@ const sr = {
   flagItem:        { display: 'flex', alignItems: 'center', gap: 7 },
   flagDivider:     { width: 1, height: 18, background: '#e2e8f0' },
   flagLabel:       { fontSize: 11, color: '#5B7384', fontWeight: 500, fontFamily: "'Poppins', sans-serif", whiteSpace: 'nowrap' },
-  flagSelect:      { border: '0.5px solid #CBD5E1', borderRadius: 4, padding: '2px 6px', fontSize: 11, fontWeight: 700, color: '#091925', background: '#fff', cursor: 'pointer', fontFamily: "'Poppins', sans-serif" },
-  flagDateInput:   { border: '0.5px solid #CBD5E1', borderRadius: 5, padding: '3px 8px', fontSize: 11, fontFamily: "'Poppins', sans-serif", color: '#091925', width: 100 },
-  orgSourceBadge:  { fontSize: 13, fontWeight: 700, color: '#2EABFE', textAlign: 'right', fontFamily: "'Poppins', sans-serif" },
+  flagDateInput:   { border: '0.5px solid #5B7384', borderRadius: 5, padding: '3px 8px', fontSize: 11, fontFamily: "'Poppins', sans-serif", color: '#5B7384', width: 100, textAlign: 'center' },
   notesGrid:         { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 },
   notesCard:         { background: '#FFFFFF', borderRadius: 10, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' },
   notesHeader:       { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderBottom: '0.5px solid #e2e8f0' },
