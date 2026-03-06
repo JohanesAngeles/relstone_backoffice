@@ -25,24 +25,18 @@ const Badge = ({ text, color = '#64748b', bg = '#f1f5f9', border }) => (
 );
 
 // ── Stat Card ─────────────────────────────────────────────────
-const StatCard = ({ label, value, icon }) => (
+const StatCard = ({ label, value, icon, isSvgIcon, svgContent }) => (
   <div style={{
+    flex: 1, minWidth: 0,
     background: '#fff',
     borderRadius: 5,
-    padding: '10px 16px',
-    border: '0.5px solid #2EABFE',
+    border: '0.5px solid #E2E8F0',
+    borderTop: '3px solid #2EABFE',
+    padding: '14px 20px',
     display: 'flex',
     alignItems: 'center',
-    gap: 14,
-    flex: 1,
-    minWidth: 0,
-    position: 'relative',
-    overflow: 'hidden',
+    gap: 16,
   }}>
-    <div style={{
-      position: 'absolute', bottom: 0, left: 0, right: 0,
-      height: 3, background: '#2EABFE', borderRadius: '0 0 5px 5px',
-    }} />
     <div style={{
       width: 50, height: 50,
       background: 'rgba(46,171,254,0.10)',
@@ -51,11 +45,11 @@ const StatCard = ({ label, value, icon }) => (
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0,
     }}>
-      <Icon d={icon} size={24} color="#2EABFE" />
+      {isSvgIcon ? svgContent : <Icon d={icon} size={24} color="#2EABFE" />}
     </div>
     <div>
       <p style={{
-        fontSize: 22, fontWeight: 700,
+        fontSize: 26, fontWeight: 700,
         fontFamily: "'Poppins', sans-serif",
         color: '#091925', lineHeight: 1.1, margin: 0,
       }}>
@@ -65,7 +59,7 @@ const StatCard = ({ label, value, icon }) => (
         fontSize: 11, fontWeight: 500,
         color: 'rgba(9,25,37,0.7)',
         fontFamily: "'Poppins', sans-serif",
-        margin: '3px 0 0',
+        margin: '4px 0 0',
       }}>{label}</p>
     </div>
   </div>
@@ -134,6 +128,13 @@ const ExamData = () => {
 
   const stats = tabStats[activeTab] || { exams: 0, questions: 0 };
 
+  // ── Handle breadcrumb back navigation ────────────────────
+  const handleBackToExams = (e) => {
+    e.preventDefault();
+    setView('exams');
+    setSelectedExam(null);
+  };
+
   return (
     <AppLayout>
       <style>{`
@@ -151,23 +152,18 @@ const ExamData = () => {
 
         {/* ── Page Header ── */}
         <div style={{ marginBottom: 16 }}>
-          <div onClick={e => {
-            const anchor = e.target.closest('a');
-            if (anchor && anchor.getAttribute('href') === '#') {
-              e.preventDefault();
-              setView('exams');
-              setSelectedExam(null);
-            }
-          }}>
-            <Breadcrumb crumbs={[
-              { label: 'Dashboard', to: '/admin' },
-              { label: 'Exam Data', to: view === 'questions' ? '#' : undefined },
-              ...(view === 'questions' && selectedExam
-                ? [{ label: selectedExam.examName }]
-                : []
-              ),
-            ]} />
-          </div>
+          <Breadcrumb crumbs={[
+            { label: 'Dashboard', to: '/admin' },
+            {
+              label: 'Exam Data',
+              to: view === 'questions' ? '#' : undefined,
+              onClick: view === 'questions' ? handleBackToExams : undefined,
+            },
+            ...(view === 'questions' && selectedExam
+              ? [{ label: selectedExam.examName }]
+              : []
+            ),
+          ]} />
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
@@ -188,66 +184,78 @@ const ExamData = () => {
         {/* Blue divider */}
         <div style={{ height: 0.5, background: '#2EABFE', marginBottom: 16 }} />
 
-        {/* ── Course Type Tabs ── */}
+        {/* ── Course Type Tabs (standalone, no container) ── */}
         {view === 'exams' && (
-        <div style={{
-          display: 'flex', gap: 4, marginBottom: 16,
-          background: 'rgba(127,168,196,0.1)',
-          borderRadius: 5, padding: 5,
-          border: '0.5px solid #7FA8C4', width: 'fit-content',
-        }}>
-          {TABS.map(tab => {
-            const active = activeTab === tab.key;
-            const ts     = tabStats[tab.key];
-            return (
-              <button
-                key={tab.key}
-                className="tab-btn"
-                onClick={() => setActiveTab(tab.key)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '7px 16px', borderRadius: 5,
-                  border: active ? '0.5px solid #2EABFE' : 'none',
-                  background: active ? '#2EABFE' : 'transparent',
-                  color:      active ? '#fff' : '#5B7384',
-                  fontSize: 12, fontWeight: 600, cursor: 'pointer',
-                  fontFamily: "'Poppins', sans-serif",
-                  transition: 'all 0.15s',
-                }}
-              >
-                {tab.label}
-                {ts && (
-                  <span style={{
-                    fontSize: 10, fontWeight: 700,
-                    background: active ? 'rgba(255,255,255,0.25)' : 'rgba(26,122,184,0.10)',
-                    color:      active ? '#fff' : '#1A7AB8',
-                    borderRadius: 100, padding: '1px 7px',
-                    fontFamily: "'Poppins', sans-serif",
-                  }}>
-                    {ts.questions}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+          <div style={{
+            background: '#fff',
+            borderRadius: 5,
+            padding: '5px 15px',
+            marginBottom: 14,
+          }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {TABS.map(tab => {
+                const active = activeTab === tab.key;
+                const ts     = tabStats[tab.key];
+                const questionCount = ts?.questions ?? 0;
+                return (
+                  <button
+                    key={tab.key}
+                    className="tab-btn"
+                    onClick={() => setActiveTab(tab.key)}
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8,
+                      padding: '7px 16px', borderRadius: 5, height: 50,
+                      border: active ? '0.5px solid #2EABFE' : 'none',
+                      background: active ? '#2EABFE' : 'transparent',
+                      color:      active ? '#091925' : '#5B7384',
+                      fontSize: 14, fontWeight: 700, cursor: 'pointer',
+                      fontFamily: "'Poppins', sans-serif",
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {tab.label}
+                    <span style={{
+                      fontSize: 12, fontWeight: 700,
+                      background: active ? 'rgba(9,25,37,0.1)' : 'rgba(91,115,132,0.1)',
+                      color:      active ? '#091925' : '#5B7384',
+                      borderRadius: 100, padding: '2px 10px',
+                      fontFamily: "'Poppins', sans-serif",
+                    }}>
+                      {questionCount}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         )}
 
-        {/* ── Stat Cards ── */}
+        {/* ── Stat Cards (each card is its own separate box) ── */}
         {view === 'exams' && (
-          <div style={{ display: 'flex', gap: 12, marginBottom: 14 }}>
+          <div style={{
+            display: 'flex',
+            gap: 14,
+            marginBottom: 14,
+          }}>
             <StatCard
-              label="Total Exams"
+              label="Total Courses"
               value={stats.exams}
               icon="M22 10v6M2 10l10-5 10 5-10 5z M6 12v5c3 3 9 3 12 0v-5"
             />
             <StatCard
               label="Total Questions"
               value={stats.questions}
-              icon="M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+              isSvgIcon
+              svgContent={
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#2EABFE" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17" strokeWidth="2.5"/>
+                </svg>
+              }
             />
             <StatCard
-              label="Avg Q per Exam"
+              label="Avg Q per Course"
               value={stats.exams ? Math.round(stats.questions / stats.exams) : 0}
               icon="M18 20V10 M12 20V4 M6 20v-6"
             />
