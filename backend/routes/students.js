@@ -71,16 +71,34 @@ const orderSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const courseSchema = new mongoose.Schema({
+  // ── Core identifiers ──
   studentId:        { type: String, index: true },
   studentName:      String,
+
+  // ── Bundle info (from examqanda) ──
+  examMasterID:     String,   // = bundleId  e.g. "CE-15HR"
+  bundleId:         String,   // same as examMasterID
+  courseTitle:      String,   // first examName or bundle label
+  courseType:       String,   // "CE" | "RE" | "PreLicense"
+  versions:         [String], // ["Version A", "Version B"]
+  examNames:        [String], // all exam names inside the bundle
+  totalQuestions:   Number,   // total Q count
+
+  // ── Dates ──
   registrationDate: String,
   expirationDate:   String,
-  courseTitle:      String,
-  examTitle:        String,
-  earliestTestDate: String,
-  status:           String,
-  quizStatus:       String,
   completionDate:   String,
+  earliestTestDate: String,
+
+  // ── Progress / Status ──
+  status:           { type: String, default: 'In Progress' }, // "In Progress" | "Complete" | "Failed"
+  quizStatus:       String,
+  progress:         { type: Number, default: 0 },   // 0–100
+  examScore:        { type: Number, default: null }, // null until taken
+  examPassed:       { type: Boolean, default: null },
+
+  // ── Legacy field (kept for backward compat) ──
+  examTitle:        String,
 }, { timestamps: true });
 
 // Use existing models if already registered (avoid OverwriteModelError)
@@ -269,7 +287,15 @@ router.patch('/:id', protectAdmin, async (req, res) => {
 // ── POST /api/students/:id/add-exam ───────────────────────────
 router.post('/:id/add-exam', protectAdmin, async (req, res) => {
   try {
-    const { examMasterID, courseTitle } = req.body;
+    const {
+      examMasterID,   // bundleId  e.g. "CE-15HR"
+      courseTitle,    // first examName or bundleId label
+      bundleId,       // same as examMasterID
+      courseType,     // "CE" | "RE" | "PreLicense"
+      versions,       // ["Version A", "Version B"]
+      examNames,      // ["Ethics...", "Trust Funds..."]
+      totalQuestions, // number
+    } = req.body;
 
     if (!examMasterID || !courseTitle) {
       return res.status(400).json({ message: 'examMasterID and courseTitle are required' });
@@ -278,22 +304,44 @@ router.post('/:id/add-exam', protectAdmin, async (req, res) => {
     const student = await Student.findOne({ studentId: req.params.id });
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
-    const newCourse = {
-      examMasterID,
-      courseTitle,
-      examTitle:         '',
+    // ── Save to the relstone-admin > courses collection ───────
+    // This is the collection MyCourses reads from
+    const existingCourse = await Course.findOne({
+      studentId:    req.params.id,
+      examMasterID: examMasterID,
+    });
+
+    if (existingCourse) {
+      return res.status(409).json({
+        message: `Bundle "${examMasterID}" is already assigned to this student.`,
+      });
+    }
+
+    const newCourse = await Course.create({
+      studentId:         req.params.id,
+      studentName:       student.name,
+      examMasterID:      examMasterID,      // bundleId
+      bundleId:          bundleId || examMasterID,
+      courseTitle:       courseTitle,
+      courseType:        courseType || '',
+      versions:          versions   || [],
+      examNames:         examNames  || [],
+      totalQuestions:    totalQuestions || 0,
       registrationDate:  new Date().toLocaleDateString('en-US'),
       expirationDate:    '',
       completionDate:    '',
-      completionPercent: '',
       status:            'In Progress',
-    };
+      quizStatus:        '',
+      progress:          0,                  // 0–100
+      examScore:         null,
+      examPassed:        null,
+    });
 
-    student.courses = student.courses || [];
-    student.courses.push(newCourse);
-    await student.save();
+    res.json({
+      message: `Bundle "${examMasterID}" added to student record successfully.`,
+      course:  newCourse,
+    });
 
-    res.json({ message: 'Exam added successfully', course: newCourse });
   } catch (err) {
     console.error('add-exam error:', err);
     res.status(500).json({ message: err.message });
