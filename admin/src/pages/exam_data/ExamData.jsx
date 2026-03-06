@@ -128,6 +128,13 @@ const ExamData = () => {
 
   const stats = tabStats[activeTab] || { exams: 0, questions: 0 };
 
+  // ── Handle breadcrumb back navigation ────────────────────
+  const handleBackToExams = (e) => {
+    e.preventDefault();
+    setView('exams');
+    setSelectedExam(null);
+  };
+
   return (
     <AppLayout>
       <style>{`
@@ -145,23 +152,18 @@ const ExamData = () => {
 
         {/* ── Page Header ── */}
         <div style={{ marginBottom: 16 }}>
-          <div onClick={e => {
-            const anchor = e.target.closest('a');
-            if (anchor && anchor.getAttribute('href') === '#') {
-              e.preventDefault();
-              setView('exams');
-              setSelectedExam(null);
-            }
-          }}>
-            <Breadcrumb crumbs={[
-              { label: 'Dashboard', to: '/admin' },
-              { label: 'Exam Data', to: view === 'questions' ? '#' : undefined },
-              ...(view === 'questions' && selectedExam
-                ? [{ label: selectedExam.examName }]
-                : []
-              ),
-            ]} />
-          </div>
+          <Breadcrumb crumbs={[
+            { label: 'Dashboard', to: '/admin' },
+            {
+              label: 'Exam Data',
+              to: view === 'questions' ? '#' : undefined,
+              onClick: view === 'questions' ? handleBackToExams : undefined,
+            },
+            ...(view === 'questions' && selectedExam
+              ? [{ label: selectedExam.examName }]
+              : []
+            ),
+          ]} />
 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
             <div>
