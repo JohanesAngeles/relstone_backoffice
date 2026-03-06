@@ -97,44 +97,46 @@ const ExamAnswerKeyPage = () => {
         {data && (
           <div style={S.card}>
 
-            {/* ── Tab Bar ── */}
-            <div style={S.tabsRow}>
-              <div style={S.tabsScroll}>
-                {data.tabs.map((tab, i) => (
-                  <button
-                    key={i}
-                    className="ek-tab"
-                    style={{ ...S.tab, ...(activeTab === i ? S.tabActive : {}) }}
-                    onClick={() => setActiveTab(i)}
-                  >
-                    <span style={S.tabLabel}>
-                      {tab.examName.length > 28 ? tab.examName.slice(0, 28) + '…' : tab.examName}
-                    </span>
-                    <span style={{
-                      ...S.vBadge,
-                      background: tab.version === 'Version A' ? '#dbeafe' : '#ede9fe',
-                      color:      tab.version === 'Version A' ? '#1d4ed8' : '#7c3aed',
-                    }}>
-                      {tab.version === 'Version A' ? 'Ver A' : 'Ver B'}
-                    </span>
-                    <span style={{ ...S.tabCount, ...(activeTab === i ? S.tabCountActive : {}) }}>
-                      {tab.questions.length}
-                    </span>
-                  </button>
-                ))}
-              </div>
+            {/* ── Dropdown + Search Row ── */}
+<div style={S.tabsRow}>
+  <div style={S.dropdownWrap}>
+    <select
+      value={activeTab}
+      onChange={e => setActiveTab(Number(e.target.value))}
+      style={S.dropdown}
+    >
+      {data.tabs.map((tab, i) => (
+        <option key={i} value={i}>
+          {tab.examName} — {tab.version} ({tab.questions.length} Qs)
+        </option>
+      ))}
+    </select>
+    {/* Version + Count Badges */}
+    <div style={S.dropdownBadges}>
+      <span style={{
+        ...S.vBadge,
+        background: data.tabs[activeTab]?.version === 'Version A' ? '#dbeafe' : '#ede9fe',
+        color:      data.tabs[activeTab]?.version === 'Version A' ? '#1d4ed8' : '#7c3aed',
+      }}>
+        {data.tabs[activeTab]?.version === 'Version A' ? 'Ver A' : 'Ver B'}
+      </span>
+      <span style={S.tabCountActive}>
+        {data.tabs[activeTab]?.questions.length} Qs
+      </span>
+    </div>
+  </div>
 
-              {/* Search */}
-              <div style={S.searchWrap}>
-                <FaSearch style={{ color: '#7FA8C4', fontSize: '0.75rem' }} />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Search questions..."
-                  style={S.searchInput}
-                />
-              </div>
-            </div>
+  {/* Search */}
+  <div style={S.searchWrap}>
+    <FaSearch style={{ color: '#7FA8C4', fontSize: '0.75rem' }} />
+    <input
+      value={search}
+      onChange={e => setSearch(e.target.value)}
+      placeholder="Search questions..."
+      style={S.searchInput}
+    />
+  </div>
+</div>
 
             {/* ── Meta Chips ── */}
             {currentTab && (
@@ -303,6 +305,22 @@ const S = {
   optionLetter:{ width: 22, height: 22, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 700, flexShrink: 0 },
   optionText:  { fontSize: '0.8rem', flex: 1, lineHeight: 1.4 },
   correctTag:  { fontSize: '0.68rem', fontWeight: 700, color: '#15803d', background: '#dcfce7', padding: '2px 7px', borderRadius: '20px', flexShrink: 0 },
+  dropdownWrap: {
+  display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1,
+  },
+  dropdown: {
+    flex: 1, padding: '0.5rem 0.75rem',
+    border: '0.5px solid #e2e8f0', borderRadius: '8px',
+    fontSize: '0.8rem', fontFamily: "'Poppins', sans-serif",
+    color: '#091925', background: '#f8fafc',
+    cursor: 'pointer', outline: 'none',
+    maxWidth: 520,
+  },
+  dropdownBadges: {
+    display: 'flex', alignItems: 'center', gap: '0.35rem',
+  },
+
 };
+
 
 export default ExamAnswerKeyPage;
