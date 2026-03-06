@@ -391,12 +391,26 @@ const Header = () => {
   // IMPORTANT: AuthModal screens are "login" and "register" (NOT "signup")
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register'
 
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+  try {
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+});
 
   const searchRef = useRef(null);
 
-  const handleLogin = (userData) => setUser(userData);
-  const handleLogout = () => setUser(null);
+  const handleLogin = (userData) => {
+  setUser(userData);
+  localStorage.setItem('user', JSON.stringify(userData));  
+  };
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');    
+    localStorage.removeItem('token');   
+  };
 
   useEffect(() => {
     const handler = (e) => {
