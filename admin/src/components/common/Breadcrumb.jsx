@@ -21,9 +21,17 @@ const Breadcrumb = ({ crumbs = [] }) => {
         return (
           <span key={i} style={S.item}>
             {!isLast && crumb.to ? (
-              <Link to={crumb.to} style={S.link}>
+              <Link
+                to={crumb.to}
+                style={S.link}
+                onClick={crumb.onClick}
+              >
                 {crumb.label}
               </Link>
+            ) : !isLast && crumb.onClick ? (
+              <span style={{ ...S.link, cursor: 'pointer' }} onClick={crumb.onClick}>
+                {crumb.label}
+              </span>
             ) : (
               <span style={isLast ? S.current : S.link}>
                 {crumb.label}
