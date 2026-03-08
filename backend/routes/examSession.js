@@ -414,34 +414,35 @@ router.post('/submit', async (req, res) => {
     });
 
     if (course) {
-      // Store per-exam result
-      const examResults = course.examResults || new Map();
-      examResults.set(session.examName, {
+      const currentResults = course.examResults instanceof Map
+        ? Object.fromEntries(course.examResults)
+        : (course.examResults || {});
+
+      currentResults[session.examName] = {
         passed,
         score,
-        version:      session.version,
-        attempts:     session.attemptNumber,
-        submittedAt:  new Date(),
-      });
-      course.examResults = examResults;
+        version:     session.version,
+        attempts:    session.attemptNumber,
+        submittedAt: new Date(),
+      };
 
-      // Recalculate bundle progress
-      course.progress = calcBundleProgress(
-        Object.fromEntries(examResults),
+      const newProgress = calcBundleProgress(
+        currentResults,
         course.examNames || [],
         course.chosenElective,
       );
 
-      // If all required exams passed → mark bundle complete
-      if (course.progress === 100) {
-        course.status          = 'Complete';
-        course.completionDate  = new Date().toLocaleDateString('en-US');
-        course.examPassed      = true;
-      } else {
-        course.status = 'In Progress';
+      const updateFields = {
+        examResults: currentResults,
+        progress:    newProgress,
+        status:      newProgress === 100 ? 'Complete' : 'In Progress',
+      };
+      if (newProgress === 100) {
+        updateFields.completionDate = new Date().toLocaleDateString('en-US');
+        updateFields.examPassed     = true;
       }
 
-      await course.save();
+      await Course.findByIdAndUpdate(course._id, { $set: updateFields });
     }
 
     res.json({
