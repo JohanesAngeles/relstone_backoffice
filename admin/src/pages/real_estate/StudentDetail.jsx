@@ -565,27 +565,93 @@ const StudentDetail = () => {
             <table style={sr.table}>
               <thead><tr style={sr.thead}><th style={sr.th}>Course Title</th><th style={sr.th}>Exam Title</th><th style={sr.th}>Registered</th><th style={sr.th}>Expires</th><th style={sr.th}>Completed</th><th style={sr.th}>Status</th><th style={sr.th}>Docs</th></tr></thead>
               <tbody>
-                {student.courses?.map((c, i) => (
-                  <tr key={i} style={sr.tr}>
-                    <td style={sr.td}><span style={sr.courseTitle}>{c.courseTitle || '—'}</span></td>
-                    <td style={sr.td}><span style={{ fontSize: 12, color: '#091925' }}>{c.examTitle || '—'}</span></td>
-                    <td style={sr.td}><span style={sr.dateCell}>{c.registrationDate || '—'}</span></td>
-                    <td style={sr.td}><span style={sr.dateCell}>{c.expirationDate || 'n/a'}</span></td>
-                    <td style={sr.td}><span style={sr.dateCell}>{c.completionDate || (c.completionPercent ? `${c.completionPercent}%` : '—')}</span></td>
-                    <td style={sr.td}><StatusBadge status={c.status} /></td>
-                    <td style={sr.td}>
-                      {(c.status === 'Completed' || c.status === 'Passed') ? (
-                        <select defaultValue="" onChange={e => { const v = e.target.value; if (v === 'transcript') openTranscript(i); if (v === 'certificate') openCertificate(i); e.target.value = ''; }}
-                          style={{ padding: '4px 8px', fontSize: 11, fontWeight: 600, background: '#2EABFE', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}>
-                          <option value="" disabled>📄 View Docs ▾</option>
-                          <option value="transcript">📋 Transcript</option>
-                          <option value="certificate">🏆 Certificate</option>
-                        </select>
-                      ) : <span style={{ fontSize: 12, color: '#cbd5e1' }}>—</span>}
-                    </td>
-                  </tr>
+  {student.courses?.map((c, i) => {
+    const isWebRecord = !!c.bundleId && !!c.examNames;
+    const examResults = c.examResults || {};
+    const resultEntries = Object.entries(examResults);
+    return (
+      <tr key={i} style={sr.tr}>
+
+        {/* Course Title */}
+        <td style={sr.td}>
+          <span style={sr.courseTitle}>{c.courseTitle || '—'}</span>
+          {isWebRecord && c.bundleId && (
+            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 1, fontFamily: "'Poppins', sans-serif" }}>
+              {c.bundleId}
+            </div>
+          )}
+        </td>
+
+        {/* Exam Title — seeded: shows examTitle | web: shows per-exam result badges */}
+        <td style={sr.td}>
+          {isWebRecord ? (
+            resultEntries.length === 0 ? (
+              <span style={{ fontSize: 11, color: '#cbd5e1', fontFamily: "'Poppins', sans-serif" }}>No attempts yet</span>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {resultEntries.map(([examName, result]) => (
+                  <div key={examName} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{
+                      fontSize: 9, fontWeight: 700, padding: '2px 5px', borderRadius: 4, flexShrink: 0,
+                      background: result.passed ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                      color: result.passed ? '#059669' : '#dc2626',
+                      border: `0.5px solid ${result.passed ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`,
+                    }}>
+                      {result.passed ? '✓' : '✗'} {result.score}%
+                    </span>
+                    <span style={{ fontSize: 10, color: '#374151', fontFamily: "'Poppins', sans-serif", maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {examName}
+                    </span>
+                  </div>
                 ))}
-              </tbody>
+              </div>
+            )
+          ) : (
+            <span style={{ fontSize: 12, color: '#091925' }}>{c.examTitle || '—'}</span>
+          )}
+        </td>
+
+        {/* Registered */}
+        <td style={sr.td}><span style={sr.dateCell}>{c.registrationDate || '—'}</span></td>
+
+        {/* Expires */}
+        <td style={sr.td}><span style={sr.dateCell}>{c.expirationDate || 'n/a'}</span></td>
+
+        {/* Completed — seeded: completionDate | web: progress % */}
+        <td style={sr.td}>
+          {isWebRecord ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 50, height: 4, background: '#f1f5f9', borderRadius: 99 }}>
+                <div style={{ width: `${c.progress || 0}%`, height: '100%', borderRadius: 99, background: c.progress === 100 ? '#10B981' : '#2563eb' }} />
+              </div>
+              <span style={{ fontSize: 11, fontWeight: 700, color: '#374151', fontFamily: "'Poppins', sans-serif" }}>
+                {c.progress || 0}%
+              </span>
+            </div>
+          ) : (
+            <span style={sr.dateCell}>{c.completionDate || (c.completionPercent ? `${c.completionPercent}%` : '—')}</span>
+          )}
+        </td>
+
+        {/* Status */}
+        <td style={sr.td}><StatusBadge status={c.status} /></td>
+
+        {/* Docs */}
+        <td style={sr.td}>
+          {(c.status === 'Completed' || c.status === 'Passed' || c.status === 'Complete') ? (
+            <select defaultValue="" onChange={e => { const v = e.target.value; if (v === 'transcript') openTranscript(i); if (v === 'certificate') openCertificate(i); e.target.value = ''; }}
+              style={{ padding: '4px 8px', fontSize: 11, fontWeight: 600, background: '#2EABFE', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}>
+              <option value="" disabled>📄 View Docs ▾</option>
+              <option value="transcript">📋 Transcript</option>
+              <option value="certificate">🏆 Certificate</option>
+            </select>
+          ) : <span style={{ fontSize: 12, color: '#cbd5e1' }}>—</span>}
+        </td>
+
+      </tr>
+    );
+  })}
+</tbody>
             </table>
           ))}
 

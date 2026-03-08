@@ -91,11 +91,15 @@ const courseSchema = new mongoose.Schema({
   earliestTestDate: String,
 
   // ── Progress / Status ──
-  status:           { type: String, default: 'In Progress' }, // "In Progress" | "Complete" | "Failed"
+  status:           { type: String, default: 'In Progress' },
   quizStatus:       String,
-  progress:         { type: Number, default: 0 },   // 0–100
-  examScore:        { type: Number, default: null }, // null until taken
+  progress:         { type: Number, default: 0 },
+  examScore:        { type: Number, default: null },
   examPassed:       { type: Boolean, default: null },
+
+  // ── Per-exam results ──
+  examResults:      { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
+  chosenElective:   { type: String, default: null },
 
   // ── Legacy field (kept for backward compat) ──
   examTitle:        String,
