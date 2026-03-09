@@ -664,7 +664,7 @@ const StudentDetail = () => {
               {isWebRecord && (
                 <>
                   <a
-                    href={`${API}/certificate/download/${c._id}`}
+                    href={`${API}/api/certificate/download/${c._id}`}
                     target="_blank"
                     rel="noreferrer"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -680,7 +680,7 @@ const StudentDetail = () => {
                       if (note === null) return;
                       try {
                         const token = localStorage.getItem('adminToken') || '';
-                        const r = await fetch(`${API}/certificate/send/${c._id}`, {
+                        const r = await fetch(`${API}/api/certificate/send/${c._id}`, {
                           method: 'POST',
                           headers: {
                             'Content-Type': 'application/json',
