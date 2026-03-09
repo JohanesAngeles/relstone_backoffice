@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const { adminDB } = require('../config/db');
 const { protectAdmin } = require('../middleware/adminAuth');
 const { protect } = require('../middleware/auth');
+const { generateCertificate } = require('./certificate');
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
@@ -97,6 +98,21 @@ const courseSchema = new mongoose.Schema({
 
 const Course = adminDB.models.Course ||
   adminDB.model('Course', courseSchema);
+
+const studentSchema = new mongoose.Schema({
+  studentId:      { type: String, unique: true, index: true },
+  name:           String,
+  mailingAddress: String,
+  email:          String,
+  workPhone:      String,
+  mobilePhone:    String,
+  homePhone:      String,
+  dreNumber:      String,
+  licenseNumber:  String,
+}, { strict: false });
+
+const Student = adminDB.models.Student ||
+  adminDB.model('Student', studentSchema);
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -443,7 +459,23 @@ router.post('/submit', async (req, res) => {
       }
 
       await Course.findByIdAndUpdate(course._id, { $set: updateFields });
-    }
+
+      // Auto-generate certificate when bundle hits 100%
+      if (newProgress === 100) {
+        const freshCourse = await Course.findById(course._id).lean();
+        const student     = await Student.findOne({ studentId: session.studentId }).lean();
+        if (student) {
+          generateCertificate(freshCourse, student)
+            .then(({ certNumber }) =>
+              console.log(`🏆 Certificate generated: #${certNumber} for ${session.studentId}`)
+            )
+            .catch(err =>
+              console.error('⚠️ Auto cert generation failed:', err.message)
+            );
+        }
+      }
+
+    } 
 
     res.json({
       ok:              true,
