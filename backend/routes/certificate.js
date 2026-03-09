@@ -271,7 +271,7 @@ router.post('/generate', async (req, res) => {
 // ROUTE 2: GET /api/certificate/download/:courseId
 // Admin or authenticated student downloads the PDF
 // ─────────────────────────────────────────────────────────────────────────────
-router.get('/download/:courseId', protect, async (req, res) => {
+router.get('/download/:courseId', async (req, res) => {
   try {
     let course = await Course.findById(req.params.courseId).lean();
     if (!course) return res.status(404).json({ message: 'Course not found.' });
