@@ -23,7 +23,7 @@ const mongoose     = require('mongoose');
 const PizZip        = require('pizzip');
 const Docxtemplater = require('docxtemplater');
 const nodemailer    = require('nodemailer');
-const docxToPdf     = require('docx-pdf');
+const { execFile }  = require('child_process');
 
 const { adminDB }    = require('../config/db');
 const { protect }    = require('../middleware/auth');
@@ -187,23 +187,30 @@ const generateCertificate = async (course, student) => {
 
   const docxBuffer = doc.getZip().generate({ type: 'nodebuffer' });
 
-  // Convert DOCX → PDF via docx-pdf (free, no external API)
+  // Convert DOCX → PDF via LibreOffice (installed via Aptfile on Heroku)
   const cleanName    = `cert_${student.studentId}_${bundleIdKey}_${Date.now()}`;
   const tmpDocxPath  = path.join(os.tmpdir(), `${cleanName}.docx`);
-  const finalPdfPath = path.join(CERT_DIR, `${cleanName}.pdf`);
-
-  // Write filled DOCX to temp file
   fs.writeFileSync(tmpDocxPath, docxBuffer);
 
-  // Convert to PDF
+  // Find soffice binary — Heroku apt installs to /app/.apt/usr/bin/soffice
+  const soffice = fs.existsSync('/app/.apt/usr/bin/soffice')
+    ? '/app/.apt/usr/bin/soffice'
+    : 'soffice';
+
   await new Promise((resolve, reject) => {
-    docxToPdf(tmpDocxPath, finalPdfPath, (err) => {
-      // Clean up temp DOCX regardless
+    execFile(soffice, [
+      '--headless',
+      '--convert-to', 'pdf',
+      '--outdir', CERT_DIR,
+      tmpDocxPath,
+    ], { timeout: 60000 }, (err, stdout, stderr) => {
       try { fs.unlinkSync(tmpDocxPath); } catch {}
-      if (err) return reject(new Error(`PDF conversion failed: ${err.message}`));
+      if (err) return reject(new Error(`LibreOffice conversion failed: ${stderr || err.message}`));
       resolve();
     });
   });
+
+  const finalPdfPath = path.join(CERT_DIR, `${cleanName}.pdf`);
 
   // Save cert info to course record
   await Course.findByIdAndUpdate(course._id, {
