@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppLayout from '../../layouts/AppLayout';
 import Breadcrumb from '../../components/common/Breadcrumb';
+import { FaDownload, FaEnvelope } from 'react-icons/fa';
 import { getStudent, updateStudent, updateMainNotes, updateTeleNotes, emailAffidavit, emailPasswordLink } from '../../services/students';
 
 
@@ -639,12 +640,70 @@ const StudentDetail = () => {
         {/* Docs */}
         <td style={sr.td}>
           {(c.status === 'Completed' || c.status === 'Passed' || c.status === 'Complete') ? (
-            <select defaultValue="" onChange={e => { const v = e.target.value; if (v === 'transcript') openTranscript(i); if (v === 'certificate') openCertificate(i); e.target.value = ''; }}
-              style={{ padding: '4px 8px', fontSize: 11, fontWeight: 600, background: '#2EABFE', color: '#fff', border: 'none', borderRadius: 5, cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}>
-              <option value="" disabled>📄 View Docs ▾</option>
-              <option value="transcript">📋 Transcript</option>
-              <option value="certificate">🏆 Certificate</option>
-            </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+
+              {/* Seeded/old records — existing dropdown */}
+              {!isWebRecord && (
+                <select defaultValue="" onChange={e => {
+                  const v = e.target.value;
+                  if (v === 'transcript') openTranscript(i);
+                  if (v === 'certificate') openCertificate(i);
+                  e.target.value = '';
+                }} style={{ padding: '4px 8px', fontSize: 11, fontWeight: 600,
+                  background: '#2EABFE', color: '#fff', border: 'none',
+                  borderRadius: 5, cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}>
+                  <option value="" disabled>View Docs</option>
+                  <option value="transcript">Transcript</option>
+                  <option value="certificate">Certificate</option>
+                </select>
+              )}
+
+              {/* Web records — Download + Send buttons */}
+              {isWebRecord && (
+                <>
+                  <a
+                    href={`http://localhost:5000/api/certificate/download/${c._id}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
+                      padding: '4px 8px', fontSize: 11, fontWeight: 600,
+                      background: '#2EABFE', color: '#fff', borderRadius: 5,
+                      textDecoration: 'none', fontFamily: "'Poppins', sans-serif" }}
+                  >
+                    <FaDownload size={10} /> Download
+                  </a>
+                  <button
+                    onClick={async () => {
+                      const note = window.prompt('Optional note for the email (leave blank to skip):');
+                      if (note === null) return;
+                      try {
+                        const token = localStorage.getItem('adminToken') || '';
+                        const r = await fetch(`http://localhost:5000/api/certificate/send/${c._id}`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({ message: note }),
+                        });
+                        const data = await r.json();
+                        alert(r.ok ? `✅ ${data.message}` : `❌ ${data.message}`);
+                      } catch {
+                        alert('Failed to send. Check server logs.');
+                      }
+                    }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
+                      padding: '4px 8px', fontSize: 11, fontWeight: 600,
+                      background: '#10B981', color: '#fff', border: 'none',
+                      borderRadius: 5, cursor: 'pointer',
+                      fontFamily: "'Poppins', sans-serif" }}
+                  >
+                    <FaEnvelope size={10} /> Send
+                  </button>
+                </>
+              )}
+
+            </div>
           ) : <span style={{ fontSize: 12, color: '#cbd5e1' }}>—</span>}
         </td>
 
