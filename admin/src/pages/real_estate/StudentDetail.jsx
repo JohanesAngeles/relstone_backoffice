@@ -299,7 +299,7 @@ const StudentDetail = () => {
     setCertSending(true);
     try {
       const token = localStorage.getItem('adminToken') || '';
-      const r = await fetch(`${API}/api/certificate/send/${certSendModal.courseId}`, {
+      const r = await fetch(`${API}/certificate/send/${certSendModal.courseId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ message: certSendNote }),
