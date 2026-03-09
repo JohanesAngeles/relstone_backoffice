@@ -524,7 +524,7 @@ const S = {
     fontFamily: "'Poppins', sans-serif",
   },
 
-  questionText: { fontSize: '0.85rem', fontWeight: 500, color: '#091925', margin: 0, lineHeight: 1.5, fontFamily: "'Poppins', sans-serif" },
+  questionText: { fontSize: '0.75rem', fontWeight: 500, color: '#091925', margin: 0, lineHeight: 1.5, fontFamily: "'Poppins', sans-serif" },
 
   // Green "Correct: X" pill (matching Figma)
   correctBadge: {
