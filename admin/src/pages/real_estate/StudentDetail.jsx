@@ -216,6 +216,9 @@ const StudentDetail = () => {
   const [sendingAffidavit, setSendingAffidavit] = useState(false);
   const [passwordLinkResult,  setPasswordLinkResult]  = useState(null);
   const [sendingPasswordLink, setSendingPasswordLink] = useState(false);
+  const [certSendModal, setCertSendModal] = useState({ open: false, courseId: null, courseName: '' });
+  const [certSendNote, setCertSendNote] = useState('');
+  const [certSending, setCertSending] = useState(false);
 
 
   useEffect(() => {
@@ -290,6 +293,26 @@ const StudentDetail = () => {
     const payload = { student: { studentId: student.studentId, name: student.name, mailingAddress: student.mailingAddress, workPhone: student.workPhone, mobilePhone: student.mobilePhone, dreNumber: student.dreNumber, licenseNumber: student.licenseNumber }, courses: student.courses };
     localStorage.setItem(`transcript_${student.studentId}`, JSON.stringify(payload));
     window.open(`/admin/certificate/${student.studentId}/${i}`, '_blank');
+  };
+
+  const handleSendCertificate = async () => {
+    setCertSending(true);
+    try {
+      const token = localStorage.getItem('adminToken') || '';
+      const r = await fetch(`${API}/api/certificate/send/${certSendModal.courseId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ message: certSendNote }),
+      });
+      const data = await r.json();
+      setCertSendModal({ open: false, courseId: null, courseName: '' });
+      setCertSendNote('');
+      showToast(r.ok ? data.message : (data.message || 'Failed to send'), r.ok ? 'success' : 'error');
+    } catch {
+      showToast('Failed to send. Check server logs.', 'error');
+    } finally {
+      setCertSending(false);
+    }
   };
 
   if (loading) return <AppLayout><div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}><p style={{ fontSize: 14 }}>Loading student...</p></div></AppLayout>;
@@ -664,7 +687,7 @@ const StudentDetail = () => {
               {isWebRecord && (
                 <>
                   <a
-                    href={`${API}/api/certificate/download/${c._id}`}
+                    href={`${API}/certificate/download/${c._id}`}
                     target="_blank"
                     rel="noreferrer"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -675,25 +698,7 @@ const StudentDetail = () => {
                     <FaDownload size={10} /> Download
                   </a>
                   <button
-                    onClick={async () => {
-                      const note = window.prompt('Optional note for the email (leave blank to skip):');
-                      if (note === null) return;
-                      try {
-                        const token = localStorage.getItem('adminToken') || '';
-                        const r = await fetch(`${API}/api/certificate/send/${c._id}`, {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`,
-                          },
-                          body: JSON.stringify({ message: note }),
-                        });
-                        const data = await r.json();
-                        alert(r.ok ? `✅ ${data.message}` : `❌ ${data.message}`);
-                      } catch {
-                        alert('Failed to send. Check server logs.');
-                      }
-                    }}
+                    onClick={() => setCertSendModal({ open: true, courseId: c._id, courseName: c.courseTitle || c.examTitle || 'Course' })}
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
                       padding: '4px 8px', fontSize: 11, fontWeight: 600,
                       background: '#10B981', color: '#fff', border: 'none',
@@ -753,6 +758,38 @@ const StudentDetail = () => {
         </div>
 
       </div>
+
+      {/* ── Certificate Send Modal ── */}
+      {certSendModal.open && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', borderRadius: 12, width: 460, maxWidth: '95vw', padding: '28px 32px', boxShadow: '0 8px 32px rgba(0,0,0,0.18)', fontFamily: "'Poppins', sans-serif" }}>
+            <h3 style={{ margin: '0 0 6px', fontSize: 16, fontWeight: 700, color: '#0f172a' }}>Send Certificate</h3>
+            <p style={{ margin: '0 0 20px', fontSize: 12, color: '#64748b' }}>Sending certificate for: <strong>{certSendModal.courseName}</strong></p>
+            <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>Optional Message</label>
+            <textarea
+              value={certSendNote}
+              onChange={e => setCertSendNote(e.target.value)}
+              placeholder="Add a personal note to the email (optional)..."
+              rows={4}
+              style={{ width: '100%', padding: '10px 12px', fontSize: 12, border: '1.5px solid #e2e8f0', borderRadius: 8, resize: 'vertical', fontFamily: "'Poppins', sans-serif", boxSizing: 'border-box', outline: 'none', color: '#0f172a' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20 }}>
+              <button
+                onClick={() => { setCertSendModal({ open: false, courseId: null, courseName: '' }); setCertSendNote(''); }}
+                style={{ padding: '8px 20px', fontSize: 12, fontWeight: 600, background: '#f1f5f9', color: '#64748b', border: 'none', borderRadius: 8, cursor: 'pointer', fontFamily: "'Poppins', sans-serif" }}
+              >Cancel</button>
+              <button
+                onClick={handleSendCertificate}
+                disabled={certSending}
+                style={{ padding: '8px 20px', fontSize: 12, fontWeight: 600, background: '#10B981', color: '#fff', border: 'none', borderRadius: 8, cursor: certSending ? 'not-allowed' : 'pointer', opacity: certSending ? 0.7 : 1, fontFamily: "'Poppins', sans-serif", display: 'inline-flex', alignItems: 'center', gap: 6 }}
+              >
+                <FaEnvelope size={11} /> {certSending ? 'Sending...' : 'Send Certificate'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </AppLayout>
   );
 };
