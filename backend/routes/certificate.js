@@ -17,13 +17,10 @@ const express      = require('express');
 const router       = require('express').Router();
 const path         = require('path');
 const fs           = require('fs');
-const os           = require('os');
 const mongoose     = require('mongoose');
 
-const PizZip        = require('pizzip');
-const Docxtemplater = require('docxtemplater');
+const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
 const nodemailer    = require('nodemailer');
-const { execFile }  = require('child_process');
 
 const { adminDB }    = require('../config/db');
 const { protect }    = require('../middleware/auth');
@@ -82,7 +79,7 @@ const Course = adminDB.models.Course ||
 
 // ── Paths ─────────────────────────────────────────────────────────────────────
 
-const TEMPLATE_PATH = path.join(__dirname, '../templates/COMPLETION_CERTIFICATE.docx');
+const TEMPLATE_PATH = path.join(__dirname, '../templates/COMPLETION_CERTIFICATE.pdf');
 const CERT_DIR      = path.join(__dirname, '../generated_certificates');
 
 if (!fs.existsSync(CERT_DIR)) fs.mkdirSync(CERT_DIR, { recursive: true });
@@ -151,7 +148,7 @@ const generateCertificate = async (course, student) => {
   if (!fs.existsSync(TEMPLATE_PATH)) {
     throw new Error(
       `Certificate template not found at: ${TEMPLATE_PATH}\n` +
-      `Please place COMPLETION_CERTIFICATE.docx in backend/templates/`
+      `Please place COMPLETION_CERTIFICATE.pdf in backend/templates/`
     );
   }
 
@@ -160,57 +157,94 @@ const generateCertificate = async (course, student) => {
   const bundleIdKey = course.bundleId || course.examMasterID || '';
   const ceCategory  = deriveCECategory(bundleIdKey, course.courseTitle);
 
-  // Template placeholders — must match {PLACEHOLDERS} in the DOCX exactly
-  const data = {
-    STUDENT_NAME:      student.name           || '—',
-    STUDENT_ADDRESS:   student.mailingAddress  || '—',
-    // dreNumber is the DRE/real estate license number in your Student schema
-    LICENSE_NUMBER:    student.dreNumber       || student.licenseNumber || '—',
-    PHONE:             student.workPhone       || student.mobilePhone   || student.homePhone || '—',
-    COURSE_TITLE:      course.courseTitle      || '—',
-    CERT_NUMBER:       certNumber,
-    REGISTRATION_DATE: formatDate(course.registrationDate),
-    COMPLETION_DATE:   formatDate(course.completionDate || new Date().toISOString()),
-    CLOCK_HOURS:       String(clockHours),
-    CE_CATEGORY:       ceCategory,
-    ISSUANCE_DATE:     formatDateLong(new Date().toISOString()),
-    // Set ADMIN_SIGNATURE_NAME in your .env to change the signature name
-    ADMIN_NAME:        process.env.ADMIN_SIGNATURE_NAME || 'Amina Ahmed',
+  // ── Load PDF template and overlay dynamic text with pdf-lib ──────────────
+  const templateBytes = fs.readFileSync(TEMPLATE_PATH);
+  const pdfDoc        = await PDFDocument.load(templateBytes);
+  const page          = pdfDoc.getPages()[0];
+  const { height }    = page.getSize(); // 792
+
+  const fontBold    = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+  const fontRegular = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const navy        = rgb(0.05, 0.13, 0.25); // #0D2236
+  const black       = rgb(0, 0, 0);
+
+  // Helper: draw centered text at a given Y (PDF coords from bottom)
+  const drawCentered = (text, y, font, size, color = navy) => {
+    const w = font.widthOfTextAtSize(text, size);
+    page.drawText(text, { x: (612 - w) / 2, y, font, size, color });
   };
 
-  // Render template with docxtemplater
-  const templateBuf = fs.readFileSync(TEMPLATE_PATH);
-  const zip         = new PizZip(templateBuf);
-  const doc         = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+  // Helper: draw text at exact X, Y
+  const draw = (text, x, y, font, size, color = navy) => {
+    page.drawText(text, { x, y, font, size, color });
+  };
 
-  doc.render(data);
+  // ── White rectangles to cover sample data ────────────────────────────────
+  const white = rgb(1, 1, 1);
+  // Cover student name area
+  page.drawRectangle({ x: 60, y: 542, width: 492, height: 22, color: white });
+  // Cover address
+  page.drawRectangle({ x: 60, y: 528, width: 492, height: 14, color: white });
+  // Cover license number
+  page.drawRectangle({ x: 200, y: 487, width: 212, height: 14, color: white });
+  // Cover phone
+  page.drawRectangle({ x: 200, y: 446, width: 212, height: 14, color: white });
+  // Cover course title
+  page.drawRectangle({ x: 60, y: 378, width: 492, height: 18, color: white });
+  // Cover cert# + dates + hours row
+  page.drawRectangle({ x: 60, y: 338, width: 492, height: 16, color: white });
+  // Cover CE category
+  page.drawRectangle({ x: 200, y: 295, width: 212, height: 18, color: white });
+  // Cover issuance date
+  page.drawRectangle({ x: 440, y: 182, width: 150, height: 16, color: white });
 
-  const docxBuffer = doc.getZip().generate({ type: 'nodebuffer' });
+  // ── Draw student name (large, bold, centered) ─────────────────────────────
+  const studentName = student.name || '—';
+  drawCentered(studentName, 546, fontBold, 24, navy);
 
-  // Convert DOCX → PDF via LibreOffice (installed via Aptfile on Heroku)
+  // ── Draw address (centered) ───────────────────────────────────────────────
+  const address = student.mailingAddress || '—';
+  drawCentered(address, 530, fontRegular, 10, navy);
+
+  // ── Draw license number (centered) ───────────────────────────────────────
+  const licenseNum = student.dreNumber || student.licenseNumber || '—';
+  drawCentered(licenseNum, 490, fontBold, 11, navy);
+
+  // ── Draw phone (centered) ─────────────────────────────────────────────────
+  const phone = student.workPhone || student.mobilePhone || student.homePhone || '—';
+  drawCentered(phone, 450, fontBold, 11, navy);
+
+  // ── Draw course title (centered, bold) ───────────────────────────────────
+  const courseTitle = course.courseTitle || '—';
+  drawCentered(courseTitle, 382, fontBold, 13, navy);
+
+  // ── Draw cert table row ───────────────────────────────────────────────────
+  const regDate  = formatDate(course.registrationDate);
+  const compDate = formatDate(course.completionDate || new Date().toISOString());
+  const hours    = String(clockHours);
+
+  draw(certNumber, 95,  341, fontBold, 11, navy);
+  drawCentered(regDate,  341, fontBold, 11, navy);
+
+  // Position completion date and hours manually based on template columns
+  const compW = fontBold.widthOfTextAtSize(compDate, 11);
+  draw(compDate, 317 + (130 - compW) / 2, 341, fontBold, 11, navy);
+  const hoursW = fontBold.widthOfTextAtSize(hours, 11);
+  draw(hours, 447 + (90 - hoursW) / 2, 341, fontBold, 11, navy);
+
+  // ── Draw CE category (centered) ───────────────────────────────────────────
+  const ceCat = ceCategory;
+  const catW  = fontBold.widthOfTextAtSize(ceCat, 14);
+  draw(ceCat, (612 - catW) / 2 - 30, 298, fontBold, 14, navy);
+
+  // ── Draw issuance date ────────────────────────────────────────────────────
+  draw(formatDateLong(new Date().toISOString()), 460, 185, fontBold, 11, navy);
+
+  // ── Save PDF ──────────────────────────────────────────────────────────────
   const cleanName    = `cert_${student.studentId}_${bundleIdKey}_${Date.now()}`;
-  const tmpDocxPath  = path.join(os.tmpdir(), `${cleanName}.docx`);
-  fs.writeFileSync(tmpDocxPath, docxBuffer);
-
-  // Find soffice binary — Heroku apt installs to /app/.apt/usr/bin/soffice
-  const soffice = fs.existsSync('/app/.apt/usr/bin/soffice')
-    ? '/app/.apt/usr/bin/soffice'
-    : 'soffice';
-
-  await new Promise((resolve, reject) => {
-    execFile(soffice, [
-      '--headless',
-      '--convert-to', 'pdf',
-      '--outdir', CERT_DIR,
-      tmpDocxPath,
-    ], { timeout: 60000 }, (err, stdout, stderr) => {
-      try { fs.unlinkSync(tmpDocxPath); } catch {}
-      if (err) return reject(new Error(`LibreOffice conversion failed: ${stderr || err.message}`));
-      resolve();
-    });
-  });
-
   const finalPdfPath = path.join(CERT_DIR, `${cleanName}.pdf`);
+  const pdfBytes     = await pdfDoc.save();
+  fs.writeFileSync(finalPdfPath, pdfBytes);
 
   // Save cert info to course record
   await Course.findByIdAndUpdate(course._id, {
