@@ -23,7 +23,7 @@ const mongoose     = require('mongoose');
 const PizZip        = require('pizzip');
 const Docxtemplater = require('docxtemplater');
 const nodemailer    = require('nodemailer');
-const fetch         = require('node-fetch');
+const docxToPdf     = require('docx-pdf');
 
 const { adminDB }    = require('../config/db');
 const { protect }    = require('../middleware/auth');
@@ -187,73 +187,23 @@ const generateCertificate = async (course, student) => {
 
   const docxBuffer = doc.getZip().generate({ type: 'nodebuffer' });
 
-  // Convert DOCX → PDF via CloudConvert API
-  const CLOUDCONVERT_KEY = process.env.CLOUDCONVERT_API_KEY;
+  // Convert DOCX → PDF via docx-pdf (free, no external API)
+  const cleanName    = `cert_${student.studentId}_${bundleIdKey}_${Date.now()}`;
+  const tmpDocxPath  = path.join(os.tmpdir(), `${cleanName}.docx`);
+  const finalPdfPath = path.join(CERT_DIR, `${cleanName}.pdf`);
 
-  // Step 1: Create a job
-  const jobRes = await fetch('https://api.cloudconvert.com/v2/jobs', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${CLOUDCONVERT_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      tasks: {
-        'upload-file': { operation: 'import/upload' },
-        'convert-file': {
-          operation: 'convert',
-          input: 'upload-file',
-          output_format: 'pdf',
-        },
-        'export-file': {
-          operation: 'export/url',
-          input: 'convert-file',
-        },
-      },
-    }),
-  });
+  // Write filled DOCX to temp file
+  fs.writeFileSync(tmpDocxPath, docxBuffer);
 
-  const job = await jobRes.json();
-  if (!jobRes.ok) throw new Error(`CloudConvert job creation failed: ${JSON.stringify(job)}`);
-
-  const uploadTask = job.data.tasks.find(t => t.name === 'upload-file');
-
-  // Step 2: Upload the DOCX buffer
-  const FormData = require('form-data');
-  const form = new FormData();
-  Object.entries(uploadTask.result.form.parameters).forEach(([k, v]) => form.append(k, v));
-  form.append('file', docxBuffer, { filename: 'certificate.docx', contentType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-
-  const uploadRes = await fetch(uploadTask.result.form.url, { method: 'POST', body: form });
-  if (!uploadRes.ok) throw new Error(`CloudConvert upload failed: ${uploadRes.status}`);
-
-  // Step 3: Poll until job is finished
-  let finished = false;
-  let exportUrl = null;
-  for (let i = 0; i < 30; i++) {
-    await new Promise(r => setTimeout(r, 2000));
-    const statusRes = await fetch(`https://api.cloudconvert.com/v2/jobs/${job.data.id}`, {
-      headers: { 'Authorization': `Bearer ${CLOUDCONVERT_KEY}` },
+  // Convert to PDF
+  await new Promise((resolve, reject) => {
+    docxToPdf(tmpDocxPath, finalPdfPath, (err) => {
+      // Clean up temp DOCX regardless
+      try { fs.unlinkSync(tmpDocxPath); } catch {}
+      if (err) return reject(new Error(`PDF conversion failed: ${err.message}`));
+      resolve();
     });
-    const statusData = await statusRes.json();
-    const exportTask = statusData.data.tasks.find(t => t.name === 'export-file');
-    if (exportTask?.status === 'finished') {
-      exportUrl = exportTask.result.files[0].url;
-      finished = true;
-      break;
-    }
-    if (statusData.data.status === 'error') throw new Error('CloudConvert conversion failed');
-  }
-
-  if (!finished || !exportUrl) throw new Error('CloudConvert timed out');
-
-  // Step 4: Download the PDF
-  const pdfRes = await fetch(exportUrl);
-  const pdfBuffer = Buffer.from(await pdfRes.arrayBuffer());
-
-  const cleanName    = `cert_${student.studentId}_${bundleIdKey}_${Date.now()}.pdf`;
-  const finalPdfPath = path.join(CERT_DIR, cleanName);
-  fs.writeFileSync(finalPdfPath, pdfBuffer);
+  });
 
   // Save cert info to course record
   await Course.findByIdAndUpdate(course._id, {
