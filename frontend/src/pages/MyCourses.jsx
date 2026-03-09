@@ -243,9 +243,14 @@ function CourseCard({ course, navigate }) {
             </button>
             )}
           {sKey === "complete" && (
-            <button style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", color: "#16a34a", border: "1.5px solid #16a34a", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            <a
+              href={`${API}/certificate/download/${course._id}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", color: "#16a34a", border: "1.5px solid #16a34a", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "none" }}
+            >
               <FaDownload style={{ fontSize: 11 }} /> Certificate
-            </button>
+            </a>
           )}
           {sKey === "failed" && (
             <button style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", color: "#7c3aed", border: "1.5px solid #7c3aed", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
@@ -259,7 +264,7 @@ function CourseCard({ course, navigate }) {
 }
 
 // ── CertRow ───────────────────────────────────────────────────
-function CertRow({ cert }) {
+function CertRow({ cert, api }) {
   return (
     <div style={{
       flex: "1 1 340px", display: "flex", alignItems: "center", gap: 14,
@@ -274,9 +279,14 @@ function CertRow({ cert }) {
           Completed {cert.completionDate} · Score: {cert.examScore}%
         </div>
       </div>
-      <button style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: "#fff", border: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280", cursor: "pointer" }}>
+      <a
+        href={`${api}/certificate/download/${cert._id}`}
+        target="_blank"
+        rel="noreferrer"
+        style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: "#fff", border: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280", cursor: "pointer", textDecoration: "none" }}
+      >
         <FaDownload style={{ fontSize: 12 }} />
-      </button>
+      </a>
     </div>
   );
 }
@@ -458,7 +468,7 @@ export default function MyCourses() {
         <div>
           <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 14px" }}>My Certificates</h2>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            {certificates.map(c => <CertRow key={c._id} cert={c} />)}
+            {certificates.map(c => <CertRow key={c._id} cert={c} api={API} />)}
           </div>
         </div>
       )}
