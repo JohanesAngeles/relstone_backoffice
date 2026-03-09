@@ -6,6 +6,8 @@ import Breadcrumb from '../../components/common/Breadcrumb';
 import { FaDownload, FaEnvelope } from 'react-icons/fa';
 import { getStudent, updateStudent, updateMainNotes, updateTeleNotes, emailAffidavit, emailPasswordLink } from '../../services/students';
 
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 
 const Icon = ({ d, size = 14, color = 'currentColor' }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
@@ -662,7 +664,7 @@ const StudentDetail = () => {
               {isWebRecord && (
                 <>
                   <a
-                    href={`http://localhost:5000/api/certificate/download/${c._id}`}
+                    href={`${API}/certificate/download/${c._id}`}
                     target="_blank"
                     rel="noreferrer"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 5,
@@ -678,7 +680,7 @@ const StudentDetail = () => {
                       if (note === null) return;
                       try {
                         const token = localStorage.getItem('adminToken') || '';
-                        const r = await fetch(`http://localhost:5000/api/certificate/send/${c._id}`, {
+                        const r = await fetch(`${API}/certificate/send/${c._id}`, {
                           method: 'POST',
                           headers: {
                             'Content-Type': 'application/json',
