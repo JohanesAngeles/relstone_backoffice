@@ -22,6 +22,10 @@ import MyCourses from './pages/MyCourses';
 import BundleOverviewPage from './pages/BundleOverviewPage';
 import ExamPortalPage from './pages/ExamPortalPage';
 import ExamResultsPage from './pages/ExamResultsPage';
+<<<<<<< HEAD
+=======
+import ProfilePage from './pages/ProfilePage';
+>>>>>>> feat/matt-clean
 
 // ── Shared layout wrapper (has Header + Footer) ───────────────────────────────
 const MainLayout = ({ user, onLogin, onLogout, children }) => (
@@ -84,6 +88,10 @@ function App() {
           <Route path="/privacy-policy" element={<MainLayout {...layoutProps}><PrivacyPolicyPage /></MainLayout>} />
           <Route path="/contact"        element={<MainLayout {...layoutProps}><ContactUsPage /></MainLayout>} />
           <Route path="/refund-policy"  element={<MainLayout {...layoutProps}><RefundPolicyPage /></MainLayout>} />
+<<<<<<< HEAD
+=======
+          <Route path="/profile" element={<MainLayout {...layoutProps}><ProfilePage /></MainLayout>} />
+>>>>>>> feat/matt-clean
 
         </Routes>
       </CartProvider>
