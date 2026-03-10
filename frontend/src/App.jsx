@@ -1,4 +1,6 @@
+// frontend/src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState } from 'react';
 import Header from './components/common/Header';
 import Footer from './components/common/Footer';
 import Home from './pages/Home';
@@ -15,64 +17,76 @@ import AllRelstoneProductsPage from './pages/AllRelstoneProductsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ContactUsPage from './pages/ContactUsPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
-import CoursePage from './pages/CoursePage';
-
-
-
-// ── Student Portal / Dashboard pages (use DashboardLayout, NOT the global Header/Footer)
+import AuthCallback from './pages/AuthCallback';
 import MyCourses from './pages/MyCourses';
-// import MyProfile from './pages/MyProfile';       // add later
-// import CourseDetail from './pages/CourseDetail'; // add later
-
 import BundleOverviewPage from './pages/BundleOverviewPage';
-import ExamPortalPage     from './pages/ExamPortalPage';
-import ExamResultsPage    from './pages/ExamResultsPage';  // ← next step
+import ExamPortalPage from './pages/ExamPortalPage';
+import ExamResultsPage from './pages/ExamResultsPage';
+import ProfilePage from './pages/ProfilePage';
+
+// ── Shared layout wrapper (has Header + Footer) ───────────────────────────────
+const MainLayout = ({ user, onLogin, onLogout, children }) => (
+  <div className="flex flex-col min-h-screen">
+    <Header user={user} onLogin={onLogin} onLogout={onLogout} />
+    <main className="flex-grow">{children}</main>
+    <Footer />
+  </div>
+);
 
 function App() {
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch { return null; }
+  });
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+  };
+
+  const layoutProps = { user, onLogin: handleLogin, onLogout: handleLogout };
+
   return (
     <Router>
       <CartProvider>
         <ScrollToTop />
         <Routes>
 
-          {/* ── Public pages — use the global Header + Footer ── */}
+          {/* ── Auth callback (no header needed, handles redirect) ── */}
           <Route
-            path="/*"
-            element={
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className="flex-grow">
-                  <Routes>
-                    <Route path="/"                element={<Home />} />
-                    <Route path="/insurance/renew" element={<InsuranceRenewPage />} />
-                    <Route path="/insurance/faq"   element={<InsuranceFAQPage />} />
-                    <Route path="/insurance/:slug" element={<InsuranceStatePage />} />
-                    <Route path="/cfp-renewal"     element={<CFPRenewPage />} />
-                    <Route path="/about"           element={<AboutPage />} />
-                    <Route path="/cart"            element={<CartPage />} />
-                    <Route path="/checkout"        element={<ProceedToCheckoutPage />} />
-                    <Route path="/products"        element={<AllRelstoneProductsPage />} />
-                    <Route path="/privacy-policy"  element={<PrivacyPolicyPage />} />
-                    <Route path="/contact"         element={<ContactUsPage />} />
-                    <Route path="/refund-policy"   element={<RefundPolicyPage />} />
-                    
-                  </Routes>
-                </main>
-                <Footer />
-              </div>
-            }
+            path="/auth/callback"
+            element={<AuthCallback onLogin={handleLogin} />}
           />
 
-          {/* ── Student Portal / Dashboard pages — DashboardLayout handles its own Header/Footer ── */}
-          <Route path="/my-courses"    element={<MyCourses />} />
-          {/* <Route path="/profile"       element={<MyProfile />} /> */}
-          {/* <Route path="/courses/:id"   element={<CourseDetail />} /> */}
+          {/* ── Student portal (no public header/footer) ── */}
+          <Route path="/my-courses"               element={<MyCourses />} />
+          <Route path="/bundle/:bundleId"         element={<BundleOverviewPage />} />
+          <Route path="/exam/:bundleId/:examName" element={<ExamPortalPage />} />
+          <Route path="/exam-results/:sessionId"  element={<ExamResultsPage />} />
 
+          {/* ── All public pages with Header + Footer ── */}
+          <Route path="/"               element={<MainLayout {...layoutProps}><Home /></MainLayout>} />
+          <Route path="/insurance/renew" element={<MainLayout {...layoutProps}><InsuranceRenewPage /></MainLayout>} />
+          <Route path="/insurance/faq"  element={<MainLayout {...layoutProps}><InsuranceFAQPage /></MainLayout>} />
+          <Route path="/insurance/:slug" element={<MainLayout {...layoutProps}><InsuranceStatePage /></MainLayout>} />
+          <Route path="/cfp-renewal"    element={<MainLayout {...layoutProps}><CFPRenewPage /></MainLayout>} />
+          <Route path="/about"          element={<MainLayout {...layoutProps}><AboutPage /></MainLayout>} />
+          <Route path="/cart"           element={<MainLayout {...layoutProps}><CartPage /></MainLayout>} />
+          <Route path="/checkout"       element={<MainLayout {...layoutProps}><ProceedToCheckoutPage /></MainLayout>} />
+          <Route path="/products"       element={<MainLayout {...layoutProps}><AllRelstoneProductsPage /></MainLayout>} />
+          <Route path="/privacy-policy" element={<MainLayout {...layoutProps}><PrivacyPolicyPage /></MainLayout>} />
+          <Route path="/contact"        element={<MainLayout {...layoutProps}><ContactUsPage /></MainLayout>} />
+          <Route path="/refund-policy"  element={<MainLayout {...layoutProps}><RefundPolicyPage /></MainLayout>} />
+          <Route path="/profile" element={<MainLayout {...layoutProps}><ProfilePage /></MainLayout>} />
 
-            <Route path="/bundle/:bundleId" element={<BundleOverviewPage />} />
-            <Route path="/exam/:bundleId/:examName"      element={<ExamPortalPage />} />
-            <Route path="/exam-results/:sessionId"       element={<ExamResultsPage />} />
-            <Route path="/course/:bundleId/:examName" element={<CoursePage />} />
         </Routes>
       </CartProvider>
     </Router>

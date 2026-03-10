@@ -5,18 +5,28 @@
 // Add to server.js:
 //   app.use('/api/course-content', require('./routes/courseContent'));
 
-const express        = require('express');
-const router         = express.Router();
-const mongoose       = require('mongoose');
-const { adminDB }    = require('../config/db');
+const express          = require('express');
+const router           = express.Router();
+const mongoose         = require('mongoose');
+const multer           = require('multer');
+const PDFParser        = require('pdf2json');
+const { adminDB }      = require('../config/db');
 const { protectAdmin } = require('../middleware/adminAuth');
-const { protect }    = require('../middleware/auth');
+const { protect }      = require('../middleware/auth');
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits:  { fileSize: 50 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') cb(null, true);
+    else cb(new Error('Only PDF files are allowed'));
+  },
+});
 
 // ── Models ────────────────────────────────────────────────────────────────────
 
 const CourseContent = require('../models/CourseContent');
 
-// Course model (same one used in examSession.js)
 const courseSchema = new mongoose.Schema({
   studentId:        String,
   bundleId:         String,
@@ -29,7 +39,7 @@ const courseSchema = new mongoose.Schema({
 const Course = adminDB.models.Course ||
   adminDB.model('Course', courseSchema);
 
-// ── Unlock hours map per examName ─────────────────────────────────────────────
+// ── Unlock hours map ──────────────────────────────────────────────────────────
 const UNLOCK_HOURS = {
   'agency':                                              48,
   'ethics':                                              48,
@@ -53,11 +63,9 @@ const getUnlockHours = (examName = '') => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  ADMIN ROUTES (protectAdmin)
+//  ADMIN ROUTES
 // ─────────────────────────────────────────────────────────────────────────────
 
-// GET /api/course-content
-// List all courses (no full content — just meta + section headers)
 router.get('/', protectAdmin, async (req, res) => {
   try {
     const courses = await CourseContent.find(
@@ -70,8 +78,6 @@ router.get('/', protectAdmin, async (req, res) => {
   }
 });
 
-// POST /api/course-content
-// Create a new course with empty sections
 router.post('/', protectAdmin, async (req, res) => {
   try {
     const { examName, courseName, unlockHours, sections } = req.body;
@@ -100,12 +106,9 @@ router.post('/', protectAdmin, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  STUDENT ROUTES (protect)
-//  *** MUST be defined BEFORE /:examName to avoid route conflict ***
+//  STUDENT ROUTES — MUST be BEFORE /:examName
 // ─────────────────────────────────────────────────────────────────────────────
 
-// GET /api/course-content/student/:examName
-// Returns section content for a student (checks enrollment)
 router.get('/student/:examName', protect, async (req, res) => {
   try {
     const { studentId, bundleId } = req.query;
@@ -113,7 +116,6 @@ router.get('/student/:examName', protect, async (req, res) => {
       return res.status(400).json({ message: 'studentId and bundleId required' });
     }
 
-    // Verify student is enrolled
     const course = await Course.findOne({ studentId, bundleId }).lean();
     if (!course) return res.status(403).json({ message: 'Not enrolled' });
 
@@ -122,7 +124,6 @@ router.get('/student/:examName', protect, async (req, res) => {
     }).lean();
     if (!content) return res.status(404).json({ message: 'Course content not found' });
 
-    // Get quiz progress for this exam
     const quizProgress = course.quizProgress
       ? (course.quizProgress instanceof Map
           ? Object.fromEntries(course.quizProgress)
@@ -130,11 +131,10 @@ router.get('/student/:examName', protect, async (req, res) => {
       : {};
 
     const examProgress = quizProgress[req.params.examName] || {
-      sectionsRead:      [],
-      quizzesCompleted:  [],
+      sectionsRead:     [],
+      quizzesCompleted: [],
     };
 
-    // Check exam availability
     const examAvailableAt = course.examAvailableAt
       ? (course.examAvailableAt instanceof Map
           ? Object.fromEntries(course.examAvailableAt)
@@ -145,7 +145,6 @@ router.get('/student/:examName', protect, async (req, res) => {
     const examUnlocked   = availableAt ? new Date() >= new Date(availableAt) : false;
     const allQuizzesDone = examProgress.quizzesCompleted.length >= content.sections.length;
 
-    // Strip quiz correct answers from section data for student
     const sectionsForStudent = content.sections.map(s => ({
       sectionNumber: s.sectionNumber,
       title:         s.title,
@@ -154,7 +153,6 @@ router.get('/student/:examName', protect, async (req, res) => {
       quizQuestions: s.quiz.map(q => ({
         _id:      q._id,
         question: q.question,
-        // correctAnswer intentionally NOT exposed to student
       })),
       isRead:        examProgress.sectionsRead.includes(s.sectionNumber),
       quizCompleted: examProgress.quizzesCompleted.includes(s.sectionNumber),
@@ -175,8 +173,6 @@ router.get('/student/:examName', protect, async (req, res) => {
   }
 });
 
-// POST /api/course-content/student/:examName/mark-read
-// Mark a section as read
 router.post('/student/:examName/mark-read', protect, async (req, res) => {
   try {
     const { studentId, bundleId, sectionNumber } = req.body;
@@ -205,12 +201,9 @@ router.post('/student/:examName/mark-read', protect, async (req, res) => {
   }
 });
 
-// POST /api/course-content/student/:examName/submit-quiz
-// Submit quiz answers for a section, get back results
 router.post('/student/:examName/submit-quiz', protect, async (req, res) => {
   try {
     const { studentId, bundleId, sectionNumber, answers } = req.body;
-    // answers: { [questionIndex]: true | false }
     if (!studentId || !bundleId || !sectionNumber || !answers) {
       return res.status(400).json({ message: 'studentId, bundleId, sectionNumber, answers required' });
     }
@@ -218,7 +211,6 @@ router.post('/student/:examName/submit-quiz', protect, async (req, res) => {
     const course = await Course.findOne({ studentId, bundleId });
     if (!course) return res.status(403).json({ message: 'Not enrolled' });
 
-    // Get quiz for this section
     const content = await CourseContent.findOne({
       examName: { $regex: `^${req.params.examName}$`, $options: 'i' }
     }).lean();
@@ -227,20 +219,18 @@ router.post('/student/:examName/submit-quiz', protect, async (req, res) => {
     const section = content.sections.find(s => s.sectionNumber === parseInt(sectionNumber));
     if (!section) return res.status(404).json({ message: 'Section not found' });
 
-    // Grade quiz (True/False)
     const results = section.quiz.map((q, idx) => {
-      const studentAnswer = answers[idx]; // true | false
+      const studentAnswer = answers[idx];
       const isCorrect     = studentAnswer === q.correctAnswer;
       return {
         question:      q.question,
         studentAnswer,
         correctAnswer: q.correctAnswer,
         isCorrect,
-        pageRef:       isCorrect ? null : q.pageRef, // show page ref only for wrong answers
+        pageRef:       isCorrect ? null : q.pageRef,
       };
     });
 
-    // Mark quiz as completed regardless of score (DRE: no minimum score for quizzes)
     const qp = course.quizProgress instanceof Map
       ? Object.fromEntries(course.quizProgress)
       : (course.quizProgress || {});
@@ -251,15 +241,13 @@ router.post('/student/:examName/submit-quiz', protect, async (req, res) => {
       qp[examKey].quizzesCompleted.push(parseInt(sectionNumber));
     }
 
-    // Check if all quizzes for this exam are now done + set examAvailableAt
-    const totalSections = content.sections.length;
-    const allDone       = qp[examKey].quizzesCompleted.length >= totalSections;
+    const totalSections   = content.sections.length;
+    const allDone         = qp[examKey].quizzesCompleted.length >= totalSections;
 
     const examAvailableAt = course.examAvailableAt instanceof Map
       ? Object.fromEntries(course.examAvailableAt)
       : (course.examAvailableAt || {});
 
-    // Only set availableAt once (don't overwrite)
     if (allDone && !examAvailableAt[examKey]) {
       const enrolledAt  = course.enrolledAt || course.createdAt || new Date();
       const unlockHours = content.unlockHours || getUnlockHours(examKey);
@@ -285,12 +273,100 @@ router.post('/student/:examName/submit-quiz', protect, async (req, res) => {
   }
 });
 
+// POST /api/course-content/extract-pdf
+// Splits PDF by "Review for Section #N" markers — no AI needed
+router.post('/extract-pdf', protectAdmin, upload.single('pdf'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No PDF file uploaded' });
+
+    // Extract raw text
+    const pdfText = await new Promise((resolve, reject) => {
+      const parser = new PDFParser(null, 1);
+      parser.on('pdfParser_dataReady', () => resolve(parser.getRawTextContent()));
+      parser.on('pdfParser_dataError', reject);
+      parser.parseBuffer(req.file.buffer);
+    });
+
+    if (!pdfText || pdfText.trim().length < 100) {
+      return res.status(400).json({
+        message: 'Could not extract text from PDF. Make sure it is not a scanned image PDF.',
+      });
+    }
+
+    const lines = pdfText.split('\n').map(l => l.trim()).filter(Boolean);
+    const sections = [];
+
+    // Find all "Review for Section #N" marker indexes
+    const reviewIndexes = [];
+    lines.forEach((line, i) => {
+      if (/^\*{0,3}\s*review for section #\d/i.test(line)) {
+        reviewIndexes.push(i);
+      }
+    });
+
+    if (reviewIndexes.length >= 1) {
+      // Each section = content up to the NEXT review marker
+      // Section 1: lines[0] → lines[reviewIndex[1]-1]  (includes quiz of section 1 at reviewIndex[0])
+      // Section 2: lines[reviewIndex[1]] → lines[reviewIndex[2]-1]
+      // etc.
+      const breakPoints = [0, ...reviewIndexes.slice(1), lines.length];
+
+      for (let i = 0; i < breakPoints.length - 1; i++) {
+        const chunk = lines.slice(breakPoints[i], breakPoints[i + 1]);
+
+        // Find the review/quiz marker inside this chunk
+        const quizStart = chunk.findIndex(l =>
+          /^\*{0,3}\s*review for section #\d/i.test(l)
+        );
+
+        // Content = everything before the quiz marker (or all if no marker in this chunk)
+        const contentLines = quizStart >= 0 ? chunk.slice(0, quizStart) : chunk;
+
+        // Quiz questions = numbered lines after the marker
+        const qBlock = quizStart >= 0 ? chunk.slice(quizStart + 1) : [];
+        const quizQuestions = qBlock
+          .filter(l => /^\d+\./.test(l))
+          .map(q => ({
+            question:      q.replace(/^\d+\.\s*/, '').trim(),
+            correctAnswer: true,
+            pageRef:       '',
+          }));
+
+        sections.push({
+          title:         `Section ${i + 1}`,
+          pageRange:     '',
+          content:       `<p>${contentLines.join('</p><p>')}</p>`,
+          quizQuestions,
+        });
+      }
+    }
+
+    // Fallback: equal 3-part split if no markers found
+    if (sections.length === 0) {
+      const third = Math.ceil(lines.length / 3);
+      for (let i = 0; i < 3; i++) {
+        const chunk = lines.slice(i * third, (i + 1) * third);
+        sections.push({
+          title:         `Section ${i + 1}`,
+          pageRange:     '',
+          content:       `<p>${chunk.join('</p><p>')}</p>`,
+          quizQuestions: [],
+        });
+      }
+    }
+
+    res.json({ sections });
+
+  } catch (err) {
+    console.error('PDF extract error:', err);
+    res.status(500).json({ message: err.message || 'Failed to process PDF' });
+  }
+});
+
 // ─────────────────────────────────────────────────────────────────────────────
-//  ADMIN /:examName ROUTES — MUST be AFTER all /student/* routes
+//  ADMIN /:examName ROUTES — MUST be AFTER /student/* and /extract-pdf
 // ─────────────────────────────────────────────────────────────────────────────
 
-// GET /api/course-content/:examName
-// Full course detail with content + quiz (admin only)
 router.get('/:examName', protectAdmin, async (req, res) => {
   try {
     const course = await CourseContent.findOne({
@@ -303,8 +379,6 @@ router.get('/:examName', protectAdmin, async (req, res) => {
   }
 });
 
-// PUT /api/course-content/:examName/sections/:sectionNumber
-// Update a section's content + quiz (admin only)
 router.put('/:examName/sections/:sectionNumber', protectAdmin, async (req, res) => {
   try {
     const course = await CourseContent.findOne({
@@ -313,8 +387,7 @@ router.put('/:examName/sections/:sectionNumber', protectAdmin, async (req, res) 
     if (!course) return res.status(404).json({ message: 'Course not found' });
 
     const sectionNum = parseInt(req.params.sectionNumber);
-    const idx = course.sections.findIndex(s => s.sectionNumber === sectionNum);
-
+    const idx        = course.sections.findIndex(s => s.sectionNumber === sectionNum);
     const { title, pageRange, content, quiz } = req.body;
 
     if (idx === -1) {
@@ -333,7 +406,6 @@ router.put('/:examName/sections/:sectionNumber', protectAdmin, async (req, res) 
   }
 });
 
-// DELETE /api/course-content/:examName (admin only)
 router.delete('/:examName', protectAdmin, async (req, res) => {
   try {
     await CourseContent.findOneAndDelete({

@@ -120,123 +120,6 @@ const SvgIcon = ({ d, size = 15 }) => (
   </svg>
 );
 
-// ── Sign Out Confirmation Modal ────────────────────────────────
-const SignOutModal = ({ onConfirm, onCancel }) => (
-  <div style={m.overlay}>
-    <div style={m.modal}>
-      {/* Icon */}
-      <div style={m.iconWrap}>
-        <span style={{ color: '#EF4444', display: 'flex' }}>
-          <SvgIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" size={28} />
-        </span>
-      </div>
-
-      {/* Text */}
-      <h2 style={m.title}>Sign Out?</h2>
-      <p style={m.body}>
-        Are you sure you want to end your session?<br />
-        Any unsaved changes may be lost.
-      </p>
-
-      {/* Actions */}
-      <div style={m.actions}>
-        <button onClick={onCancel} style={m.cancelBtn}>
-          Cancel
-        </button>
-        <button onClick={onConfirm} style={m.confirmBtn}>
-          <SvgIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" size={14} />
-          Yes, Sign Out
-        </button>
-      </div>
-    </div>
-  </div>
-);
-
-const m = {
-  overlay: {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(9,25,37,0.55)',
-    backdropFilter: 'blur(3px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 99999,
-    animation: 'fadeIn 0.15s ease',
-  },
-  modal: {
-    background: '#fff',
-    borderRadius: 14,
-    padding: '32px 28px 24px',
-    width: 340,
-    boxShadow: '0 24px 60px rgba(0,0,0,0.18)',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    textAlign: 'center',
-    animation: 'fadeIn 0.2s ease',
-  },
-  iconWrap: {
-    width: 60,
-    height: 60,
-    borderRadius: '50%',
-    background: 'rgba(239,68,68,0.1)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: 700,
-    color: '#091925',
-    fontFamily: "'Poppins', sans-serif",
-    marginBottom: 8,
-  },
-  body: {
-    fontSize: 13,
-    color: '#64748b',
-    lineHeight: '1.6',
-    fontFamily: "'Poppins', sans-serif",
-    marginBottom: 24,
-  },
-  actions: {
-    display: 'flex',
-    gap: 10,
-    width: '100%',
-  },
-  cancelBtn: {
-    flex: 1,
-    padding: '10px 0',
-    borderRadius: 8,
-    border: '1px solid #e2e8f0',
-    background: '#f8fafc',
-    color: '#475569',
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: 'pointer',
-    fontFamily: "'Poppins', sans-serif",
-    transition: 'background 0.15s',
-  },
-  confirmBtn: {
-    flex: 1,
-    padding: '10px 0',
-    borderRadius: 8,
-    border: 'none',
-    background: '#EF4444',
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: 'pointer',
-    fontFamily: "'Poppins', sans-serif",
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    transition: 'background 0.15s',
-  },
-};
-
 const AppLayout = ({ children, badges = {} }) => {
   const { logout } = useAuth();
   const location = useLocation();
@@ -248,9 +131,6 @@ const AppLayout = ({ children, badges = {} }) => {
   // Search state
   const [navSearch, setNavSearch] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-
-  // Sign out confirmation modal state
-  const [showSignOutModal, setShowSignOutModal] = useState(false);
 
   useEffect(() => {
     const tick = () => {
@@ -277,18 +157,10 @@ const AppLayout = ({ children, badges = {} }) => {
     return 'Good Evening';
   };
 
-  // Open modal instead of signing out directly
-  const handleSignOutClick = () => setShowSignOutModal(true);
-
-  // Confirmed — actually sign out
-  const handleConfirmSignOut = () => {
-    setShowSignOutModal(false);
+  const handleLogout = () => {
     logout();
     navigate('/admin/login', { replace: true });
   };
-
-  // Cancelled — close modal
-  const handleCancelSignOut = () => setShowSignOutModal(false);
 
   // Flatten NAV for searching
   const ALL_ROUTES = useMemo(
@@ -347,14 +219,7 @@ const AppLayout = ({ children, badges = {} }) => {
         @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
         .main-content > * { animation: fadeIn 0.3s ease forwards; }
         .sign-out-btn:hover { background: rgba(239,68,68,0.08) !important; }
-        .modal-cancel-btn:hover { background: #f1f5f9 !important; }
-        .modal-confirm-btn:hover { background: #dc2626 !important; }
       `}</style>
-
-      {/* ── SIGN OUT CONFIRMATION MODAL ── */}
-      {showSignOutModal && (
-        <SignOutModal onConfirm={handleConfirmSignOut} onCancel={handleCancelSignOut} />
-      )}
 
       {/* ── TOP NAVBAR ── */}
       <header style={s.topNav}>
@@ -366,7 +231,7 @@ const AppLayout = ({ children, badges = {} }) => {
             <div style={s.avatar}>AU</div>
             <span style={s.avatarName}>Adminizer</span>
           </div>
-          <button onClick={handleSignOutClick} style={s.signOutBtn}>
+          <button onClick={handleLogout} style={s.signOutBtn}>
             <SvgIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" size={14} />
             Sign Out
           </button>
@@ -554,7 +419,7 @@ const AppLayout = ({ children, badges = {} }) => {
           {sidebarOpen ? (
             <div style={{ padding: '8px 12px 12px' }}>
               <button
-                onClick={handleSignOutClick}
+                onClick={handleLogout}
                 className="sign-out-btn"
                 style={{
                   display: 'flex',
@@ -588,7 +453,7 @@ const AppLayout = ({ children, badges = {} }) => {
             </div>
           ) : (
             <button
-              onClick={handleSignOutClick}
+              onClick={handleLogout}
               className="sign-out-btn"
               style={{
                 display: 'flex',
@@ -787,6 +652,7 @@ const s = {
     flexShrink: 0,
   },
 
+  // Sidebar search styles
   sideSearchWrap: {
     position: 'relative',
     flex: 1,
