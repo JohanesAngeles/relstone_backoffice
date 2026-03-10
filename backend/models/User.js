@@ -1,20 +1,19 @@
-// models/User.js
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { webDB } = require('../config/db');
 
 const userSchema = new mongoose.Schema({
-  // ── Auth fields ──────────────────────────────────────────
+  // ── Auth fields ──────────────────────────────────────────────────────────
   firstName: {
-  type: String,
-  required: [true, 'First name is required'],
-  trim: true,
-    },
-    lastName: {
+    type: String,
+    required: [true, 'First name is required'],
+    trim: true,
+  },
+  lastName: {
     type: String,
     required: [true, 'Last name is required'],
     trim: true,
-    },
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -22,6 +21,10 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
+  googleId: {
+  type: String,
+  default: null,
+},
   password: {
     type: String,
     required: [true, 'Password is required'],
@@ -36,15 +39,21 @@ const userSchema = new mongoose.Schema({
   resetPasswordCode: String,
   resetPasswordExpires: Date,
 
-  // ── Role ─────────────────────────────────────────────────
+  // ── Role ──────────────────────────────────────────────────────────────────
   role: {
     type: String,
     enum: ['student', 'admin'],
     default: 'student',
   },
 
-  // ── Link to Admin DB student record (if exists) ──────────
+  // ── Link to Admin DB student record (if exists) ──────────────────────────
   adminStudentId: {
+    type: String,
+    default: null,
+  },
+
+  // ── Google OAuth ──────────────────────────────────────────────────────────
+  googleId: {
     type: String,
     default: null,
   },
