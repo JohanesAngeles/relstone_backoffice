@@ -1,6 +1,14 @@
-import { Link } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
-import { FaSearch, FaShoppingCart, FaChevronDown, FaSignOutAlt } from 'react-icons/fa';
+// frontend/src/components/common/Header.jsx
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import {
+  FaSearch,
+  FaShoppingCart,
+  FaChevronDown,
+  FaSignOutAlt,
+  FaTag,
+  FaTimes,
+} from 'react-icons/fa';
 import logo from '../../assets/images/Left Side Logo.png';
 import AuthModal from './AuthModal';
 import useCart from '../../context/useCart';
@@ -15,15 +23,11 @@ const INSURANCE_STATES = [
   'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon',
   'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
   'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington',
-  'West Virginia', 'Wisconsin', 'Wyoming'
+  'West Virginia', 'Wisconsin', 'Wyoming',
 ];
 
 const NAV_ITEMS = [
-  {
-    label: 'States',
-    to: '/insurance',
-    isStatesNav: true,
-  },
+  { label: 'States', to: '/insurance', isStatesNav: true },
   {
     label: 'California Real Estate',
     to: '/real-estate',
@@ -50,17 +54,47 @@ const NAV_ITEMS = [
   { label: 'Contact Us', to: '/contact' },
 ];
 
-/* ── States full-width dropdown ── */
+const slugify = (text) => text.toLowerCase().trim().replace(/\s+/g, '-');
+
+const highlightText = (text, q) => {
+  if (!q) return text;
+  const lower = text.toLowerCase();
+  const query = q.toLowerCase();
+  const idx = lower.indexOf(query);
+  if (idx === -1) return text;
+  const a = text.slice(0, idx);
+  const b = text.slice(idx, idx + q.length);
+  const c = text.slice(idx + q.length);
+  return (
+    <>
+      {a}
+      <mark className="site-header__search-mark">{b}</mark>
+      {c}
+    </>
+  );
+};
+
+const COURSE_INDEX = (() => {
+  const items = [];
+  const push = (label, to) => items.push({ id: `${to}-${label}`, name: label, to });
+  NAV_ITEMS.forEach((item) => {
+    if (item.dropdown?.length) {
+      item.dropdown.forEach((sub) => push(sub.label, sub.to));
+    } else if (!item.isStatesNav) {
+      push(item.label, item.to);
+    }
+  });
+  const uniq = new Map();
+  items.forEach((x) => { if (!uniq.has(x.to)) uniq.set(x.to, x); });
+  return Array.from(uniq.values());
+})();
+
 const StatesDropdown = () => (
   <div className="site-header__dropdown site-header__dropdown--states">
     <p className="site-header__states-label">Select a State</p>
     <div className="site-header__states-grid">
       {INSURANCE_STATES.map((state) => (
-        <Link
-          key={state}
-          to={`/insurance/${state.toLowerCase().replace(/\s+/g, '-')}`}
-          className="site-header__state-pill"
-        >
+        <Link key={state} to={`/insurance/${slugify(state)}`} className="site-header__state-pill">
           {state}
         </Link>
       ))}
@@ -68,7 +102,6 @@ const StatesDropdown = () => (
   </div>
 );
 
-/* ── Regular dropdown ── */
 const DropdownMenu = ({ items }) => (
   <div className="site-header__dropdown">
     {items.map((item) => (
@@ -79,7 +112,6 @@ const DropdownMenu = ({ items }) => (
   </div>
 );
 
-/* ── Nav item ── */
 const NavItem = ({ item }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -101,6 +133,7 @@ const NavItem = ({ item }) => {
         onMouseLeave={() => setOpen(false)}
       >
         <button
+          type="button"
           className="site-header__nav-link site-header__nav-link--dropdown-trigger"
           onClick={() => setOpen((v) => !v)}
         >
@@ -113,7 +146,11 @@ const NavItem = ({ item }) => {
   }
 
   if (!item.dropdown) {
-    return <Link to={item.to} className="site-header__nav-link">{item.label}</Link>;
+    return (
+      <Link to={item.to} className="site-header__nav-link">
+        {item.label}
+      </Link>
+    );
   }
 
   return (
@@ -124,6 +161,7 @@ const NavItem = ({ item }) => {
       onMouseLeave={() => setOpen(false)}
     >
       <button
+        type="button"
         className="site-header__nav-link site-header__nav-link--dropdown-trigger"
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="true"
@@ -137,11 +175,11 @@ const NavItem = ({ item }) => {
   );
 };
 
-/* ── User avatar with dropdown ── */
 const UserAvatar = ({ user, onLogout }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
-  const initials = user.name
+
+  const initials = (user?.name || 'U')
     .split(' ')
     .map((n) => n[0])
     .join('')
@@ -159,12 +197,14 @@ const UserAvatar = ({ user, onLogout }) => {
   return (
     <div ref={ref} className="site-header__user-wrap">
       <button
+        type="button"
         className="site-header__avatar"
         onClick={() => setOpen((v) => !v)}
         aria-label="User menu"
       >
         {initials}
       </button>
+
       {open && (
         <div className="site-header__user-dropdown">
           <div className="site-header__user-info">
@@ -179,7 +219,11 @@ const UserAvatar = ({ user, onLogout }) => {
             My Courses
           </Link>
           <div className="site-header__user-divider" />
-          <button className="site-header__user-item site-header__user-logout" onClick={onLogout}>
+          <button
+            type="button"
+            className="site-header__user-item site-header__user-logout"
+            onClick={onLogout}
+          >
             <FaSignOutAlt /> Sign Out
           </button>
         </div>
@@ -188,35 +232,153 @@ const UserAvatar = ({ user, onLogout }) => {
   );
 };
 
-/* ── Cart Icon (always visible) ── */
 const CartIcon = () => {
-  const { cartCount } = useCart();
+  const { cartItems, cartTotal, cartCount, removeFromCart } = useCart();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const leaveTimer = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const handleMouseEnter = () => { clearTimeout(leaveTimer.current); setOpen(true); };
+  const handleMouseLeave = () => { leaveTimer.current = setTimeout(() => setOpen(false), 150); };
+
   return (
-    <Link to="/cart" className="site-header__action-btn site-header__cart">
-      <FaShoppingCart />
-      {cartCount > 0 && (
-        <span className="site-header__cart-badge">{cartCount}</span>
+    <div
+      ref={ref}
+      className="site-header__cart-wrap"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <Link to="/cart" className="site-header__action-btn site-header__cart">
+        <FaShoppingCart />
+        {cartCount > 0 && <span className="site-header__cart-badge">{cartCount}</span>}
+      </Link>
+
+      {open && (
+        <div className="cart-preview">
+          <div className="cart-preview__caret" />
+          <div className="cart-preview__head">
+            <span className="cart-preview__title">Your Cart</span>
+            {cartCount > 0 && (
+              <span className="cart-preview__badge">{cartCount} item{cartCount !== 1 ? 's' : ''}</span>
+            )}
+          </div>
+
+          {cartItems.length === 0 ? (
+            <div className="cart-preview__empty">
+              <FaShoppingCart className="cart-preview__empty-icon" />
+              <p className="cart-preview__empty-text">Your cart is empty</p>
+              <Link to="/insurance/renew" className="cart-preview__browse-btn">Browse Courses</Link>
+            </div>
+          ) : (
+            <>
+              <div className="cart-preview__items">
+                {cartItems.map((item) => {
+                  const lineTotal = item.price + (item.withTextbook ? item.textbookPrice || 0 : 0);
+                  return (
+                    <div key={item.id} className="cart-preview__item">
+                      <div className="cart-preview__item-info">
+                        <span className={`cart-preview__item-badge cart-preview__item-badge--${item.type}`}>
+                          {item.type === 'package' ? 'Package' : 'Course'}
+                        </span>
+                        <span className="cart-preview__item-name" title={item.name}>{item.name}</span>
+                        {item.creditHours > 0 && (
+                          <span className="cart-preview__item-hours"><FaTag /> {item.creditHours} hrs</span>
+                        )}
+                        {item.withTextbook && (
+                          <span className="cart-preview__item-textbook">+ Printed Textbook</span>
+                        )}
+                      </div>
+                      <div className="cart-preview__item-right">
+                        <span className="cart-preview__item-price">${lineTotal.toFixed(2)}</span>
+                        <button
+                          type="button"
+                          className="cart-preview__item-remove"
+                          onClick={(e) => { e.preventDefault(); removeFromCart(item.id); }}
+                          aria-label={`Remove ${item.name}`}
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="cart-preview__footer">
+                <div className="cart-preview__total">
+                  <span>Total</span>
+                  <strong>${cartTotal.toFixed(2)}</strong>
+                </div>
+                <div className="cart-preview__actions">
+                  <Link to="/cart" className="cart-preview__btn cart-preview__btn--ghost">View Cart</Link>
+                  <Link to="/checkout" className="cart-preview__btn cart-preview__btn--solid">Checkout</Link>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       )}
-    </Link>
+    </div>
   );
 };
 
-/* ── Header ── */
-const Header = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [mobileOpenItem, setMobileOpenItem] = useState(null);
-  const [mobileStatesOpen, setMobileStatesOpen] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-  const [user, setUser] = useState(null);
+// ── CHANGED: now accepts user/onLogin/onLogout as props from App.jsx ──────────
+const Header = ({ user, onLogin, onLogout }) => {
+  const navigate = useNavigate();
 
-  const handleLogin = (userData) => setUser(userData);
-  const handleLogout = () => setUser(null);
+  const [isMenuOpen, setIsMenuOpen]                   = useState(false);
+  const [searchQuery, setSearchQuery]                 = useState('');
+  const [showSearchDropdown, setShowSearchDropdown]   = useState(false);
+  const [mobileOpenItem, setMobileOpenItem]           = useState(null);
+  const [mobileStatesOpen, setMobileStatesOpen]       = useState(false);
+  const [showAuthModal, setShowAuthModal]             = useState(false);
+  const [authMode, setAuthMode]                       = useState('login');
+
+  const searchRef = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target))
+        setShowSearchDropdown(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const q = searchQuery.trim();
+
+  const { matchedStates, matchedCourses } = useMemo(() => {
+    if (!q) return { matchedStates: [], matchedCourses: [] };
+    const qq = q.toLowerCase();
+    const ms = INSURANCE_STATES.filter((s) => s.toLowerCase().includes(qq)).slice(0, 10);
+    const mc = COURSE_INDEX.filter((c) => c.name.toLowerCase().includes(qq)).slice(0, 10);
+    return { matchedStates: ms, matchedCourses: mc };
+  }, [q]);
+
+  const hasResults = matchedStates.length > 0 || matchedCourses.length > 0;
+
+  const goToState = (state) => {
+    setShowSearchDropdown(false);
+    setSearchQuery('');
+    navigate(`/insurance/${slugify(state)}`);
+  };
+
+  const goToCourse = (course) => {
+    setShowSearchDropdown(false);
+    setSearchQuery('');
+    navigate(course.to);
+  };
 
   return (
     <>
       <header className="site-header">
-        {/* Top Bar */}
         <div className="site-header__top">
           <div className="site-header__container">
             <div className="site-header__top-content">
@@ -224,37 +386,62 @@ const Header = () => {
                 <img src={logo} alt="Relstone Logo" className="site-header__logo-image" />
               </Link>
 
-              <div className="site-header__search">
+              <div className="site-header__search" ref={searchRef}>
                 <FaSearch className="site-header__search-icon" />
                 <input
                   type="text"
-                  placeholder="Search courses..."
+                  placeholder="Search states or courses..."
                   className="site-header__search-input"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setShowSearchDropdown(true); }}
+                  onFocus={() => setShowSearchDropdown(true)}
                 />
+                {showSearchDropdown && q && (
+                  <div className="site-header__search-dropdown" role="listbox">
+                    {!hasResults && (
+                      <div className="site-header__search-empty">No results for "{q}"</div>
+                    )}
+                    {matchedStates.length > 0 && (
+                      <div className="site-header__search-section">
+                        <div className="site-header__search-section-title">States</div>
+                        {matchedStates.map((state) => (
+                          <button key={state} type="button" className="site-header__search-item" onClick={() => goToState(state)}>
+                            {highlightText(state, q)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {matchedCourses.length > 0 && (
+                      <div className="site-header__search-section">
+                        <div className="site-header__search-section-title">Courses</div>
+                        {matchedCourses.map((course) => (
+                          <button key={course.id} type="button" className="site-header__search-item" onClick={() => goToCourse(course)}>
+                            {highlightText(course.name, q)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* ── Actions ── */}
               <div className="site-header__actions">
                 <span className="site-header__language">🇺🇸 USD</span>
-
-                {/* Cart is always visible */}
                 <CartIcon />
-
+                {/* ── CHANGED: use props instead of local state ── */}
                 {user ? (
-                  <UserAvatar user={user} onLogout={handleLogout} />
+                  <UserAvatar user={user} onLogout={onLogout} />
                 ) : (
                   <>
                     <button
                       className="site-header__auth-btn site-header__auth-btn--ghost"
-                      onClick={() => setShowAuthModal(true)}
+                      onClick={() => { setAuthMode('login'); setShowAuthModal(true); }}
                     >
                       Log In
                     </button>
                     <button
                       className="site-header__auth-btn site-header__auth-btn--solid"
-                      onClick={() => setShowAuthModal(true)}
+                      onClick={() => { setAuthMode('register'); setShowAuthModal(true); }}
                     >
                       Sign Up
                     </button>
@@ -273,7 +460,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Bottom Navigation Bar */}
         <div className="site-header__bottom">
           <div className="site-header__container">
             <nav className="site-header__nav" aria-label="Main navigation">
@@ -284,7 +470,6 @@ const Header = () => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="site-header__mobile-menu">
             <div className="site-header__container">
@@ -294,6 +479,7 @@ const Header = () => {
                     {item.isStatesNav ? (
                       <>
                         <button
+                          type="button"
                           className="site-header__nav-link-mobile site-header__nav-link-mobile--trigger"
                           onClick={() => setMobileStatesOpen((v) => !v)}
                         >
@@ -305,7 +491,7 @@ const Header = () => {
                             {INSURANCE_STATES.map((state) => (
                               <Link
                                 key={state}
-                                to={`/insurance/${state.toLowerCase().replace(/\s+/g, '-')}`}
+                                to={`/insurance/${slugify(state)}`}
                                 className="site-header__mobile-state-item"
                                 onClick={() => setIsMenuOpen(false)}
                               >
@@ -318,15 +504,12 @@ const Header = () => {
                     ) : item.dropdown ? (
                       <>
                         <button
+                          type="button"
                           className="site-header__nav-link-mobile site-header__nav-link-mobile--trigger"
-                          onClick={() =>
-                            setMobileOpenItem(mobileOpenItem === item.to ? null : item.to)
-                          }
+                          onClick={() => setMobileOpenItem(mobileOpenItem === item.to ? null : item.to)}
                         >
                           {item.label}
-                          <FaChevronDown
-                            className={`site-header__chevron${mobileOpenItem === item.to ? ' site-header__chevron--open' : ''}`}
-                          />
+                          <FaChevronDown className={`site-header__chevron${mobileOpenItem === item.to ? ' site-header__chevron--open' : ''}`} />
                         </button>
                         {mobileOpenItem === item.to && (
                           <div className="site-header__mobile-dropdown">
@@ -355,27 +538,30 @@ const Header = () => {
                   </div>
                 ))}
 
-                {/* Mobile auth */}
+                {/* ── CHANGED: use props instead of local state ── */}
                 {!user ? (
                   <div className="site-header__mobile-auth">
                     <button
+                      type="button"
                       className="site-header__auth-btn site-header__auth-btn--ghost site-header__auth-btn--full"
-                      onClick={() => { setShowAuthModal(true); setIsMenuOpen(false); }}
+                      onClick={() => { setAuthMode('login'); setShowAuthModal(true); setIsMenuOpen(false); }}
                     >
                       Log In
                     </button>
                     <button
+                      type="button"
                       className="site-header__auth-btn site-header__auth-btn--solid site-header__auth-btn--full"
-                      onClick={() => { setShowAuthModal(true); setIsMenuOpen(false); }}
+                      onClick={() => { setAuthMode('register'); setShowAuthModal(true); setIsMenuOpen(false); }}
                     >
                       Sign Up
                     </button>
                   </div>
                 ) : (
                   <button
+                    type="button"
                     className="site-header__nav-link-mobile"
                     style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%', padding: '0.75rem 0', fontWeight: 500 }}
-                    onClick={handleLogout}
+                    onClick={onLogout}
                   >
                     Sign Out
                   </button>
@@ -386,11 +572,11 @@ const Header = () => {
         )}
       </header>
 
-      {/* Auth Modal */}
       {showAuthModal && (
         <AuthModal
+          mode={authMode}
           onClose={() => setShowAuthModal(false)}
-          onLogin={handleLogin}
+          onLogin={onLogin}
         />
       )}
     </>

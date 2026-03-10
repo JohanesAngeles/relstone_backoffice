@@ -12,6 +12,21 @@ import BackOffice from './pages/real_estate/BackOffice';
 import TranscriptPage from './pages/real_estate/Transcriptpage';
 
 import ExamData from './pages/exam_data/ExamData';
+import CertificatePage from './pages/real_estate/CertificatePage';
+import CECCoursesPage from './pages/cec_courses/CECCoursesPage';
+import CECBackOffice from './pages/cec_courses/CECBackOffice';
+
+import CECStudentDetail from './pages/cec_courses/CECStudentDetail';
+import CECCertificatePage from './pages/cec_courses/CECCertificatePage';
+
+import SecureOrders from './pages/real_estate/SecureOrders';
+import AddStudent from './pages/real_estate/AddStudent';
+import AddExamPage from './pages/real_estate/AddExamPage';
+
+import RelsCMSDashboard from './pages/real_estate/RelsCMSDashboard';
+import ExamAnswerKeyPage  from './pages/real_estate/ExamAnswerKeyPage';
+
+
 
 
 function App() {
@@ -55,6 +70,29 @@ function App() {
           <Route path="/admin/exam-data" element={
             <ProtectedRoute><ExamData /></ProtectedRoute>
           } />
+
+          <Route path="/admin/certificate/:studentId/:courseIndex" element={<CertificatePage />} />
+
+          <Route path="/admin/cec-courses" element={<CECCoursesPage />} />
+
+          <Route path="/admin/cec-courses/online-exam/backoffice" element={<CECBackOffice />} />
+
+          <Route path="/admin/cec-students/:id" element={<CECStudentDetail />} />
+
+          <Route path="/admin/cec-certificate/:studentId/:courseIndex" element={<CECCertificatePage />} />
+
+          <Route path="/admin/real-estate/secure-orders" element={<SecureOrders />} />
+
+          <Route path="/admin/real-estate/online-exam/backoffice/add-student" element={<AddStudent />} />
+
+          <Route path="/admin/real-estate/online-exam/backoffice/student/:id/add-exam" element={<AddExamPage />} />
+
+          <Route path="/admin/real-estate/online-exam/rels-cms" element={
+            <ProtectedRoute><RelsCMSDashboard /></ProtectedRoute>
+          } />
+
+          <Route path="/admin/real-estate/online-exam/rels-cms/exam-banks/:bundleId" element={<ExamAnswerKeyPage />} />
+
 
         </Routes>
       </BrowserRouter>

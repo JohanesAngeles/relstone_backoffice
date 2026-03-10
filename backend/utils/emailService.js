@@ -54,4 +54,83 @@ const sendPasswordResetEmail = async (email, code) => {
   });
 };
 
-module.exports = { generateCode, sendVerificationEmail, sendPasswordResetEmail };
+// Send Affidavit Ready email
+const sendAffidavitEmail = async ({ email, firstName, password }) => {
+  await transporter.sendMail({
+    from: `"C.E. Credits / Cal-State Exams" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Your Affidavit Has Been Processed',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 32px;">
+        <p style="margin: 0 0 12px;"><strong>${firstName},</strong></p>
+        <p style="margin: 0 0 12px;">We have processed your Affidavits(s)</p>
+        <p style="margin: 0 0 12px;">
+          Now you may go back to our website:
+          <a href="https://relstoneexams.com/relsexsys/" style="color: #2563eb;">relstoneexams.com/relsexsys/</a>
+          and log in using your password.
+        </p>
+        <p style="margin: 0 0 12px;">Please go ahead and print your <strong>Completion Certificate</strong>.</p>
+        <p style="margin: 0 0 12px;">Thank You,</p>
+        <p style="margin: 0; color: #374151;">
+          -- C.E. Credits / Cal-State Exams<br/>
+          -- A California School Since 1978
+        </p>
+      </div>
+    `,
+  });
+};
+
+// Send Password Link email
+const sendPasswordLinkEmail = async ({ email, firstName, password }) => {
+  await transporter.sendMail({
+    from: `"RELSTONE" <${process.env.EMAIL_USER}>`,
+    to: email,
+    subject: 'Your RELSTONE Login Information',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 32px;">
+        <p style="margin: 0 0 12px;"><strong>${firstName},</strong></p>
+
+        <p style="margin: 0 0 12px;">Thank you for Registering for your Online C.E. Examinations.</p>
+
+        <p style="margin: 0 0 12px;">
+          To access your materials, go to:
+          <a href="https://relstoneexams.com/relsexsys/" style="color: #2563eb;">
+            RELSTONE Courses4RealEstate
+          </a>
+        </p>
+
+        <p style="margin: 0 0 12px;">
+          To login you'll need your E-Mail Address:
+          &lt;<strong>${email}</strong>&gt; as your UserID and<br/>
+          Your Password is: &lt;<strong>${password}</strong>&gt;
+        </p>
+
+        <br/>
+
+        <p style="margin: 0 0 12px;">
+          Examination System Login (use also for mandatory quizzes if taking real estate license renewal courses):
+          <a href="https://relstoneexams.com" style="color: #2563eb;">RELSTONEexams.com</a>
+        </p>
+
+        <p style="margin: 0 0 12px;">Good Luck on Your Exam(s)!</p>
+
+        <p style="margin: 0 0 4px;">-- RELSTONE, Educational Products and Services</p>
+        <p style="margin: 0 0 24px;">-- A California School Since 1978</p>
+
+        <p style="margin: 0; font-size: 11px; color: #6b7280;">
+          This is an automated email please do not reply to this message.<br/>
+          This message is for the designated recipient only and may contain privileged, proprietary, or otherwise private information.<br/>
+          If you have received it in error, please delete. Any other use of the email by you is prohibited.
+        </p>
+      </div>
+    `,
+  });
+};
+
+module.exports = {
+  generateCode,
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendAffidavitEmail,
+  sendPasswordLinkEmail,
+};
