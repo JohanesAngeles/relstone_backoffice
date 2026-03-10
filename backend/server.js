@@ -1,6 +1,5 @@
 // server.js
 const express = require('express');
-<<<<<<< HEAD
 const cors = require('cors');
 const dotenv = require('dotenv');
 
@@ -9,15 +8,6 @@ dotenv.config();
 require('./config/db');
 
 const passport = require('./config/passport'); // ← move to top
-=======
-const cors    = require('cors');
-const dotenv  = require('dotenv');
-
-dotenv.config();
-require('./config/db');
-
-const passport = require('./config/passport'); // ← move UP here
->>>>>>> feat/matt-clean
 
 const app = express();
 
@@ -29,11 +19,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize()); // ← initialize BEFORE routes
 
-<<<<<<< HEAD
 // ── Routes ───────────────────────────────────────────────────
-=======
-// ── Routes ──
->>>>>>> feat/matt-clean
 app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/insurance', require('./routes/insuranceRoutes'));
 app.use('/api/admin',     require('./routes/adminAuth'));
@@ -51,13 +37,9 @@ app.use((req, res) => {
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-<<<<<<< HEAD
   res.status(err.status || 500).json({
     message: err.message || 'Internal server error',
   });
-=======
-  res.status(err.status || 500).json({ message: err.message || 'Internal server error' });
->>>>>>> feat/matt-clean
 });
 
 const PORT = process.env.PORT || 5000;
