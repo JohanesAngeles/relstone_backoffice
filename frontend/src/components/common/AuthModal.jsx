@@ -1,11 +1,22 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import { FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
+=======
+// frontend/src/components/common/AuthModal.jsx
+import { useState, useEffect } from 'react';
+import { FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
+>>>>>>> feat/matt
 import logo from '../../assets/images/relstone_ICON.png';
 import '../../styles/components/AuthModal.css';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+<<<<<<< HEAD
 // ── Reusable 6-digit code input ───────────────────────────────
+=======
+// ── Reusable 6-digit code input ──────────────────────────────────────────────
+>>>>>>> feat/matt
 const CodeInputs = ({ code, setCode, prefix }) => {
   const handleChange = (val, idx) => {
     if (!/^\d*$/.test(val)) return;
@@ -38,7 +49,25 @@ const CodeInputs = ({ code, setCode, prefix }) => {
   );
 };
 
+<<<<<<< HEAD
 // ── Login Screen ──────────────────────────────────────────────
+=======
+// ── Google Button ────────────────────────────────────────────────────────────
+const GoogleButton = () => (
+  <>
+    <div className="auth-modal__divider"><span>or</span></div>
+    <a
+      href={`${API}/auth/google`}
+      className="auth-modal__sso"
+    >
+      <FcGoogle size={20} style={{ marginRight: 8 }} />
+      Continue with Google
+    </a>
+  </>
+);
+
+// ── Login Screen ─────────────────────────────────────────────────────────────
+>>>>>>> feat/matt
 const LoginForm = ({ onLogin, onSwitchToRegister, onForgotPassword }) => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -115,11 +144,21 @@ const LoginForm = ({ onLogin, onSwitchToRegister, onForgotPassword }) => {
           Forgot your password?
         </button>
       </form>
+<<<<<<< HEAD
+=======
+
+      {/* ✅ Google login button */}
+      <GoogleButton />
+>>>>>>> feat/matt
     </>
   );
 };
 
+<<<<<<< HEAD
 // ── Register Screen ───────────────────────────────────────────
+=======
+// ── Register Screen ──────────────────────────────────────────────────────────
+>>>>>>> feat/matt
 const RegisterForm = ({ onSwitchToLogin, onNeedsVerification }) => {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -139,9 +178,15 @@ const RegisterForm = ({ onSwitchToLogin, onNeedsVerification }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName: form.firstName,
+<<<<<<< HEAD
           lastName: form.lastName,
           email: form.email,
           password: form.password
+=======
+          lastName:  form.lastName,
+          email:     form.email,
+          password:  form.password,
+>>>>>>> feat/matt
         }),
       });
       const data = await res.json();
@@ -206,11 +251,21 @@ const RegisterForm = ({ onSwitchToLogin, onNeedsVerification }) => {
           {loading ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
+<<<<<<< HEAD
+=======
+
+      {/* ✅ Google register button */}
+      <GoogleButton />
+>>>>>>> feat/matt
     </>
   );
 };
 
+<<<<<<< HEAD
 // ── Verify Email Screen ───────────────────────────────────────
+=======
+// ── Verify Email Screen ──────────────────────────────────────────────────────
+>>>>>>> feat/matt
 const VerifyForm = ({ userId, email, onLogin, onBack }) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
@@ -276,7 +331,11 @@ const VerifyForm = ({ userId, email, onLogin, onBack }) => {
   );
 };
 
+<<<<<<< HEAD
 // ── Forgot / Reset Password Screen ───────────────────────────
+=======
+// ── Forgot / Reset Password Screen ──────────────────────────────────────────
+>>>>>>> feat/matt
 const ForgotPasswordForm = ({ userId: initUserId, email: initEmail, onBack }) => {
   const [step, setStep] = useState(initUserId ? 'code' : 'email');
   const [userId, setUserId] = useState(initUserId || '');
@@ -385,14 +444,21 @@ const ForgotPasswordForm = ({ userId: initUserId, email: initEmail, onBack }) =>
   );
 };
 
+<<<<<<< HEAD
 // ── Main Modal ────────────────────────────────────────────────
 // ✅ mode: 'login' | 'register' | 'forgot' | 'verify'
+=======
+// ── Main Modal ───────────────────────────────────────────────────────────────
+>>>>>>> feat/matt
 const AuthModal = ({ onClose, onLogin, mode = 'login' }) => {
   const [screen, setScreen] = useState(mode);
   const [pendingUserId, setPendingUserId] = useState(null);
   const [pendingEmail, setPendingEmail] = useState('');
 
+<<<<<<< HEAD
   // ✅ KEY FIX: when Header opens modal with a different mode, update screen
+=======
+>>>>>>> feat/matt
   useEffect(() => {
     setScreen(mode);
   }, [mode]);
@@ -417,17 +483,26 @@ const AuthModal = ({ onClose, onLogin, mode = 'login' }) => {
   return (
     <div className="auth-modal__backdrop" onClick={onClose}>
       <div className="auth-modal__card" onClick={(e) => e.stopPropagation()}>
+<<<<<<< HEAD
         {/* Close */}
+=======
+>>>>>>> feat/matt
         <button className="auth-modal__close" onClick={onClose} aria-label="Close">
           <FaTimes />
         </button>
 
+<<<<<<< HEAD
         {/* Logo */}
+=======
+>>>>>>> feat/matt
         <div className="auth-modal__logo-mark">
           <img src={logo} alt="Relstone" className="auth-modal__logo-img" />
         </div>
 
+<<<<<<< HEAD
         {/* Screens */}
+=======
+>>>>>>> feat/matt
         {screen === 'login' && (
           <LoginForm
             onLogin={handleLogin}
@@ -460,7 +535,10 @@ const AuthModal = ({ onClose, onLogin, mode = 'login' }) => {
           />
         )}
 
+<<<<<<< HEAD
         {/* Legal */}
+=======
+>>>>>>> feat/matt
         <p className="auth-modal__legal">
           By continuing, you agree to our{' '}
           <a href="/terms" className="auth-modal__legal-link">Terms of Service</a>

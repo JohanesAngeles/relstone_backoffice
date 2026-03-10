@@ -120,6 +120,7 @@ const SvgIcon = ({ d, size = 15 }) => (
   </svg>
 );
 
+<<<<<<< HEAD
 // ── Sign Out Confirmation Modal ────────────────────────────────
 const SignOutModal = ({ onConfirm, onCancel }) => (
   <div style={m.overlay}>
@@ -237,6 +238,8 @@ const m = {
   },
 };
 
+=======
+>>>>>>> feat/matt
 const AppLayout = ({ children, badges = {} }) => {
   const { logout } = useAuth();
   const location = useLocation();
@@ -249,9 +252,12 @@ const AppLayout = ({ children, badges = {} }) => {
   const [navSearch, setNavSearch] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
 
+<<<<<<< HEAD
   // Sign out confirmation modal state
   const [showSignOutModal, setShowSignOutModal] = useState(false);
 
+=======
+>>>>>>> feat/matt
   useEffect(() => {
     const tick = () => {
       const now = new Date();
@@ -277,19 +283,26 @@ const AppLayout = ({ children, badges = {} }) => {
     return 'Good Evening';
   };
 
+<<<<<<< HEAD
   // Open modal instead of signing out directly
   const handleSignOutClick = () => setShowSignOutModal(true);
 
   // Confirmed — actually sign out
   const handleConfirmSignOut = () => {
     setShowSignOutModal(false);
+=======
+  const handleLogout = () => {
+>>>>>>> feat/matt
     logout();
     navigate('/admin/login', { replace: true });
   };
 
+<<<<<<< HEAD
   // Cancelled — close modal
   const handleCancelSignOut = () => setShowSignOutModal(false);
 
+=======
+>>>>>>> feat/matt
   // Flatten NAV for searching
   const ALL_ROUTES = useMemo(
     () =>
@@ -347,6 +360,7 @@ const AppLayout = ({ children, badges = {} }) => {
         @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
         .main-content > * { animation: fadeIn 0.3s ease forwards; }
         .sign-out-btn:hover { background: rgba(239,68,68,0.08) !important; }
+<<<<<<< HEAD
         .modal-cancel-btn:hover { background: #f1f5f9 !important; }
         .modal-confirm-btn:hover { background: #dc2626 !important; }
       `}</style>
@@ -356,6 +370,10 @@ const AppLayout = ({ children, badges = {} }) => {
         <SignOutModal onConfirm={handleConfirmSignOut} onCancel={handleCancelSignOut} />
       )}
 
+=======
+      `}</style>
+
+>>>>>>> feat/matt
       {/* ── TOP NAVBAR ── */}
       <header style={s.topNav}>
         <div style={s.topNavLeft}>
@@ -366,7 +384,11 @@ const AppLayout = ({ children, badges = {} }) => {
             <div style={s.avatar}>AU</div>
             <span style={s.avatarName}>Adminizer</span>
           </div>
+<<<<<<< HEAD
           <button onClick={handleSignOutClick} style={s.signOutBtn}>
+=======
+          <button onClick={handleLogout} style={s.signOutBtn}>
+>>>>>>> feat/matt
             <SvgIcon d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5-5-5 M21 12H9" size={14} />
             Sign Out
           </button>
@@ -554,7 +576,11 @@ const AppLayout = ({ children, badges = {} }) => {
           {sidebarOpen ? (
             <div style={{ padding: '8px 12px 12px' }}>
               <button
+<<<<<<< HEAD
                 onClick={handleSignOutClick}
+=======
+                onClick={handleLogout}
+>>>>>>> feat/matt
                 className="sign-out-btn"
                 style={{
                   display: 'flex',
@@ -588,7 +614,11 @@ const AppLayout = ({ children, badges = {} }) => {
             </div>
           ) : (
             <button
+<<<<<<< HEAD
               onClick={handleSignOutClick}
+=======
+              onClick={handleLogout}
+>>>>>>> feat/matt
               className="sign-out-btn"
               style={{
                 display: 'flex',
@@ -787,6 +817,10 @@ const s = {
     flexShrink: 0,
   },
 
+<<<<<<< HEAD
+=======
+  // Sidebar search styles
+>>>>>>> feat/matt
   sideSearchWrap: {
     position: 'relative',
     flex: 1,

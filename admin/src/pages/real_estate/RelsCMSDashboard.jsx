@@ -6,7 +6,10 @@ import {
   FaEye, FaEdit, FaTrash, FaArrowRight, FaChevronLeft,
   FaExclamationCircle, FaBook, FaEnvelope, FaCertificate,
   FaQuestionCircle, FaSearch, FaChevronDown, FaPlus,
+<<<<<<< HEAD
   FaLayerGroup,
+=======
+>>>>>>> feat/matt
 } from 'react-icons/fa';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -36,7 +39,10 @@ const RelsCMSDashboard = () => {
   const [attention]       = useState([]);
   const [activity]         = useState([]);
   const [totalQuestions, setTotalQuestions] = useState(0);
+<<<<<<< HEAD
   const [courseContentCount, setCourseContentCount] = useState(0);
+=======
+>>>>>>> feat/matt
   const [loading, setLoading]           = useState(true);
 
   // ── Fetch all data on mount ─────────────────────────────────
@@ -45,6 +51,7 @@ const RelsCMSDashboard = () => {
     // Fetch bundles (Courses tab)
     const token = localStorage.getItem('adminToken');
 
+<<<<<<< HEAD
       // Fetch course content count
       fetch(`${API}/api/course-content`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -55,6 +62,8 @@ const RelsCMSDashboard = () => {
         })
         .catch(() => {});
 
+=======
+>>>>>>> feat/matt
             fetch(`${API}/api/exam-qanda/bundles`, {
             headers: { 'Authorization': `Bearer ${token}` },
             })
@@ -192,6 +201,7 @@ const RelsCMSDashboard = () => {
             sub="Across all courses"
             onClick={() => navigate('/admin/real-estate/online-exam/rels-cms/exam-banks')}
           />
+<<<<<<< HEAD
           <StatCard
             icon={<FaLayerGroup />}
             color="#9569F7"
@@ -200,6 +210,8 @@ const RelsCMSDashboard = () => {
             sub={`${courseContentCount} of 11 courses built`}
             onClick={() => navigate('/admin/course-content')}
           />
+=======
+>>>>>>> feat/matt
         </div>
 
         {/* ── Content Library (full width) ── */}
@@ -480,7 +492,11 @@ const S = {
   divider:  { display: 'none', margin: '0 0 1rem 0' },
 
   // Stat cards
+<<<<<<< HEAD
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '0.75rem', marginBottom: '0.85rem' },
+=======
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem', marginBottom: '0.85rem' },
+>>>>>>> feat/matt
   statCard:  { background: '#fff', borderRadius: '5px', padding: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.7rem', transition: 'box-shadow 0.2s ease', cursor: 'default' },
   statIcon:  { width: 48, height: 48, borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 },
   statValue: { fontSize: '1.4rem', fontWeight: 700, color: '#091925', lineHeight: 1.1, margin: 0, fontFamily: "'Poppins', sans-serif" },
@@ -591,4 +607,8 @@ const S = {
   modalConfirm: { padding: '0.4rem 1.1rem', borderRadius: '5px', border: 'none', background: '#ef4444', color: '#fff', fontSize: '0.68rem', fontWeight: 600, cursor: 'pointer', fontFamily: "'Poppins', sans-serif" },
 };
 
+<<<<<<< HEAD
 export default RelsCMSDashboard;
+=======
+export default RelsCMSDashboard;
+>>>>>>> feat/matt

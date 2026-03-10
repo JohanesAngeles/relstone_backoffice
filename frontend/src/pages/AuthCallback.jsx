@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+// frontend/src/pages/AuthCallback.jsx
+>>>>>>> feat/matt
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,7 +25,11 @@ const AuthCallback = ({ onLogin }) => {
       studentId: params.get('studentId') || null,
     });
 
+<<<<<<< HEAD
     navigate('/');  // ← change to '/' or wherever your home is
+=======
+    navigate('/');
+>>>>>>> feat/matt
   }, []);
 
   return (

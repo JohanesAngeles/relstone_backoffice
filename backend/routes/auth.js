@@ -6,11 +6,22 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const { generateCode, sendVerificationEmail, sendPasswordResetEmail } = require('../utils/emailService');
 const { protect } = require('../middleware/auth');
+<<<<<<< HEAD
 
 // ── Get adminDB connection (same one used in addStudent.js / students.js) ─────
 const { adminDB } = require('../config/db');
 
 // ── Student model (mirrors the schema in addStudent.js) ───────────────────────
+=======
+const passport = require('../config/passport');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// ── Get adminDB connection ────────────────────────────────────────────────────
+const { adminDB } = require('../config/db');
+
+// ── Student model ─────────────────────────────────────────────────────────────
+>>>>>>> feat/matt
 const studentSchema = new mongoose.Schema({
   studentId:        { type: String, unique: true, index: true },
   name:             String,
@@ -34,16 +45,25 @@ const studentSchema = new mongoose.Schema({
   notes:            String,
   registrationYear: String,
   importedAt:       { type: Date, default: Date.now },
+<<<<<<< HEAD
   // Link back to relstone-web user
+=======
+>>>>>>> feat/matt
   webUserId:        { type: String, default: '' },
   registeredViaWeb: { type: Boolean, default: true },
 }, { timestamps: true });
 
+<<<<<<< HEAD
 // Reuse existing model if already registered (avoids OverwriteModelError)
 const Student = adminDB.models.Student || adminDB.model('Student', studentSchema);
 
 // ── Helper: generate next Student ID ─────────────────────────────────────────
 // Format: YYYY-NNNNN  (same logic as addStudent.js)
+=======
+const Student = adminDB.models.Student || adminDB.model('Student', studentSchema);
+
+// ── Helper: generate next Student ID ─────────────────────────────────────────
+>>>>>>> feat/matt
 const getNextStudentId = async () => {
   const year = new Date().getFullYear().toString();
   const allStudents = await Student.find({}, { studentId: 1 }).lean();
@@ -80,16 +100,25 @@ router.post('/register', async (req, res) => {
     if (!firstName || !lastName || !email || !password)
       return res.status(400).json({ message: 'All fields are required.' });
 
+<<<<<<< HEAD
     // ── Check duplicate in relstone-web users ─────────────────
+=======
+>>>>>>> feat/matt
     const existing = await User.findOne({ email });
     if (existing)
       return res.status(409).json({ message: 'An account with this email already exists.' });
 
+<<<<<<< HEAD
     // ── Generate verification code ────────────────────────────
     const code    = generateCode();
     const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // ── 1. Save to relstone-web > users (existing behavior) ───
+=======
+    const code    = generateCode();
+    const expires = new Date(Date.now() + 10 * 60 * 1000);
+
+>>>>>>> feat/matt
     const user = await User.create({
       firstName,
       lastName,
@@ -99,12 +128,17 @@ router.post('/register', async (req, res) => {
       verificationCodeExpires: expires,
     });
 
+<<<<<<< HEAD
     // ── 2. Also save to relstone-admin > students ─────────────
     try {
       // Check if student with this email already exists in admin
       const existingStudent = await Student.findOne({
         email: email.trim().toLowerCase(),
       });
+=======
+    try {
+      const existingStudent = await Student.findOne({ email: email.trim().toLowerCase() });
+>>>>>>> feat/matt
 
       if (!existingStudent) {
         const studentId        = await getNextStudentId();
@@ -129,14 +163,21 @@ router.post('/register', async (req, res) => {
           mobilePhone:      '',
           dreNumber:        '',
           notes:            '',
+<<<<<<< HEAD
           password:         '',           // admin password field is separate — leave blank for web registrations
+=======
+          password:         '',
+>>>>>>> feat/matt
           webUserId:        user._id.toString(),
           registeredViaWeb: true,
         });
 
         console.log(`✅ Student record created in relstone-admin: ${studentId} — ${fullName}`);
       } else {
+<<<<<<< HEAD
         // Student already exists in admin (e.g. imported) — just link the web user ID
+=======
+>>>>>>> feat/matt
         await Student.findOneAndUpdate(
           { email: email.trim().toLowerCase() },
           { $set: { webUserId: user._id.toString() } }
@@ -144,12 +185,18 @@ router.post('/register', async (req, res) => {
         console.log(`🔗 Linked existing admin student to web user: ${email}`);
       }
     } catch (studentErr) {
+<<<<<<< HEAD
       // ⚠️  Don't fail the whole registration if admin save fails.
       // The web user is already created — just log the error.
       console.error('⚠️  Failed to create student in relstone-admin:', studentErr.message);
     }
 
     // ── Send verification email ───────────────────────────────
+=======
+      console.error('⚠️  Failed to create student in relstone-admin:', studentErr.message);
+    }
+
+>>>>>>> feat/matt
     await sendVerificationEmail(email, `${firstName} ${lastName}`, code);
 
     res.status(201).json({
@@ -178,6 +225,7 @@ router.post('/verify', async (req, res) => {
     if (user.verificationCodeExpires < new Date())
       return res.status(400).json({ message: 'Code expired. Please request a new one.' });
 
+<<<<<<< HEAD
     user.isVerified                  = true;
     user.verificationCode            = undefined;
     user.verificationCodeExpires     = undefined;
@@ -185,6 +233,14 @@ router.post('/verify', async (req, res) => {
 
     const token = signToken(user._id);
 
+=======
+    user.isVerified              = true;
+    user.verificationCode        = undefined;
+    user.verificationCodeExpires = undefined;
+    await user.save();
+
+    const token = signToken(user._id);
+>>>>>>> feat/matt
     const adminStudentV = await Student.findOne({ email: user.email.toLowerCase() }).lean();
 
     res.json({
@@ -197,7 +253,11 @@ router.post('/verify', async (req, res) => {
         name:      `${user.firstName} ${user.lastName}`,
         email:     user.email,
         role:      user.role,
+<<<<<<< HEAD
         studentId: adminStudentV?.studentId || null,  // ← ADD
+=======
+        studentId: adminStudentV?.studentId || null,
+>>>>>>> feat/matt
       },
     });
   } catch (err) {
@@ -211,7 +271,11 @@ router.post('/resend-code', async (req, res) => {
   try {
     const { userId } = req.body;
     const user = await User.findById(userId);
+<<<<<<< HEAD
     if (!user)          return res.status(404).json({ message: 'User not found.' });
+=======
+    if (!user)           return res.status(404).json({ message: 'User not found.' });
+>>>>>>> feat/matt
     if (user.isVerified) return res.status(400).json({ message: 'Already verified.' });
 
     const code = generateCode();
@@ -246,6 +310,7 @@ router.post('/login', async (req, res) => {
       });
 
     const token = signToken(user._id);
+<<<<<<< HEAD
 
     // Fetch studentId from relstone-admin by email
       const adminStudent = await Student.findOne({ email: user.email.toLowerCase() }).lean();
@@ -262,6 +327,22 @@ router.post('/login', async (req, res) => {
           studentId: adminStudent?.studentId || null,  // ← ADD
         },
       });
+=======
+    const adminStudent = await Student.findOne({ email: user.email.toLowerCase() }).lean();
+
+    res.json({
+      token,
+      user: {
+        id:        user._id,
+        firstName: user.firstName,
+        lastName:  user.lastName,
+        name:      `${user.firstName} ${user.lastName}`,
+        email:     user.email,
+        role:      user.role,
+        studentId: adminStudent?.studentId || null,
+      },
+    });
+>>>>>>> feat/matt
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Server error.' });
@@ -318,6 +399,7 @@ router.get('/me', protect, async (req, res) => {
     const user = await User.findById(req.user._id).select('-password');
     const adminStudentMe = await Student.findOne({ email: user.email.toLowerCase() }).lean();
 
+<<<<<<< HEAD
       res.json({
         id:        user._id,
         firstName: user.firstName,
@@ -327,6 +409,17 @@ router.get('/me', protect, async (req, res) => {
         role:      user.role,
         studentId: adminStudentMe?.studentId || null,  // ← ADD
       });
+=======
+    res.json({
+      id:        user._id,
+      firstName: user.firstName,
+      lastName:  user.lastName,
+      name:      `${user.firstName} ${user.lastName}`,
+      email:     user.email,
+      role:      user.role,
+      studentId: adminStudentMe?.studentId || null,
+    });
+>>>>>>> feat/matt
   } catch (err) {
     res.status(500).json({ message: 'Server error.' });
   }
@@ -351,17 +444,24 @@ const courseSchemaAuth = new mongoose.Schema({
   examPassed:       Boolean,
 }, { strict: false });
 
+<<<<<<< HEAD
 const AdminCourse = adminDB.models.Course ||
   adminDB.model('Course', courseSchemaAuth);
 
 // ── GET /api/auth/my-courses ──────────────────────────────────────────────────
 // Protected — requires the web user's JWT token
 // Finds the student in relstone-admin by email, returns their courses
+=======
+const AdminCourse = adminDB.models.Course || adminDB.model('Course', courseSchemaAuth);
+
+// ── GET /api/auth/my-courses ──────────────────────────────────────────────────
+>>>>>>> feat/matt
 router.get('/my-courses', protect, async (req, res) => {
   try {
     const webUser = await User.findById(req.user._id).select('email firstName lastName');
     if (!webUser) return res.status(404).json({ message: 'User not found.' });
 
+<<<<<<< HEAD
     // Find matching student in relstone-admin by email
     const student = await Student.findOne({
       email: webUser.email.toLowerCase(),
@@ -376,6 +476,14 @@ router.get('/my-courses', protect, async (req, res) => {
     }
 
     // Fetch their courses
+=======
+    const student = await Student.findOne({ email: webUser.email.toLowerCase() }).lean();
+
+    if (!student) {
+      return res.json({ student: null, courses: [], message: 'No student record found.' });
+    }
+
+>>>>>>> feat/matt
     const courses = await AdminCourse.find({ studentId: student.studentId })
       .sort({ registrationDate: -1 })
       .lean();
@@ -397,4 +505,124 @@ router.get('/my-courses', protect, async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+// ── GET /api/auth/google ──────────────────────────────────────────────────────
+router.get('/google',
+  passport.authenticate('google', { scope: ['profile', 'email'], session: false })
+);
+
+// ── GET /api/auth/google/callback ─────────────────────────────────────────────
+router.get('/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: `${process.env.FRONTEND_URL}/login?error=google`,
+    session: false,
+  }),
+  async (req, res) => {
+    try {
+      const user    = req.user;
+      const token   = signToken(user._id);
+      const student = await Student.findOne({ email: user.email.toLowerCase() }).lean();
+
+      const params = new URLSearchParams({
+        token,
+        userId:    user._id.toString(),
+        firstName: user.firstName,
+        lastName:  user.lastName,
+        email:     user.email,
+        role:      user.role,
+        studentId: student?.studentId || '',
+      });
+
+      res.redirect(`${process.env.FRONTEND_URL}/auth/callback?${params}`);
+    } catch (err) {
+      console.error('Google callback error:', err);
+      res.redirect(`${process.env.FRONTEND_URL}/login?error=server`);
+    }
+  }
+);
+router.post('/google/mobile', async (req, res) => {
+  try {
+    const { idToken } = req.body;
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, name, given_name, family_name, sub: googleId } = payload;
+
+    let user = await User.findOne({ $or: [{ email }, { googleId }] });
+    if (!user) {
+      const crypto = require('crypto');
+      user = await User.create({
+        email,
+        name: name || `${given_name} ${family_name}`,
+        firstName: given_name,
+        lastName:  family_name,
+        googleId,
+        password:   crypto.randomBytes(16).toString('hex'),
+        isVerified: true,
+      });
+    } else if (!user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    let student = await Student.findOne({ email: email.toLowerCase() });
+   if (!student) {
+  const studentId = await getNextStudentId();
+  student = await Student.create({
+    studentId,
+    // ── match old imported format ──────────────
+    name:             `${family_name}, ${given_name}`,
+    firstName:        given_name,
+    lastName:         family_name,
+    companyName:      '',
+    mailingAddress:   '',
+    streetAddress:    '',
+    city:             '',
+    state:            '',
+    postalCode:       '',
+    workPhone:        '',
+    mobilePhone:      '',
+    dreNumber:        '',
+    licenseNumber:    '',
+    cfpNumber:        '',
+    npnNumber:        '',
+    firstOrderDate:   '',
+    notes:            '',
+    // ── web-specific fields ────────────────────
+    email:            email.toLowerCase(),
+    registrationYear: new Date().getFullYear().toString(),
+    webUserId:        user._id.toString(),
+    registeredViaWeb: true,
+    password:         require('crypto').randomBytes(16).toString('hex'),
+  });
+    } else if (!student.webUserId) {
+      student.webUserId = user._id.toString();
+      await student.save();
+    }
+
+    const token = signToken(user._id);
+
+    res.json({
+      token,
+      user: {
+        _id:       user._id,
+        name:      user.name || `${user.firstName} ${user.lastName}`,
+        email:     user.email,
+        firstName: user.firstName,
+        lastName:  user.lastName,
+        studentId: student?.studentId || null,
+        role:      user.role || 'student',
+      },
+    });
+  } catch (err) {
+    console.error('Google mobile auth error:', err);
+    res.status(401).json({ message: 'Invalid Google token' });
+  }
+});
+
+>>>>>>> feat/matt
 module.exports = router;
