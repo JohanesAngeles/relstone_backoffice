@@ -1,0 +1,144 @@
+/* ── Insurance card active state (when panel is open) ── */
+.ins-card {
+  cursor: pointer;
+  user-select: none;
+}
+
+.ins-card--active {
+  background-color: #091925 !important;
+}
+
+.ins-card--active .service-card__title,
+.ins-card--active .service-card__description,
+.ins-card--active .service-card__icon {
+  color: #ffffff !important;
+}
+
+.ins-card--active .service-card__button {
+  background-color: #ffffff;
+  color: #091925;
+  border-color: #ffffff;
+}
+
+/* Button with chevron */
+.ins-card__button {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.ins-card__chevron {
+  font-size: 0.75em;
+  transition: transform 0.2s ease;
+}
+
+.ins-card__chevron--open {
+  transform: rotate(180deg);
+}
+
+/* ── Full-width fixed panel ── */
+.ins-panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;   /* will be overridden by JS if needed */
+  background-color: #ffffff;
+  border-top: 3px solid #091925;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.12);
+  z-index: 998;
+  max-height: 70vh;
+  overflow-y: auto;
+  animation: panelSlideUp 0.2s ease;
+}
+
+@keyframes panelSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ins-panel__inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 40px 40px;
+}
+
+.ins-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.ins-panel__label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #091925;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0;
+}
+
+.ins-panel__close {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #6b7280;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.ins-panel__close:hover {
+  background-color: #091925;
+  color: #ffffff;
+  border-color: #091925;
+}
+
+/* ── States grid ── */
+.ins-panel__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 1024px) {
+  .ins-panel__grid { grid-template-columns: repeat(4, 1fr); }
+  .ins-panel__inner { padding: 24px 28px 32px; }
+}
+
+@media (max-width: 768px) {
+  .ins-panel__grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .ins-panel__grid { grid-template-columns: repeat(2, 1fr); }
+  .ins-panel__inner { padding: 20px 16px 24px; }
+}
+
+/* ── State pill ── */
+.ins-panel__pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 10px;
+  background-color: #091925;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.3;
+  transition: background-color 0.18s ease, transform 0.15s ease;
+}
+
+.ins-panel__pill:hover {
+  background-color: #1a3a5c;
+  transform: translateY(-2px);
+}
