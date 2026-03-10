@@ -1,11 +1,13 @@
+// frontend/src/components/common/AuthModal.jsx
 import { useState, useEffect } from 'react';
 import { FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FcGoogle } from 'react-icons/fc';
 import logo from '../../assets/images/relstone_ICON.png';
 import '../../styles/components/AuthModal.css';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-// ── Reusable 6-digit code input ───────────────────────────────
+// ── Reusable 6-digit code input ──────────────────────────────────────────────
 const CodeInputs = ({ code, setCode, prefix }) => {
   const handleChange = (val, idx) => {
     if (!/^\d*$/.test(val)) return;
@@ -38,7 +40,21 @@ const CodeInputs = ({ code, setCode, prefix }) => {
   );
 };
 
-// ── Login Screen ──────────────────────────────────────────────
+// ── Google Button ────────────────────────────────────────────────────────────
+const GoogleButton = () => (
+  <>
+    <div className="auth-modal__divider"><span>or</span></div>
+    <a
+      href={`${API}/auth/google`}
+      className="auth-modal__sso"
+    >
+      <FcGoogle size={20} style={{ marginRight: 8 }} />
+      Continue with Google
+    </a>
+  </>
+);
+
+// ── Login Screen ─────────────────────────────────────────────────────────────
 const LoginForm = ({ onLogin, onSwitchToRegister, onForgotPassword }) => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -115,11 +131,14 @@ const LoginForm = ({ onLogin, onSwitchToRegister, onForgotPassword }) => {
           Forgot your password?
         </button>
       </form>
+
+      {/* ✅ Google login button */}
+      <GoogleButton />
     </>
   );
 };
 
-// ── Register Screen ───────────────────────────────────────────
+// ── Register Screen ──────────────────────────────────────────────────────────
 const RegisterForm = ({ onSwitchToLogin, onNeedsVerification }) => {
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -139,9 +158,9 @@ const RegisterForm = ({ onSwitchToLogin, onNeedsVerification }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName: form.firstName,
-          lastName: form.lastName,
-          email: form.email,
-          password: form.password
+          lastName:  form.lastName,
+          email:     form.email,
+          password:  form.password,
         }),
       });
       const data = await res.json();
@@ -206,11 +225,14 @@ const RegisterForm = ({ onSwitchToLogin, onNeedsVerification }) => {
           {loading ? 'Creating account...' : 'Create Account'}
         </button>
       </form>
+
+      {/* ✅ Google register button */}
+      <GoogleButton />
     </>
   );
 };
 
-// ── Verify Email Screen ───────────────────────────────────────
+// ── Verify Email Screen ──────────────────────────────────────────────────────
 const VerifyForm = ({ userId, email, onLogin, onBack }) => {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
@@ -276,7 +298,7 @@ const VerifyForm = ({ userId, email, onLogin, onBack }) => {
   );
 };
 
-// ── Forgot / Reset Password Screen ───────────────────────────
+// ── Forgot / Reset Password Screen ──────────────────────────────────────────
 const ForgotPasswordForm = ({ userId: initUserId, email: initEmail, onBack }) => {
   const [step, setStep] = useState(initUserId ? 'code' : 'email');
   const [userId, setUserId] = useState(initUserId || '');
@@ -385,14 +407,12 @@ const ForgotPasswordForm = ({ userId: initUserId, email: initEmail, onBack }) =>
   );
 };
 
-// ── Main Modal ────────────────────────────────────────────────
-// ✅ mode: 'login' | 'register' | 'forgot' | 'verify'
+// ── Main Modal ───────────────────────────────────────────────────────────────
 const AuthModal = ({ onClose, onLogin, mode = 'login' }) => {
   const [screen, setScreen] = useState(mode);
   const [pendingUserId, setPendingUserId] = useState(null);
   const [pendingEmail, setPendingEmail] = useState('');
 
-  // ✅ KEY FIX: when Header opens modal with a different mode, update screen
   useEffect(() => {
     setScreen(mode);
   }, [mode]);
@@ -417,17 +437,14 @@ const AuthModal = ({ onClose, onLogin, mode = 'login' }) => {
   return (
     <div className="auth-modal__backdrop" onClick={onClose}>
       <div className="auth-modal__card" onClick={(e) => e.stopPropagation()}>
-        {/* Close */}
         <button className="auth-modal__close" onClick={onClose} aria-label="Close">
           <FaTimes />
         </button>
 
-        {/* Logo */}
         <div className="auth-modal__logo-mark">
           <img src={logo} alt="Relstone" className="auth-modal__logo-img" />
         </div>
 
-        {/* Screens */}
         {screen === 'login' && (
           <LoginForm
             onLogin={handleLogin}
@@ -460,7 +477,6 @@ const AuthModal = ({ onClose, onLogin, mode = 'login' }) => {
           />
         )}
 
-        {/* Legal */}
         <p className="auth-modal__legal">
           By continuing, you agree to our{' '}
           <a href="/terms" className="auth-modal__legal-link">Terms of Service</a>
