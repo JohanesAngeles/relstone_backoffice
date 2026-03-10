@@ -34,7 +34,7 @@ app.use('/api/dre-approvals', require('./routes/dreApprovals'));
 app.use('/api/exam-qanda', require('./routes/examQanda'));
 app.use('/api/exam-session', require('./routes/examSession'));
 app.use('/api/certificate',  require('./routes/certificate').router);
-
+app.use('/api/course-content', require('./routes/courseContent'));
 
 
 // Combined Conflict Routes
