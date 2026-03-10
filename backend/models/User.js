@@ -1,25 +1,8 @@
-<<<<<<< HEAD
-// models/User.js
-=======
->>>>>>> feat/matt
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { webDB } = require('../config/db');
 
 const userSchema = new mongoose.Schema({
-<<<<<<< HEAD
-  // ── Auth fields ──────────────────────────────────────────
-  firstName: {
-  type: String,
-  required: [true, 'First name is required'],
-  trim: true,
-    },
-    lastName: {
-    type: String,
-    required: [true, 'Last name is required'],
-    trim: true,
-    },
-=======
   // ── Auth fields ──────────────────────────────────────────────────────────
   firstName: {
     type: String,
@@ -31,7 +14,6 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Last name is required'],
     trim: true,
   },
->>>>>>> feat/matt
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -57,36 +39,25 @@ const userSchema = new mongoose.Schema({
   resetPasswordCode: String,
   resetPasswordExpires: Date,
 
-<<<<<<< HEAD
-  // ── Role ─────────────────────────────────────────────────
-=======
   // ── Role ──────────────────────────────────────────────────────────────────
->>>>>>> feat/matt
   role: {
     type: String,
     enum: ['student', 'admin'],
     default: 'student',
   },
 
-<<<<<<< HEAD
-  // ── Link to Admin DB student record (if exists) ──────────
-=======
   // ── Link to Admin DB student record (if exists) ──────────────────────────
->>>>>>> feat/matt
   adminStudentId: {
     type: String,
     default: null,
   },
 
-<<<<<<< HEAD
-=======
   // ── Google OAuth ──────────────────────────────────────────────────────────
   googleId: {
     type: String,
     default: null,
   },
 
->>>>>>> feat/matt
 }, { timestamps: true });
 
 // Hash password before saving

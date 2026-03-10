@@ -26,11 +26,6 @@ import AddExamPage from './pages/real_estate/AddExamPage';
 import RelsCMSDashboard from './pages/real_estate/RelsCMSDashboard';
 import ExamAnswerKeyPage  from './pages/real_estate/ExamAnswerKeyPage';
 
-<<<<<<< HEAD
-import CourseContentPage from './pages/real_estate/CourseContentPage';
-
-=======
->>>>>>> feat/matt
 
 
 
@@ -98,10 +93,6 @@ function App() {
 
           <Route path="/admin/real-estate/online-exam/rels-cms/exam-banks/:bundleId" element={<ExamAnswerKeyPage />} />
 
-<<<<<<< HEAD
-          <Route path="/admin/course-content" element={<CourseContentPage />} />
-=======
->>>>>>> feat/matt
 
         </Routes>
       </BrowserRouter>
