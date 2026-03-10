@@ -5,7 +5,7 @@ import Breadcrumb from '../../components/common/Breadcrumb';
 import {
   FaEye, FaEdit, FaTrash, FaArrowRight, FaChevronLeft,
   FaExclamationCircle, FaBook, FaEnvelope, FaCertificate,
-  FaQuestionCircle, FaSearch, FaChevronDown, FaPlus,
+  FaQuestionCircle, FaSearch, FaChevronDown, FaPlus, FaFileAlt, 
 } from 'react-icons/fa';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -179,6 +179,14 @@ const RelsCMSDashboard = () => {
             label="Exam Questions"
             sub="Across all courses"
             onClick={() => navigate('/admin/real-estate/online-exam/rels-cms/exam-banks')}
+          />
+          <StatCard
+            icon={<FaFileAlt />}
+            color="#14b8a6"
+            value={loading ? '…' : courses.length}
+            label="Course Content"
+            sub="Manage course pages"
+            onClick={() => navigate('/admin/real-estate/online-exam/rels-cms/courses')}
           />
         </div>
 
@@ -460,7 +468,7 @@ const S = {
   divider:  { display: 'none', margin: '0 0 1rem 0' },
 
   // Stat cards
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem', marginBottom: '0.85rem' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '0.75rem', marginBottom: '0.85rem' },
   statCard:  { background: '#fff', borderRadius: '5px', padding: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.7rem', transition: 'box-shadow 0.2s ease', cursor: 'default' },
   statIcon:  { width: 48, height: 48, borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 },
   statValue: { fontSize: '1.4rem', fontWeight: 700, color: '#091925', lineHeight: 1.1, margin: 0, fontFamily: "'Poppins', sans-serif" },

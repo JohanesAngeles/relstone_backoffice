@@ -28,7 +28,7 @@ app.use('/api/students',  require('./routes/students'));
 app.use('/api/exams',     require('./routes/examRoutes'));
 app.use('/api/exam-session', require('./routes/examSession')); // ← ADD THIS
 app.use('/api/exam-qanda',   require('./routes/examQanda'));  // ← ADD THIS
-
+app.use('/api/course-content', require('./routes/courseContent'));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: '🚀 Relstone API is running' });
