@@ -6,6 +6,7 @@ import {
   FaEye, FaEdit, FaTrash, FaArrowRight, FaChevronLeft,
   FaExclamationCircle, FaBook, FaEnvelope, FaCertificate,
   FaQuestionCircle, FaSearch, FaChevronDown, FaPlus,
+  FaLayerGroup,
 } from 'react-icons/fa';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -35,6 +36,7 @@ const RelsCMSDashboard = () => {
   const [attention]       = useState([]);
   const [activity]         = useState([]);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [courseContentCount, setCourseContentCount] = useState(0);
   const [loading, setLoading]           = useState(true);
 
   // ── Fetch all data on mount ─────────────────────────────────
@@ -42,6 +44,16 @@ const RelsCMSDashboard = () => {
 
     // Fetch bundles (Courses tab)
     const token = localStorage.getItem('adminToken');
+
+      // Fetch course content count
+      fetch(`${API}/api/course-content`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      })
+        .then(r => r.json())
+        .then(data => {
+          setCourseContentCount(Array.isArray(data) ? data.length : 0);
+        })
+        .catch(() => {});
 
             fetch(`${API}/api/exam-qanda/bundles`, {
             headers: { 'Authorization': `Bearer ${token}` },
@@ -179,6 +191,14 @@ const RelsCMSDashboard = () => {
             label="Exam Questions"
             sub="Across all courses"
             onClick={() => navigate('/admin/real-estate/online-exam/rels-cms/exam-banks')}
+          />
+          <StatCard
+            icon={<FaLayerGroup />}
+            color="#9569F7"
+            value={loading ? '…' : courseContentCount}
+            label="Course Content"
+            sub={`${courseContentCount} of 11 courses built`}
+            onClick={() => navigate('/admin/course-content')}
           />
         </div>
 
@@ -460,7 +480,7 @@ const S = {
   divider:  { display: 'none', margin: '0 0 1rem 0' },
 
   // Stat cards
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '0.75rem', marginBottom: '0.85rem' },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '0.75rem', marginBottom: '0.85rem' },
   statCard:  { background: '#fff', borderRadius: '5px', padding: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.7rem', transition: 'box-shadow 0.2s ease', cursor: 'default' },
   statIcon:  { width: 48, height: 48, borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 },
   statValue: { fontSize: '1.4rem', fontWeight: 700, color: '#091925', lineHeight: 1.1, margin: 0, fontFamily: "'Poppins', sans-serif" },
