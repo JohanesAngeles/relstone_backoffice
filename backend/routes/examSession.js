@@ -94,12 +94,6 @@ const courseSchema = new mongoose.Schema({
   examResults:      { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
   // Student's chosen elective: "Mortgage Lending" | "Selling Business Opportunities in California"
   chosenElective:   { type: String, default: null },
-<<<<<<< HEAD
-  enrolledAt:      { type: Date, default: Date.now },
-  quizProgress:    { type: Map, of: mongoose.Schema.Types.Mixed, default: {} },
-  examAvailableAt: { type: Map, of: Date, default: {} },
-=======
->>>>>>> feat/matt
 }, { strict: false });
 
 const Course = adminDB.models.Course ||
