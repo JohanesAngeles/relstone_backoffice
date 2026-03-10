@@ -15,6 +15,9 @@ import AllRelstoneProductsPage from './pages/AllRelstoneProductsPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import ContactUsPage from './pages/ContactUsPage';
 import RefundPolicyPage from './pages/RefundPolicyPage';
+import CoursePage from './pages/CoursePage';
+
+
 
 // ── Student Portal / Dashboard pages (use DashboardLayout, NOT the global Header/Footer)
 import MyCourses from './pages/MyCourses';
@@ -52,6 +55,7 @@ function App() {
                     <Route path="/privacy-policy"  element={<PrivacyPolicyPage />} />
                     <Route path="/contact"         element={<ContactUsPage />} />
                     <Route path="/refund-policy"   element={<RefundPolicyPage />} />
+                    
                   </Routes>
                 </main>
                 <Footer />
@@ -67,7 +71,8 @@ function App() {
 
             <Route path="/bundle/:bundleId" element={<BundleOverviewPage />} />
             <Route path="/exam/:bundleId/:examName"      element={<ExamPortalPage />} />
-            <Route path="/exam-results/:sessionId"       element={<ExamResultsPage />} />  // ← next step
+            <Route path="/exam-results/:sessionId"       element={<ExamResultsPage />} />
+            <Route path="/course/:bundleId/:examName" element={<CoursePage />} />
         </Routes>
       </CartProvider>
     </Router>
