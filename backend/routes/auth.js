@@ -239,13 +239,25 @@ router.post('/login', async (req, res) => {
     res.json({
       token,
       user: {
-        id:        user._id,
-        firstName: user.firstName,
-        lastName:  user.lastName,
-        name:      `${user.firstName} ${user.lastName}`,
-        email:     user.email,
-        role:      user.role,
-        studentId: adminStudent?.studentId || null,
+        id:               user._id,
+        firstName:        user.firstName,
+        lastName:         user.lastName,
+        name:             `${user.firstName} ${user.lastName}`,
+        email:            user.email,
+        role:             user.role,
+        studentId:        adminStudent?.studentId        || null,
+        registrationYear: adminStudent?.registrationYear || null,
+        firstOrderDate:   adminStudent?.firstOrderDate   || null,
+        dreNumber:        adminStudent?.dreNumber        || null,
+        licenseNumber:    adminStudent?.licenseNumber    || null,
+        workPhone:        adminStudent?.workPhone        || null,
+        mobilePhone:      adminStudent?.mobilePhone      || null,
+        companyName:      adminStudent?.companyName      || null,
+        streetAddress:    adminStudent?.streetAddress    || null,
+        city:             adminStudent?.city             || null,
+        state:            adminStudent?.state            || null,
+        postalCode:       adminStudent?.postalCode       || null,
+        notes:            adminStudent?.notes            || null,
       },
     });
   } catch (err) {
@@ -305,15 +317,82 @@ router.get('/me', protect, async (req, res) => {
     const adminStudentMe = await Student.findOne({ email: user.email.toLowerCase() }).lean();
 
     res.json({
-      id:        user._id,
-      firstName: user.firstName,
-      lastName:  user.lastName,
-      name:      `${user.firstName} ${user.lastName}`,
-      email:     user.email,
-      role:      user.role,
-      studentId: adminStudentMe?.studentId || null,
+      id:               user._id,
+      firstName:        user.firstName,
+      lastName:         user.lastName,
+      name:             `${user.firstName} ${user.lastName}`,
+      email:            user.email,
+      role:             user.role,
+      studentId:        adminStudentMe?.studentId        || null,
+      registrationYear: adminStudentMe?.registrationYear || null,
+      firstOrderDate:   adminStudentMe?.firstOrderDate   || null,
+      dreNumber:        adminStudentMe?.dreNumber        || null,
+      licenseNumber:    adminStudentMe?.licenseNumber    || null,
+      workPhone:        adminStudentMe?.workPhone        || null,
+      mobilePhone:      adminStudentMe?.mobilePhone      || null,
+      companyName:      adminStudentMe?.companyName      || null,
+      streetAddress:    adminStudentMe?.streetAddress    || null,
+      city:             adminStudentMe?.city             || null,
+      state:            adminStudentMe?.state            || null,
+      postalCode:       adminStudentMe?.postalCode       || null,
+      notes:            adminStudentMe?.notes            || null,
     });
   } catch (err) {
+    res.status(500).json({ message: 'Server error.' });
+  }
+});
+
+// ── PATCH /api/auth/my-profile ────────────────────────────────────────────────
+router.patch('/my-profile', protect, async (req, res) => {
+  try {
+    const webUser = await User.findById(req.user._id).select('email firstName lastName');
+    if (!webUser) return res.status(404).json({ message: 'User not found.' });
+
+    const ALLOWED = [
+      'firstName', 'lastName', 'workPhone', 'mobilePhone',
+      'companyName', 'streetAddress', 'city', 'state',
+      'postalCode', 'dreNumber', 'licenseNumber', 'notes',
+    ];
+
+    const updates = {};
+    for (const field of ALLOWED) {
+      if (req.body[field] !== undefined) updates[field] = req.body[field];
+    }
+
+    // Also update name field if first/last name changed
+    if (updates.firstName || updates.lastName) {
+      const newFirst = updates.firstName || webUser.firstName;
+      const newLast  = updates.lastName  || webUser.lastName;
+      updates.name   = `${newLast}, ${newFirst}`;
+    }
+
+    if (Object.keys(updates).length === 0)
+      return res.status(400).json({ message: 'No valid fields to update.' });
+
+    const student = await Student.findOneAndUpdate(
+      { email: webUser.email.toLowerCase() },
+      { $set: updates },
+      { new: true }
+    ).lean();
+
+    if (!student) return res.status(404).json({ message: 'Student record not found.' });
+
+    // Also update firstName/lastName on the User model if changed
+    if (req.body.firstName || req.body.lastName) {
+      await User.findByIdAndUpdate(req.user._id, {
+        $set: {
+          ...(req.body.firstName && { firstName: req.body.firstName }),
+          ...(req.body.lastName  && { lastName:  req.body.lastName  }),
+        },
+      });
+    }
+
+    res.json({
+      message: 'Profile updated successfully.',
+      student,
+    });
+  } catch (err) {
+    console.error('PATCH /auth/my-profile error:', err);
     res.status(500).json({ message: 'Server error.' });
   }
 });
@@ -406,6 +485,8 @@ router.get('/google/callback',
     }
   }
 );
+
+// ── POST /api/auth/google/mobile ─────────────────────────────────────────────
 router.post('/google/mobile', async (req, res) => {
   try {
     const { idToken } = req.body;
@@ -435,35 +516,33 @@ router.post('/google/mobile', async (req, res) => {
     }
 
     let student = await Student.findOne({ email: email.toLowerCase() });
-   if (!student) {
-  const studentId = await getNextStudentId();
-  student = await Student.create({
-    studentId,
-    // ── match old imported format ──────────────
-    name:             `${family_name}, ${given_name}`,
-    firstName:        given_name,
-    lastName:         family_name,
-    companyName:      '',
-    mailingAddress:   '',
-    streetAddress:    '',
-    city:             '',
-    state:            '',
-    postalCode:       '',
-    workPhone:        '',
-    mobilePhone:      '',
-    dreNumber:        '',
-    licenseNumber:    '',
-    cfpNumber:        '',
-    npnNumber:        '',
-    firstOrderDate:   '',
-    notes:            '',
-    // ── web-specific fields ────────────────────
-    email:            email.toLowerCase(),
-    registrationYear: new Date().getFullYear().toString(),
-    webUserId:        user._id.toString(),
-    registeredViaWeb: true,
-    password:         require('crypto').randomBytes(16).toString('hex'),
-  });
+    if (!student) {
+      const studentId = await getNextStudentId();
+      student = await Student.create({
+        studentId,
+        name:             `${family_name}, ${given_name}`,
+        firstName:        given_name,
+        lastName:         family_name,
+        companyName:      '',
+        mailingAddress:   '',
+        streetAddress:    '',
+        city:             '',
+        state:            '',
+        postalCode:       '',
+        workPhone:        '',
+        mobilePhone:      '',
+        dreNumber:        '',
+        licenseNumber:    '',
+        cfpNumber:        '',
+        npnNumber:        '',
+        firstOrderDate:   '',
+        notes:            '',
+        email:            email.toLowerCase(),
+        registrationYear: new Date().getFullYear().toString(),
+        webUserId:        user._id.toString(),
+        registeredViaWeb: true,
+        password:         require('crypto').randomBytes(16).toString('hex'),
+      });
     } else if (!student.webUserId) {
       student.webUserId = user._id.toString();
       await student.save();
