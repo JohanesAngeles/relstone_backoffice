@@ -13,40 +13,39 @@ const API = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const STATUS_CFG = {
   "In Progress": {
     key: "in-progress",
-    label: "In Progress", dot: "#f97316",
-    badgeBg: "#fff7ed", badgeText: "#ea580c", badgeBorder: "#fed7aa",
-    iconBg: "#fff7ed", iconColor: "#f97316", barColor: "#f97316",
+    label: "In Progress", dot: "#F59E0B",
+    badgeBg: "rgba(245,158,11,0.1)", badgeText: "#F59E0B", badgeBorder: "#F59E0B",
+    iconBg: "rgba(245,158,11,0.1)", iconColor: "#F59E0B", barColor: "#F59E0B",
+    headerBg: "rgba(245,158,11,0.1)",
   },
   "Complete": {
     key: "complete",
-    label: "Complete", dot: "#16a34a",
-    badgeBg: "#f0fdf4", badgeText: "#15803d", badgeBorder: "#bbf7d0",
-    iconBg: "#f0fdf4", iconColor: "#16a34a", barColor: "#16a34a",
+    label: "Complete", dot: "#008000",
+    badgeBg: "rgba(0,128,0,0.1)", badgeText: "#008000", badgeBorder: "#008000",
+    iconBg: "rgba(0,128,0,0.1)", iconColor: "#008000", barColor: "#008000",
+    headerBg: "rgba(0,128,0,0.05)",
   },
   "Failed": {
     key: "failed",
-    label: "Failed", dot: "#ef4444",
-    badgeBg: "#fef2f2", badgeText: "#b91c1c", badgeBorder: "#fecaca",
-    iconBg: "#fef2f2", iconColor: "#dc2626", barColor: "#16a34a",
+    label: "Failed", dot: "#EF4444",
+    badgeBg: "rgba(239,68,68,0.1)", badgeText: "#EF4444", badgeBorder: "#EF4444",
+    iconBg: "rgba(239,68,68,0.1)", iconColor: "#EF4444", barColor: "#008000",
+    headerBg: "rgba(239,68,68,0.05)",
   },
 };
 
-// Fallback for any unexpected status string
 const getStatusCfg = (status) =>
   STATUS_CFG[status] || STATUS_CFG["In Progress"];
 
-// ── Map courseType to a readable category label ───────────────
 const getCategoryLabel = (courseType = "", courseTitle = "") => {
   if (courseType === "CE")         return "California C.E.";
   if (courseType === "RE")         return "Real Estate";
   if (courseType === "PreLicense") return "Pre-License";
-  // Fallback: try to derive from bundleId in title
   if (courseTitle.toLowerCase().includes("c.e.")) return "California C.E.";
   if (courseTitle.toLowerCase().includes("pre-license")) return "Pre-License";
   return courseType || "Course";
 };
 
-// ── Derive credit hours from bundleId ─────────────────────────
 const getCreditHours = (bundleId = "") => {
   const m = (bundleId || "").match(/(\d+)HR/i);
   return m ? parseInt(m[1]) : null;
@@ -68,21 +67,29 @@ function StatCard({ icon, value, label, iconBg, iconColor, topBorder }) {
       background: "#fff",
       border: "1px solid #e5e7eb",
       borderTop: `3px solid ${topBorder}`,
-      borderRadius: 12,
-      padding: "16px 20px",
-      display: "flex", alignItems: "center", gap: 14,
+      borderRadius: 5,
+      padding: "12px 14px",
+      display: "flex", alignItems: "center", gap: 10,
     }}>
       <div style={{
-        width: 46, height: 46, borderRadius: 10,
-        background: iconBg, color: iconColor,
+        width: 44, height: 44, borderRadius: 5,
+        background: iconBg,
+        border: `0.5px solid ${topBorder}`,
+        color: iconColor,
         display: "flex", alignItems: "center", justifyContent: "center",
-        fontSize: 19, flexShrink: 0,
+        fontSize: 16, flexShrink: 0,
       }}>
         {icon}
       </div>
       <div>
-        <div style={{ fontSize: 26, fontWeight: 800, color: "#111", lineHeight: 1 }}>{value}</div>
-        <div style={{ fontSize: 12, color: "#6b7280", marginTop: 3, fontWeight: 500 }}>{label}</div>
+        <div style={{
+          fontSize: 26, fontWeight: 400, color: "#091925", lineHeight: 1,
+          fontFamily: "'HomepageBaukasten', sans-serif",
+        }}>{value}</div>
+        <div style={{
+          fontSize: 12, color: "rgba(9,25,37,0.7)", marginTop: 3,
+          fontFamily: "'Poppins', sans-serif", fontWeight: 500,
+        }}>{label}</div>
       </div>
     </div>
   );
@@ -96,11 +103,7 @@ function CourseCard({ course, navigate }) {
 
   const creditHrs = getCreditHours(course.bundleId);
   const category  = getCategoryLabel(course.courseType, course.courseTitle);
-
-  // Show the bundle's first examName as the card title, fallback to courseTitle
   const displayTitle = course.examNames?.[0] || course.courseTitle || course.bundleId;
-
-  // Version badges
   const versions = course.versions || [];
 
   return (
@@ -110,126 +113,153 @@ function CourseCard({ course, navigate }) {
       style={{
         background: "#fff",
         border: "1px solid #e5e7eb",
-        borderRadius: 14,
+        borderRadius: 5,
         display: "flex", flexDirection: "column",
-        boxShadow: hovered ? "0 6px 20px rgba(0,0,0,0.09)" : "0 1px 3px rgba(0,0,0,0.05)",
+        boxShadow: hovered ? "0 4px 16px rgba(0,0,0,0.08)" : "none",
         transition: "box-shadow 0.2s",
+        overflow: "hidden",
       }}
     >
-      {/* Badge row */}
-      <div style={{ padding: "12px 14px 0", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
-        {/* Version badges */}
-        <div style={{ display: "flex", gap: 5 }}>
-          {versions.length > 0 ? versions.sort().map(v => (
-            <span key={v} style={{
-              fontSize: 11, fontWeight: 600, color: "#6b7280",
-              border: "1px solid #d1d5db", borderRadius: 20,
-              padding: "2px 8px", background: "#fff",
-            }}>
-              {v.replace("Version ", "Ver ")}
-            </span>
-          )) : (
-            <span style={{
-              fontSize: 11, fontWeight: 600, color: "#6b7280",
-              border: "1px solid #d1d5db", borderRadius: 20,
-              padding: "2px 10px", background: "#fff",
-            }}>
-              {course.bundleId}
-            </span>
-          )}
+      {/* Colored header band */}
+      <div style={{
+        background: s.headerBg,
+        borderRadius: "5px 5px 0 0",
+        padding: "10px 12px 0",
+        minHeight: 120,
+        display: "flex", flexDirection: "column",
+      }}>
+        {/* Badge row */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 4 }}>
+          {/* Version badges */}
+          <div style={{ display: "flex", gap: 4 }}>
+            {versions.length > 0 ? versions.sort().map(v => (
+              <span key={v} style={{
+                fontSize: 10, fontWeight: 700,
+                color: "#2EABFE",
+                border: "0.5px solid #2EABFE",
+                borderRadius: 100,
+                padding: "2px 8px",
+                background: "rgba(46,171,254,0.1)",
+                fontFamily: "'Poppins', sans-serif",
+              }}>
+                {v.replace("Version ", "Version ")}
+              </span>
+            )) : (
+              <span style={{
+                fontSize: 10, fontWeight: 700,
+                color: "#2EABFE",
+                border: "0.5px solid #2EABFE",
+                borderRadius: 100,
+                padding: "2px 8px",
+                background: "rgba(46,171,254,0.1)",
+                fontFamily: "'Poppins', sans-serif",
+              }}>
+                {course.bundleId}
+              </span>
+            )}
+          </div>
+
+          {/* Status badge */}
+          <span style={{
+            fontSize: 10, fontWeight: 700,
+            background: s.badgeBg, color: s.badgeText,
+            border: `0.5px solid ${s.badgeBorder}`,
+            borderRadius: 100, padding: "2px 8px",
+            display: "flex", alignItems: "center", gap: 4,
+            fontFamily: "'Poppins', sans-serif",
+          }}>
+            <FaCircle style={{ fontSize: 5, color: s.dot }} />
+            {s.label}
+          </span>
         </div>
 
-        {/* Status badge */}
-        <span style={{
-          fontSize: 11, fontWeight: 700,
-          background: s.badgeBg, color: s.badgeText,
-          border: `1px solid ${s.badgeBorder}`,
-          borderRadius: 20, padding: "3px 10px",
-          display: "flex", alignItems: "center", gap: 5,
-        }}>
-          <FaCircle style={{ fontSize: 6, color: s.dot }} />
-          {s.label}
-        </span>
-      </div>
-
-      {/* Icon */}
-      <div style={{ display: "flex", justifyContent: "center", padding: "16px 0 10px" }}>
-        <div style={{
-          width: 62, height: 62, borderRadius: 14,
-          background: s.iconBg, color: s.iconColor,
-          display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26,
-        }}>
-          <FaBookOpen />
+        {/* Icon centered */}
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1, padding: "10px 0 8px" }}>
+          <div style={{
+            width: 46, height: 46, borderRadius: 5,
+            background: s.iconBg,
+            border: `0.5px solid ${s.iconColor}`,
+            color: s.iconColor,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 20,
+          }}>
+            <FaBookOpen />
+          </div>
         </div>
       </div>
 
       {/* Body */}
-      <div style={{ padding: "0 14px 14px", flex: 1, display: "flex", flexDirection: "column", gap: 7 }}>
-        <div style={{ fontSize: 11, color: "#6b7280", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+      <div style={{ padding: "10px 12px 12px", flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{
+          fontSize: 11, color: "#7FA8C4", fontWeight: 500,
+          fontFamily: "'Poppins', sans-serif",
+        }}>
           {category}
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#111", lineHeight: 1.45 }}>
+        <div style={{
+          fontSize: 13, fontWeight: 500, color: "#091925", lineHeight: "15px",
+          fontFamily: "'Poppins', sans-serif", textTransform: "capitalize",
+        }}>
           {displayTitle}
         </div>
 
-        <div style={{ display: "flex", gap: 12, fontSize: 11, color: "#9ca3af" }}>
+        <div style={{ display: "flex", gap: 10, fontSize: 11, color: "rgba(9,25,37,0.3)", fontFamily: "'JetBrains Mono', monospace", marginTop: 2 }}>
           {creditHrs && (
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <MdOutlineAccessTime style={{ fontSize: 13 }} /> {creditHrs} Credit Hrs
+            <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+              <MdOutlineAccessTime style={{ fontSize: 11 }} /> {creditHrs} Credit Hrs
             </span>
           )}
           {course.registrationDate && (
-            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <MdCalendarToday style={{ fontSize: 12 }} /> {course.registrationDate}
+            <span style={{ display: "flex", alignItems: "center", gap: 3 }}>
+              <MdCalendarToday style={{ fontSize: 10 }} /> {course.registrationDate}
             </span>
           )}
         </div>
 
-        <div style={{ borderTop: "1px solid #f3f4f6", margin: "2px 0" }} />
-
         {/* Progress */}
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
-          <span style={{ fontSize: 12, fontWeight: 600, color: "#374151" }}>Progress</span>
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}>
+          <span style={{ fontSize: 11, fontWeight: 500, color: "#7FA8C4", fontFamily: "'Poppins', sans-serif" }}>Progress</span>
           <span style={{
-            fontSize: 12, fontWeight: 700,
-            color: sKey === "in-progress" ? "#f97316"
-                 : sKey === "complete"    ? "#16a34a"
-                 : "#dc2626",
+            fontSize: 11, fontWeight: 700, fontFamily: "'Poppins', sans-serif",
+            color: sKey === "in-progress" ? "#F59E0B"
+                 : sKey === "complete"    ? "#008000"
+                 : "#008000",
           }}>
             {course.progress ?? 0}%
           </span>
         </div>
-        <div style={{ height: 6, background: "#f3f4f6", borderRadius: 99 }}>
+        <div style={{ height: 6, background: "rgba(9,25,37,0.05)", borderRadius: 100, border: "0.5px solid rgba(9,25,37,0.1)" }}>
           <div style={{
-            height: "100%", borderRadius: 99,
+            height: "100%", borderRadius: 100,
             width: `${course.progress ?? 0}%`,
             background: s.barColor,
+            border: `0.5px solid ${s.barColor}`,
           }} />
         </div>
 
         {course.totalQuestions > 0 && (
-          <div style={{ fontSize: 11, color: "#9ca3af" }}>
+          <div style={{ fontSize: 10, color: "rgba(9,25,37,0.3)", fontFamily: "'JetBrains Mono', monospace" }}>
             {course.totalQuestions} exam questions
           </div>
         )}
 
-        <div style={{ flex: 1 }} />
+        <div style={{ borderTop: "0.5px solid #5B7384", margin: "4px 0" }} />
 
         {/* Action row */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
-          <span style={{ fontSize: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span style={{ fontSize: 11, fontFamily: "'Poppins', sans-serif" }}>
             {sKey === "in-progress" && (
-              <span style={{ color: "#9ca3af" }}>
-                Registered: {course.registrationDate || "—"}
+              <span style={{ color: "rgba(9,25,37,0.3)", fontWeight: 500 }}>
+                Active: Today
               </span>
             )}
             {sKey === "complete" && (
-              <span style={{ color: "#16a34a", fontWeight: 700 }}>
+              <span style={{ color: "#008000", fontWeight: 700 }}>
                 {course.examScore}% Passed
               </span>
             )}
             {sKey === "failed" && (
-              <span style={{ color: "#dc2626", fontWeight: 700 }}>
+              <span style={{ color: "#EF4444", fontWeight: 700 }}>
                 {course.examScore}% Failed
               </span>
             )}
@@ -237,24 +267,43 @@ function CourseCard({ course, navigate }) {
 
           {sKey === "in-progress" && (
             <button
-                onClick={() => navigate(`/bundle/${course.bundleId}`)}
-                style={{ display: "flex", alignItems: "center", gap: 6, background: "#2563eb", color: "#fff", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                <FaPlay style={{ fontSize: 9 }} /> Continue
+              onClick={() => navigate(`/bundle/${course.bundleId}`)}
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                background: "#2EABFE", color: "#091925",
+                border: "0.5px solid #2EABFE", borderRadius: 5,
+                padding: "6px 12px", fontSize: 12, fontWeight: 700,
+                cursor: "pointer", fontFamily: "'Poppins', sans-serif",
+              }}>
+              <FaPlay style={{ fontSize: 8 }} /> Continue
             </button>
-            )}
+          )}
           {sKey === "complete" && (
             <a
               href={`${API}/certificate/download/${course._id}`}
               target="_blank"
               rel="noreferrer"
-              style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", color: "#16a34a", border: "1.5px solid #16a34a", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer", textDecoration: "none" }}
+              style={{
+                display: "flex", alignItems: "center", gap: 5,
+                background: "rgba(0,128,0,0.1)", color: "#008000",
+                border: "0.5px solid #008000", borderRadius: 5,
+                padding: "6px 12px", fontSize: 12, fontWeight: 700,
+                cursor: "pointer", textDecoration: "none",
+                fontFamily: "'Poppins', sans-serif",
+              }}
             >
-              <FaDownload style={{ fontSize: 11 }} /> Certificate
+              <FaDownload style={{ fontSize: 10 }} /> Certificate
             </a>
           )}
           {sKey === "failed" && (
-            <button style={{ display: "flex", alignItems: "center", gap: 6, background: "#fff", color: "#7c3aed", border: "1.5px solid #7c3aed", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-              <FaRedo style={{ fontSize: 10 }} /> Retake
+            <button style={{
+              display: "flex", alignItems: "center", gap: 5,
+              background: "rgba(149,105,247,0.1)", color: "#9569F7",
+              border: "0.5px solid #9569F7", borderRadius: 5,
+              padding: "6px 12px", fontSize: 12, fontWeight: 700,
+              cursor: "pointer", fontFamily: "'Poppins', sans-serif",
+            }}>
+              <FaRedo style={{ fontSize: 8 }} /> Retake Ver B
             </button>
           )}
         </div>
@@ -267,15 +316,26 @@ function CourseCard({ course, navigate }) {
 function CertRow({ cert, api }) {
   return (
     <div style={{
-      flex: "1 1 340px", display: "flex", alignItems: "center", gap: 14,
-      background: "#fff", border: "1px solid #e5e7eb", borderRadius: 12, padding: "14px 16px",
+      flex: "1 1 300px", display: "flex", alignItems: "center", gap: 12,
+      background: "#fff", border: "1px solid #e5e7eb", borderRadius: 5, padding: "12px 14px",
     }}>
-      <div style={{ width: 40, height: 40, borderRadius: 8, background: "#f0fdf4", color: "#16a34a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
+      <div style={{
+        width: 40, height: 40, borderRadius: 5,
+        background: "rgba(0,128,0,0.1)", border: "0.5px solid #008000",
+        color: "#008000", display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 16, flexShrink: 0,
+      }}>
         <FaCheckCircle />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#111", lineHeight: 1.35 }}>{cert.courseTitle}</div>
-        <div style={{ fontSize: 12, color: "#6b7280", marginTop: 3 }}>
+        <div style={{
+          fontSize: 13, fontWeight: 400, color: "#091925", lineHeight: "16px",
+          fontFamily: "'HomepageBaukasten', sans-serif",
+        }}>{cert.courseTitle}</div>
+        <div style={{
+          fontSize: 11, color: "rgba(9,25,37,0.7)", marginTop: 3,
+          fontFamily: "'Poppins', sans-serif", fontWeight: 500,
+        }}>
           Completed {cert.completionDate} · Score: {cert.examScore}%
         </div>
       </div>
@@ -283,7 +343,13 @@ function CertRow({ cert, api }) {
         href={`${api}/certificate/download/${cert._id}`}
         target="_blank"
         rel="noreferrer"
-        style={{ width: 34, height: 34, borderRadius: 8, flexShrink: 0, background: "#fff", border: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b7280", cursor: "pointer", textDecoration: "none" }}
+        style={{
+          width: 34, height: 34, borderRadius: 5, flexShrink: 0,
+          background: "rgba(91,115,132,0.1)", opacity: 0.5,
+          border: "0.5px solid #5B7384",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          color: "#5B7384", cursor: "pointer", textDecoration: "none",
+        }}
       >
         <FaDownload style={{ fontSize: 12 }} />
       </a>
@@ -294,14 +360,17 @@ function CertRow({ cert, api }) {
 // ── Loading skeleton ──────────────────────────────────────────
 function CourseSkeleton() {
   return (
-    <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 14, padding: 16 }}>
-      {[80, 60, 200, 120, 40].map((w, i) => (
-        <div key={i} style={{
-          height: i === 2 ? 14 : 10, borderRadius: 4, marginBottom: 12, width: w,
-          background: "linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%)",
-          backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite",
-        }} />
-      ))}
+    <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 5, overflow: "hidden" }}>
+      <div style={{ height: 186, background: "rgba(245,158,11,0.05)" }} />
+      <div style={{ padding: 16 }}>
+        {[80, 60, 200, 120, 40].map((w, i) => (
+          <div key={i} style={{
+            height: i === 2 ? 14 : 10, borderRadius: 4, marginBottom: 12, width: w,
+            background: "linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%)",
+            backgroundSize: "200% 100%", animation: "shimmer 1.4s infinite",
+          }} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -315,7 +384,6 @@ export default function MyCourses() {
   const [error,    setError]    = useState("");
   const [,  setStudent]  = useState(null);
 
-  // ── Fetch real courses from API ───────────────────────────
   useEffect(() => {
     const fetchCourses = async () => {
       setLoading(true);
@@ -350,13 +418,11 @@ export default function MyCourses() {
     fetchCourses();
   }, []);
 
-  // ── Derive tab key from DB status string ──────────────────
   const getTabKey = (status) => {
     const cfg = getStatusCfg(status);
     return cfg.key;
   };
 
-  // ── Counts ────────────────────────────────────────────────
   const counts = {
     all:           courses.length,
     "in-progress": courses.filter(c => getTabKey(c.status) === "in-progress").length,
@@ -374,41 +440,67 @@ export default function MyCourses() {
       : courses.filter(c => getTabKey(c.status) === tab);
 
   const STAT_CARDS = [
-    { icon: <FaBookOpen />,          value: counts.all,           label: "Total Enrolled",        iconBg: "#eff6ff", iconColor: "#3b82f6", topBorder: "#3b82f6" },
-    { icon: <FaCheckCircle />,       value: counts.complete,      label: "Completed",             iconBg: "#f0fdf4", iconColor: "#16a34a", topBorder: "#16a34a" },
-    { icon: <FaClock />,             value: counts["in-progress"],label: "In Progress",           iconBg: "#fff7ed", iconColor: "#f97316", topBorder: "#f97316" },
-    { icon: <FaChalkboardTeacher />, value: certificates.length,  label: "Certifications Earned", iconBg: "#f5f3ff", iconColor: "#7c3aed", topBorder: "#7c3aed" },
+    { icon: <FaBookOpen />,          value: counts.all,           label: "Total Enrolled",        iconBg: "rgba(46,171,254,0.1)",  iconColor: "#2EABFE", topBorder: "#2EABFE" },
+    { icon: <FaCheckCircle />,       value: counts.complete,      label: "Completed",             iconBg: "rgba(0,128,0,0.1)",     iconColor: "#008000", topBorder: "#008000" },
+    { icon: <FaClock />,             value: counts["in-progress"],label: "In Progress",           iconBg: "rgba(245,158,11,0.1)",  iconColor: "#F59E0B", topBorder: "#F59E0B" },
+    { icon: <FaChalkboardTeacher />, value: certificates.length,  label: "Certifications Earned", iconBg: "rgba(149,105,247,0.1)", iconColor: "#9569F7", topBorder: "#9569F7" },
   ];
-
-  // ── Greeting ──────────────────────────────────────────────
 
   return (
     <DashboardLayout>
-      <style>{`@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }`}</style>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap');
+        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+      `}</style>
 
       {/* Breadcrumb */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#6b7280", marginBottom: 14 }}>
-        <span style={{ color: "#3b82f6", fontWeight: 500, cursor: "pointer" }}>Student Portal</span>
+      <div style={{
+        display: "flex", alignItems: "center", gap: 6,
+        fontSize: 13, marginBottom: 14,
+        fontFamily: "'Poppins', sans-serif",
+      }}>
+        <span style={{ color: "#2EABFE", fontWeight: 500, cursor: "pointer" }}>Student Portal</span>
         <FaChevronRight style={{ fontSize: 10, color: "#d1d5db" }} />
-        <span style={{ color: "#374151", fontWeight: 600 }}>My Courses</span>
+        <span style={{ color: "#091925", fontWeight: 600 }}>My Courses</span>
       </div>
 
+      {/* Divider line */}
+      <div style={{ borderTop: "0.5px solid #2EABFE", marginBottom: 22 }} />
+
       {/* Page title row */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 22 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: "#0f172a", margin: "0 0 5px" }}>My Courses</h1>
-          <p style={{ fontSize: 13, color: "#6b7280", margin: 0 }}>
+          <h1 style={{
+            fontSize: 26, fontWeight: 400, color: "#000", margin: "0 0 4px",
+            fontFamily: "'HomepageBaukasten', sans-serif",
+            textTransform: "capitalize", lineHeight: "30px",
+          }}>My Courses</h1>
+          <p style={{
+            fontSize: 13, color: "#5B7384", margin: 0,
+            fontFamily: "'Poppins', sans-serif", fontWeight: 500,
+          }}>
             Track your progress, continue studying, and download your completion certificates.
           </p>
         </div>
-        <button style={{ display: "flex", alignItems: "center", gap: 8, background: "#1d4ed8", color: "#fff", border: "none", borderRadius: 10, padding: "10px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}>
-          <FaSearch style={{ fontSize: 12 }} /> Browse Courses
+        <button style={{
+          display: "flex", alignItems: "center", gap: 6,
+          background: "#2EABFE", color: "#091925",
+          border: "0.5px solid #2EABFE", borderRadius: 5,
+          padding: "8px 14px", fontSize: 13, fontWeight: 700,
+          cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0,
+          fontFamily: "'Poppins', sans-serif", textTransform: "capitalize",
+        }}>
+          <FaSearch style={{ fontSize: 12, color: "#091925" }} /> Browse Courses
         </button>
       </div>
 
       {/* Error state */}
       {error && (
-        <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 10, padding: "14px 18px", marginBottom: 20, color: "#b91c1c", fontSize: 13 }}>
+        <div style={{
+          background: "#fef2f2", border: "1px solid #fecaca", borderRadius: 5,
+          padding: "14px 18px", marginBottom: 20, color: "#b91c1c", fontSize: 13,
+          fontFamily: "'Poppins', sans-serif",
+        }}>
           {error}
         </div>
       )}
@@ -419,24 +511,48 @@ export default function MyCourses() {
       </div>
 
       {/* White panel: tabs + grid */}
-      <div style={{ background: "#fff", border: "1px solid #e5e7eb", borderRadius: 14, padding: "0 20px 24px", marginBottom: 26 }}>
+      <div style={{
+        background: "#fff", border: "1px solid #e5e7eb",
+        borderRadius: 5, padding: "0 0 24px", marginBottom: 26,
+      }}>
         {/* Tabs */}
-        <div style={{ display: "flex", borderBottom: "1.5px solid #e5e7eb", marginBottom: 20, overflowX: "auto" }}>
+        <div style={{
+          display: "flex", gap: 4,
+          padding: "15px 15px 0",
+          marginBottom: 20,
+          overflowX: "auto",
+          background: "#fff",
+          borderRadius: "5px 5px 0 0",
+        }}>
           {TABS.map(t => {
             const active = tab === t.key;
+            const isFailedTab = t.key === "failed";
+            const countColor = isFailedTab && counts[t.key] > 0 ? "#EF4444" : (active ? "#091925" : "#5B7384");
+            const countBg = isFailedTab && counts[t.key] > 0 ? "rgba(239,68,68,0.1)" : (active ? "rgba(9,25,37,0.1)" : "rgba(91,115,132,0.1)");
             return (
               <button key={t.key} onClick={() => setTab(t.key)} style={{
-                padding: "14px 16px", border: "none",
-                borderBottom: active ? "2.5px solid #2563eb" : "2.5px solid transparent",
-                background: "none", cursor: "pointer",
-                fontSize: 13, fontWeight: active ? 700 : 500,
-                color: active ? "#2563eb" : "#6b7280",
-                marginBottom: -1.5,
-                display: "flex", alignItems: "center", gap: 7,
-                whiteSpace: "nowrap", flexShrink: 0, transition: "color 0.15s",
+                padding: "8px 12px",
+                border: "none",
+                background: active ? "#2EABFE" : "none",
+                borderRadius: active ? 5 : 0,
+                cursor: "pointer",
+                fontSize: 12, fontWeight: 700,
+                color: active ? "#091925" : "#5B7384",
+                display: "flex", alignItems: "center", gap: 6,
+                whiteSpace: "nowrap", flexShrink: 0,
+                transition: "all 0.15s",
+                fontFamily: "'Poppins', sans-serif",
+                textTransform: "capitalize",
               }}>
                 {t.label}
-                <span style={{ background: active ? "#dbeafe" : "#f3f4f6", color: active ? "#2563eb" : "#6b7280", fontSize: 11, fontWeight: 700, borderRadius: 20, padding: "1px 8px" }}>
+                <span style={{
+                  background: countBg,
+                  color: countColor,
+                  fontSize: 11, fontWeight: 700,
+                  borderRadius: 100, padding: "2px 7px",
+                  fontFamily: "'Poppins', sans-serif",
+                  minWidth: 22, textAlign: "center",
+                }}>
                   {counts[t.key]}
                 </span>
               </button>
@@ -445,28 +561,44 @@ export default function MyCourses() {
         </div>
 
         {/* Course grid */}
-        {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-            {[1, 2, 3].map(i => <CourseSkeleton key={i} />)}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "48px 0", color: "#9ca3af", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
-            <FaBookOpen style={{ fontSize: 36, color: "#e5e7eb" }} />
-            <div style={{ fontSize: 15, fontWeight: 600 }}>
-              {tab === "all" ? "No courses enrolled yet." : "No courses in this category."}
+        <div style={{ padding: "0 15px" }}>
+          {loading ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+              {[1, 2, 3].map(i => <CourseSkeleton key={i} />)}
             </div>
-          </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
-            {filtered.map(c => <CourseCard key={c._id} course={c} navigate={navigate} />)}
-          </div>
-        )}
+          ) : filtered.length === 0 ? (
+            <div style={{
+              textAlign: "center", padding: "48px 0",
+              color: "rgba(9,25,37,0.3)", display: "flex",
+              flexDirection: "column", alignItems: "center", gap: 10,
+            }}>
+              <FaBookOpen style={{ fontSize: 36, color: "#e5e7eb" }} />
+              <div style={{ fontSize: 15, fontWeight: 600, fontFamily: "'Poppins', sans-serif" }}>
+                {tab === "all" ? "No courses enrolled yet." : "No courses in this category."}
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+              {filtered.map(c => <CourseCard key={c._id} course={c} navigate={navigate} />)}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Divider line */}
+      <div style={{ borderTop: "0.5px solid #2EABFE", marginBottom: 22 }} />
 
       {/* My Certificates */}
       {certificates.length > 0 && (
         <div>
-          <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0f172a", margin: "0 0 14px" }}>My Certificates</h2>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+            <h2 style={{
+              fontSize: 16, fontWeight: 400, color: "#091925", margin: 0,
+              fontFamily: "'HomepageBaukasten', sans-serif",
+              whiteSpace: "nowrap",
+            }}>My Certificates</h2>
+            <div style={{ flex: 1, borderTop: "0.5px solid #7FA8C4" }} />
+          </div>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             {certificates.map(c => <CertRow key={c._id} cert={c} api={API} />)}
           </div>
