@@ -471,7 +471,7 @@ export default function MyCourses() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
         <div>
           <h1 style={{
-            fontSize: 26, fontWeight: 400, color: "#000", margin: "0 0 4px",
+            fontSize: 32, fontWeight: 600, color: "#000", margin: "0 0 4px",
             fontFamily: "'HomepageBaukasten', sans-serif",
             textTransform: "capitalize", lineHeight: "30px",
           }}>My Courses</h1>
