@@ -66,26 +66,26 @@ function App() {
             element={<AuthCallback onLogin={handleLogin} />}
           />
 
-          {/* ── Student portal (no public header/footer) ── */}
+          {/* ── Student portal (no public header/footer — uses DashboardLayout) ── */}
           <Route path="/my-courses"               element={<MyCourses />} />
+          <Route path="/profile"                  element={<ProfilePage />} />
           <Route path="/bundle/:bundleId"         element={<BundleOverviewPage />} />
           <Route path="/exam/:bundleId/:examName" element={<ExamPortalPage />} />
           <Route path="/exam-results/:sessionId"  element={<ExamResultsPage />} />
 
           {/* ── All public pages with Header + Footer ── */}
-          <Route path="/"               element={<MainLayout {...layoutProps}><Home /></MainLayout>} />
+          <Route path="/"                element={<MainLayout {...layoutProps}><Home /></MainLayout>} />
           <Route path="/insurance/renew" element={<MainLayout {...layoutProps}><InsuranceRenewPage /></MainLayout>} />
-          <Route path="/insurance/faq"  element={<MainLayout {...layoutProps}><InsuranceFAQPage /></MainLayout>} />
+          <Route path="/insurance/faq"   element={<MainLayout {...layoutProps}><InsuranceFAQPage /></MainLayout>} />
           <Route path="/insurance/:slug" element={<MainLayout {...layoutProps}><InsuranceStatePage /></MainLayout>} />
-          <Route path="/cfp-renewal"    element={<MainLayout {...layoutProps}><CFPRenewPage /></MainLayout>} />
-          <Route path="/about"          element={<MainLayout {...layoutProps}><AboutPage /></MainLayout>} />
-          <Route path="/cart"           element={<MainLayout {...layoutProps}><CartPage /></MainLayout>} />
-          <Route path="/checkout"       element={<MainLayout {...layoutProps}><ProceedToCheckoutPage /></MainLayout>} />
-          <Route path="/products"       element={<MainLayout {...layoutProps}><AllRelstoneProductsPage /></MainLayout>} />
-          <Route path="/privacy-policy" element={<MainLayout {...layoutProps}><PrivacyPolicyPage /></MainLayout>} />
-          <Route path="/contact"        element={<MainLayout {...layoutProps}><ContactUsPage /></MainLayout>} />
-          <Route path="/refund-policy"  element={<MainLayout {...layoutProps}><RefundPolicyPage /></MainLayout>} />
-          <Route path="/profile" element={<MainLayout {...layoutProps}><ProfilePage /></MainLayout>} />
+          <Route path="/cfp-renewal"     element={<MainLayout {...layoutProps}><CFPRenewPage /></MainLayout>} />
+          <Route path="/about"           element={<MainLayout {...layoutProps}><AboutPage /></MainLayout>} />
+          <Route path="/cart"            element={<MainLayout {...layoutProps}><CartPage /></MainLayout>} />
+          <Route path="/checkout"        element={<MainLayout {...layoutProps}><ProceedToCheckoutPage /></MainLayout>} />
+          <Route path="/products"        element={<MainLayout {...layoutProps}><AllRelstoneProductsPage /></MainLayout>} />
+          <Route path="/privacy-policy"  element={<MainLayout {...layoutProps}><PrivacyPolicyPage /></MainLayout>} />
+          <Route path="/contact"         element={<MainLayout {...layoutProps}><ContactUsPage /></MainLayout>} />
+          <Route path="/refund-policy"   element={<MainLayout {...layoutProps}><RefundPolicyPage /></MainLayout>} />
 
         </Routes>
       </CartProvider>
