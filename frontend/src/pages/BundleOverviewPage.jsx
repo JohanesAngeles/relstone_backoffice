@@ -448,7 +448,7 @@ export default function BundleOverviewPage() {
   };
 
   const handleStartExam = (exam) => {
-    navigate(`/exam/${bundleId}/${encodeURIComponent(exam.examName)}`);
+    navigate(`/course/${bundleId}/${encodeURIComponent(exam.examName)}`);
   };
 
   if (loading) return (

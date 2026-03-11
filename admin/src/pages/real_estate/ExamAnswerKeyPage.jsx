@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import AppLayout from '../../layouts/AppLayout';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import { FaChevronLeft, FaSearch, FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import { FiBookOpen } from 'react-icons/fi';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
@@ -44,6 +45,11 @@ const ExamAnswerKeyPage = () => {
   useEffect(() => { setSearch(''); setExpanded(null); }, [activeTab]);
 
   const currentTab = data?.tabs?.[activeTab];
+
+  // Get unique exam names from this bundle's tabs (for Course Content link)
+  const bundleExamNames = data?.tabs
+    ? [...new Set(data.tabs.map(t => t.examName))]
+    : [];
 
   const filteredQuestions = (currentTab?.questions || []).filter(q =>
     q.question.toLowerCase().includes(search.toLowerCase()) ||
@@ -107,15 +113,29 @@ const ExamAnswerKeyPage = () => {
                 <span style={S.chipBlue}>Not on Relstone</span>
               </div>
             </div>
-            <button
-              style={{ ...S.backBtn, ...(backHovered ? { background: '#f3f4f6' } : {}) }}
-              onClick={() => navigate('/admin/real-estate/online-exam/rels-cms')}
-              onMouseEnter={() => setBackHovered(true)}
-              onMouseLeave={() => setBackHovered(false)}
-            >
-              <FaChevronLeft style={{ fontSize: '0.55rem' }} />
-              Back To RELS CMS
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto', flexShrink: 0 }}>
+              {/* Course Content button — links to course content for this bundle's exam */}
+              {bundleExamNames.length > 0 && (
+                <button
+                  style={S.courseContentBtn}
+                  onClick={() => navigate(
+                    `/admin/real-estate/online-exam/rels-cms/courses?exam=${encodeURIComponent(bundleExamNames[0])}`
+                  )}
+                >
+                  <FiBookOpen size={12} />
+                  Course Content
+                </button>
+              )}
+              <button
+                style={{ ...S.backBtn, ...(backHovered ? { background: '#f3f4f6' } : {}) }}
+                onClick={() => navigate('/admin/real-estate/online-exam/rels-cms')}
+                onMouseEnter={() => setBackHovered(true)}
+                onMouseLeave={() => setBackHovered(false)}
+              >
+                <FaChevronLeft style={{ fontSize: '0.55rem' }} />
+                Back To RELS CMS
+              </button>
+            </div>
           </div>
         </div>
 
@@ -409,7 +429,14 @@ const S = {
     display: 'flex', alignItems: 'center', gap: '0.4rem', background: '#fff',
     border: '0.5px solid #5B7384', borderRadius: '5px', padding: '0.45rem 1rem',
     fontSize: '0.7rem', fontWeight: 700, fontFamily: "'Poppins', sans-serif",
-    color: '#5B7384', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0, marginLeft: 'auto',
+    color: '#5B7384', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+  },
+  courseContentBtn: {
+    display: 'flex', alignItems: 'center', gap: '0.4rem',
+    background: 'rgba(46,171,254,0.15)', border: '0.5px solid #2EABFE',
+    borderRadius: '5px', padding: '0.45rem 1rem',
+    fontSize: '0.7rem', fontWeight: 700, fontFamily: "'Poppins', sans-serif",
+    color: '#2EABFE', cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
   },
 
   // ── Sub header (version tabs + download + search) ──

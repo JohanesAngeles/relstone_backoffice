@@ -62,6 +62,21 @@ const getUnlockHours = (examName = '') => {
   return 48;
 };
 
+// ── Resolve full exam session name → short CourseContent examName ─────────────
+// e.g. "Ethics, Professional Conduct and Legal Aspects of Real Estate" -> "Ethics"
+// Strategy: find a CourseContent doc whose examName is contained in the incoming name
+const resolveExamName = async (rawName = '') => {
+  const all = await CourseContent.find({}, 'examName').lean();
+  // Try exact match first
+  const exact = all.find(c => c.examName.toLowerCase() === rawName.toLowerCase());
+  if (exact) return exact.examName;
+  // Try: does the raw name START WITH or CONTAIN a known short name?
+  const partial = all.find(c => rawName.toLowerCase().includes(c.examName.toLowerCase()));
+  if (partial) return partial.examName;
+  // Fallback: return raw
+  return rawName;
+};
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  ADMIN ROUTES
 // ─────────────────────────────────────────────────────────────────────────────
@@ -119,8 +134,9 @@ router.get('/student/:examName', protect, async (req, res) => {
     const course = await Course.findOne({ studentId, bundleId }).lean();
     if (!course) return res.status(403).json({ message: 'Not enrolled' });
 
+    const resolvedName = await resolveExamName(decodeURIComponent(req.params.examName));
     const content = await CourseContent.findOne({
-      examName: { $regex: `^${req.params.examName}$`, $options: 'i' }
+      examName: { $regex: `^${resolvedName}$`, $options: 'i' }
     }).lean();
     if (!content) return res.status(404).json({ message: 'Course content not found' });
 
@@ -211,8 +227,9 @@ router.post('/student/:examName/submit-quiz', protect, async (req, res) => {
     const course = await Course.findOne({ studentId, bundleId });
     if (!course) return res.status(403).json({ message: 'Not enrolled' });
 
+    const resolvedName = await resolveExamName(decodeURIComponent(req.params.examName));
     const content = await CourseContent.findOne({
-      examName: { $regex: `^${req.params.examName}$`, $options: 'i' }
+      examName: { $regex: `^${resolvedName}$`, $options: 'i' }
     }).lean();
     if (!content) return res.status(404).json({ message: 'Course content not found' });
 
