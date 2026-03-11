@@ -1,5 +1,6 @@
 // pages/CourseContentPage.jsx
 import { useState, useEffect } from 'react';
+import { useSearchParams }     from 'react-router-dom';
 import AppLayout               from '../../layouts/AppLayout';
 import {
   FiBook, FiPlus, FiSave, FiChevronDown, FiChevronRight,
@@ -73,6 +74,18 @@ const S = {
   modalTitle:   { margin: 0, fontSize: 15, fontWeight: 700, color: '#091925' },
   templateBtn:  { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px', cursor: 'pointer', textAlign: 'left', fontFamily: "'Poppins', sans-serif", width: '100%', marginBottom: 8 },
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: convert File to base64 string
+// ─────────────────────────────────────────────────────────────────────────────
+async function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Inline editable section preview (shown inside PDF extract result cards)
@@ -218,6 +231,8 @@ function ExtractedSectionEditor({ section, idx, onUpdate }) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function CourseContentPage() {
+  const [searchParams] = useSearchParams();
+
   const [courses,         setCourses]         = useState([]);
   const [selectedCourse,  setSelectedCourse]  = useState(null);
   const [selectedSection, setSelectedSection] = useState(null);
@@ -240,6 +255,18 @@ export default function CourseContentPage() {
   const [editedSections, setEditedSections] = useState([]);
 
   useEffect(() => { fetchCourses(); }, []);
+
+  // Auto-select course from ?exam= query param (coming from ExamAnswerKeyPage)
+  useEffect(() => {
+    const examParam = searchParams.get('exam');
+    if (examParam && courses.length > 0 && !selectedCourse) {
+      const match = courses.find(c =>
+        c.examName.toLowerCase() === decodeURIComponent(examParam).toLowerCase()
+      );
+      if (match) fetchCourseDetail(match.examName);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [courses, searchParams]);
 
   // Keep editedSections in sync when pdfResult changes
   useEffect(() => {
@@ -304,6 +331,7 @@ export default function CourseContentPage() {
     setSaving(false);
   };
 
+  // ── PDF Upload — calls Claude API directly from the frontend ────────────────
   const handlePdfUpload = async (file) => {
     if (!selectedCourse) return;
     if (!file || file.type !== 'application/pdf') { setPdfError('Please select a valid PDF file.'); return; }
@@ -311,14 +339,71 @@ export default function CourseContentPage() {
     setPdfResult(null);
     setPdfError('');
     try {
-      const formData = new FormData();
-      formData.append('pdf', file);
-      const response = await fetch(`${API}/api/course-content/extract-pdf`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token()}` }, body: formData,
+      const base64Data = await fileToBase64(file);
+
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': import.meta.env.VITE_ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 20000,
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'document',
+                  source: { type: 'base64', media_type: 'application/pdf', data: base64Data },
+                },
+                {
+                  type: 'text',
+                  text: `You are processing a California real estate continuing education course booklet PDF.
+
+Extract ALL sections from this PDF. Each section boundary is determined by the END of a quiz block (a set of True/False questions). Everything from the start of the document (or end of the previous quiz) up to and including the quiz is one section.
+
+For each section extract:
+- title: the section heading/title found in the content
+- pageRange: the page range covered, e.g. "Pages 1–9" — read actual page numbers from the document
+- content: the full reading content of the section as clean HTML using <h2>, <h3>, <p>, <ul>, <ol>, <strong>, <em> tags only — no inline styles, no <html>/<body>/<head> wrapper
+- quizQuestions: all True/False questions from the quiz block at the END of this section, each with:
+  - question: the full statement text
+  - correctAnswer: boolean true or false
+  - pageRef: page reference if mentioned near the question, otherwise empty string ""
+
+Respond ONLY with a raw JSON object. No markdown, no code fences, no explanation — just the JSON:
+{
+  "sections": [
+    {
+      "title": "...",
+      "pageRange": "...",
+      "content": "<h2>...</h2><p>...</p>",
+      "quizQuestions": [
+        { "question": "...", "correctAnswer": true, "pageRef": "" }
+      ]
+    }
+  ]
+}`,
+                },
+              ],
+            },
+          ],
+        }),
       });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to process PDF');
+
+      const raw = await response.json();
+      if (!response.ok) throw new Error(raw?.error?.message || 'Claude API error');
+
+      const text  = raw.content?.map(b => b.text || '').join('') || '';
+      const clean = text.replace(/```json|```/g, '').trim();
+      const data  = JSON.parse(clean);
+
       if (!data.sections?.length) throw new Error('No sections found in PDF');
+
       setPdfResult(data);
       showToast(`✅ Found ${data.sections.length} sections!`, 'success');
     } catch (err) {
@@ -531,7 +616,7 @@ export default function CourseContentPage() {
                   {pdfUploading && (
                     <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#0369a1', fontFamily: "'Poppins', sans-serif" }}>
                       <div style={{ width: 18, height: 18, border: '2px solid #bfdbfe', borderTopColor: '#2563eb', borderRadius: '50%', animation: 'spin 0.8s linear infinite', flexShrink: 0 }} />
-                      Reading PDF and extracting sections...
+                      Claude is reading the PDF and extracting sections...
                     </div>
                   )}
 

@@ -20,6 +20,7 @@ import RefundPolicyPage from './pages/RefundPolicyPage';
 import AuthCallback from './pages/AuthCallback';
 import MyCourses from './pages/MyCourses';
 import BundleOverviewPage from './pages/BundleOverviewPage';
+import CourseReadingPage from './pages/CourseReadingPage';
 import ExamPortalPage from './pages/ExamPortalPage';
 import ExamResultsPage from './pages/ExamResultsPage';
 import ProfilePage from './pages/ProfilePage';
@@ -69,6 +70,7 @@ function App() {
           {/* ── Student portal (no public header/footer) ── */}
           <Route path="/my-courses"               element={<MyCourses />} />
           <Route path="/bundle/:bundleId"         element={<BundleOverviewPage />} />
+          <Route path="/course/:bundleId/:examName" element={<CourseReadingPage />} />
           <Route path="/exam/:bundleId/:examName" element={<ExamPortalPage />} />
           <Route path="/exam-results/:sessionId"  element={<ExamResultsPage />} />
 
